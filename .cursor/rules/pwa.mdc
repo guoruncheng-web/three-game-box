@@ -1,0 +1,124 @@
+---
+description: PWA 开发规则 - Progressive Web App 最佳实践
+globs: ["next.config.*", "public/manifest.json", "public/sw.js", "src/app/layout.tsx"]
+alwaysApply: false
+---
+
+# PWA 开发规则
+
+## 技术栈
+- **next-pwa**: Next.js PWA 插件
+- **Workbox**: Service Worker 工具库（next-pwa 内置）
+
+## Next.js PWA 配置
+
+### next.config.ts 配置
+```typescript
+import type { NextConfig } from "next";
+
+const withPWA = require("next-pwa")({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+};
+
+module.exports = withPWA(nextConfig);
+```
+
+## Web App Manifest
+
+### public/manifest.json
+```json
+{
+  "name": "Three Game Box",
+  "short_name": "GameBox",
+  "description": "3D 游戏盒子 - 精选休闲小游戏合集",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fef7ff",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
+```
+
+## Layout Metadata
+
+```typescript
+import type { Metadata, Viewport } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Three Game Box',
+    template: '%s | Three Game Box',
+  },
+  description: '3D 游戏盒子 - 精选休闲小游戏合集',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'GameBox',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#667eea',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
+```
+
+## 离线支持
+
+### 检测在线状态 Hook
+```typescript
+'use client';
+import { useState, useEffect } from 'react';
+
+export function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+}
+```
+
+## 注意事项
+
+1. **HTTPS 必需**: PWA 功能仅在 HTTPS 或 localhost 下可用
+2. **开发环境**: 建议在开发时禁用 PWA 以避免缓存问题
+3. **更新策略**: 使用 `skipWaiting` 确保用户获取最新版本

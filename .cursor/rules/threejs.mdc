@@ -1,0 +1,336 @@
+---
+description: Three.js 开发规则 - 3D 游戏引擎使用规范
+globs: ["src/components/three/**/*", "src/games/**/*", "src/lib/three/**/*"]
+alwaysApply: false
+---
+
+# Three.js 开发规则
+
+## 技术栈
+- **Three.js**: 核心 3D 库
+- **@react-three/fiber**: React 渲染器
+- **@react-three/drei**: 常用组件和辅助工具
+
+## 基础组件结构
+
+### Canvas 设置
+```typescript
+'use client';
+
+import { Canvas } from '@react-three/fiber';
+import { Suspense } from 'react';
+
+function Game3D() {
+  return (
+    <Canvas
+      camera={{ position: [0, 5, 10], fov: 75 }}
+      shadows
+      dpr={[1, 2]} // 设备像素比
+      gl={{ antialias: true, alpha: false }}
+    >
+      <Suspense fallback={null}>
+        <Scene />
+      </Suspense>
+    </Canvas>
+  );
+}
+```
+
+### 场景组织
+```typescript
+function Scene() {
+  return (
+    <>
+      {/* 环境 */}
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 5]} castShadow />
+      
+      {/* 游戏对象 */}
+      <Player />
+      <Obstacles />
+      <Environment />
+      
+      {/* 辅助工具（开发时） */}
+      {process.env.NODE_ENV === 'development' && (
+        <>
+          <axesHelper args={[5]} />
+          <gridHelper args={[20, 20]} />
+        </>
+      )}
+    </>
+  );
+}
+```
+
+## 性能优化指南
+
+### 1. 几何体复用
+```typescript
+import { useMemo } from 'react';
+import * as THREE from 'three';
+
+function Obstacles({ count }: { count: number }) {
+  // 复用几何体和材质
+  const geometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ color: 'red' }), []);
+  
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <mesh key={i} geometry={geometry} material={material} position={[i * 2, 0, 0]} />
+      ))}
+    </>
+  );
+}
+```
+
+### 2. 实例化渲染（大量相同对象）
+```typescript
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
+
+function InstancedCubes({ count }: { count: number }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  
+  useFrame(() => {
+    // 批量更新实例
+  });
+  
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial />
+    </instancedMesh>
+  );
+}
+```
+
+### 3. 使用 useFrame 进行动画
+```typescript
+import { useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
+import * as THREE from 'three';
+
+function RotatingCube() {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += delta;
+      meshRef.current.rotation.y += delta * 0.5;
+    }
+  });
+  
+  return (
+    <mesh ref={meshRef}>
+      <boxGeometry />
+      <meshStandardMaterial color="orange" />
+    </mesh>
+  );
+}
+```
+
+### 4. 条件渲染和 LOD
+```typescript
+import { useThree } from '@react-three/fiber';
+
+function AdaptiveDetail() {
+  const { viewport } = useThree();
+  const isLowPerf = viewport.width < 500;
+  
+  return (
+    <mesh>
+      <sphereGeometry args={[1, isLowPerf ? 16 : 32, isLowPerf ? 16 : 32]} />
+      <meshStandardMaterial />
+    </mesh>
+  );
+}
+```
+
+## 资源管理规范
+
+### 加载 3D 模型
+```typescript
+import { useGLTF } from '@react-three/drei';
+
+function Character() {
+  const { scene } = useGLTF('/models/character.glb');
+  return <primitive object={scene} />;
+}
+
+// 预加载
+useGLTF.preload('/models/character.glb');
+```
+
+### 加载纹理
+```typescript
+import { useTexture } from '@react-three/drei';
+
+function TexturedBox() {
+  const texture = useTexture('/textures/wood.jpg');
+  
+  return (
+    <mesh>
+      <boxGeometry />
+      <meshStandardMaterial map={texture} />
+    </mesh>
+  );
+}
+```
+
+### 资源清理
+```typescript
+import { useEffect } from 'react';
+import * as THREE from 'three';
+
+function DisposableScene() {
+  useEffect(() => {
+    return () => {
+      // 清理几何体、材质、纹理
+      // drei 的 hooks 会自动处理，但自定义资源需要手动清理
+    };
+  }, []);
+  
+  return <mesh>{/* ... */}</mesh>;
+}
+```
+
+## 常用 Drei 组件
+
+### 相机控制
+```typescript
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+
+function CameraSetup() {
+  return (
+    <>
+      <PerspectiveCamera makeDefault position={[0, 5, 10]} />
+      <OrbitControls 
+        enablePan={false}
+        maxPolarAngle={Math.PI / 2}
+        minDistance={5}
+        maxDistance={20}
+      />
+    </>
+  );
+}
+```
+
+### 环境和光照
+```typescript
+import { Environment, Sky, Stars } from '@react-three/drei';
+
+function SceneEnvironment() {
+  return (
+    <>
+      <Environment preset="sunset" />
+      {/* 或自定义天空 */}
+      <Sky sunPosition={[100, 20, 100]} />
+      <Stars radius={100} depth={50} count={5000} />
+    </>
+  );
+}
+```
+
+### 文字渲染
+```typescript
+import { Text, Text3D } from '@react-three/drei';
+
+function GameText() {
+  return (
+    <>
+      {/* 2D 文字（性能更好） */}
+      <Text
+        position={[0, 2, 0]}
+        fontSize={0.5}
+        color="white"
+        anchorX="center"
+        anchorY="middle"
+      >
+        Score: 100
+      </Text>
+      
+      {/* 3D 文字 */}
+      <Text3D font="/fonts/helvetiker_regular.typeface.json">
+        GAME
+        <meshStandardMaterial color="gold" />
+      </Text3D>
+    </>
+  );
+}
+```
+
+## 物理引擎（可选）
+
+```typescript
+import { Physics, RigidBody } from '@react-three/rapier';
+
+function PhysicsScene() {
+  return (
+    <Physics gravity={[0, -9.81, 0]}>
+      <RigidBody type="fixed">
+        <mesh position={[0, -1, 0]}>
+          <boxGeometry args={[20, 0.5, 20]} />
+          <meshStandardMaterial color="green" />
+        </mesh>
+      </RigidBody>
+      
+      <RigidBody>
+        <mesh position={[0, 5, 0]}>
+          <sphereGeometry args={[0.5]} />
+          <meshStandardMaterial color="red" />
+        </mesh>
+      </RigidBody>
+    </Physics>
+  );
+}
+```
+
+## 游戏循环模式
+
+```typescript
+import { useFrame } from '@react-three/fiber';
+import { useGameStore } from '@/stores/gameStore';
+
+function GameLoop() {
+  const { isPlaying, updateScore, checkCollision } = useGameStore();
+  
+  useFrame((state, delta) => {
+    if (!isPlaying) return;
+    
+    // 1. 处理输入（在其他组件中）
+    // 2. 更新游戏状态
+    updateScore(delta);
+    
+    // 3. 检测碰撞
+    checkCollision();
+    
+    // 4. 渲染（自动处理）
+  });
+  
+  return null;
+}
+```
+
+## 调试工具
+
+```typescript
+import { useHelper } from '@react-three/drei';
+import { useRef } from 'react';
+import * as THREE from 'three';
+
+function DebugLight() {
+  const lightRef = useRef<THREE.DirectionalLight>(null);
+  
+  // 仅开发环境显示灯光辅助
+  useHelper(
+    process.env.NODE_ENV === 'development' ? lightRef : null,
+    THREE.DirectionalLightHelper,
+    1,
+    'red'
+  );
+  
+  return <directionalLight ref={lightRef} position={[5, 5, 5]} />;
+}
+```

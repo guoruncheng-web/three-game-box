@@ -1,0 +1,1338 @@
+---
+description: 样式开发规则 - Tailwind CSS 和 UI 设计规范（休闲游戏风格）
+globs: ["**/*.css", "**/*.tsx", "tailwind.config.*"]
+alwaysApply: false
+---
+
+# 样式开发规则 - 休闲小游戏风格
+
+## 设计主题
+
+### 视觉风格定位
+休闲小游戏应该给人**轻松、愉悦、有趣**的感觉，支持多种主题风格：
+
+| 风格 | 特点 | 适用游戏 |
+|------|------|----------|
+| 🍬 糖果卡通 | 圆润、彩色、可爱 | 消除类、益智类 |
+| 🌿 清新自然 | 柔和、绿色、舒适 | 农场、模拟经营 |
+| 🎮 像素复古 | 8-bit、怀旧、简洁 | 街机、跑酷 |
+| ✨ 梦幻童话 | 渐变、星星、魔法 | 冒险、收集类 |
+| 🎪 欢乐嘉年华 | 鲜艳、动感、活泼 | 派对、竞技类 |
+| 🎯 简约扁平 | 干净、现代、清爽 | 休闲益智、数字类 |
+
+### 核心设计原则
+1. **圆角优先** - 使用大圆角营造亲和感（16px-32px）
+2. **色彩丰富** - 明亮饱和的色彩组合，避免灰暗
+3. **动效活泼** - 弹跳、摇晃、缩放等趣味动画
+4. **图标可爱** - 使用 emoji 或卡通图标增加趣味
+5. **反馈明确** - 点击、得分、失败等有明显视觉/触觉反馈
+6. **层次分明** - 使用阴影和层叠营造深度感
+
+---
+
+## 配色方案
+
+### 主题色板 - 糖果色系（默认）
+```css
+/* CSS 变量定义 - globals.css */
+:root {
+  /* 背景色 - 柔和渐变 */
+  --bg-primary: #fef7ff;
+  --bg-secondary: #f0f4ff;
+  --bg-card: #ffffff;
+  --bg-game: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* 糖果色 - 主要色彩 */
+  --candy-pink: #ff6b9d;
+  --candy-orange: #ffa726;
+  --candy-yellow: #ffee58;
+  --candy-green: #66bb6a;
+  --candy-blue: #42a5f5;
+  --candy-purple: #ab47bc;
+  --candy-red: #ef5350;
+  --candy-teal: #26a69a;
+  
+  /* 游戏主色 */
+  --game-primary: #667eea;
+  --game-secondary: #764ba2;
+  --game-accent: #f093fb;
+  --game-highlight: #ffd700;
+  
+  /* 功能色 */
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --info: #2196f3;
+  
+  /* 文字色 */
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --text-light: #ffffff;
+  --text-accent: #6c5ce7;
+  --text-muted: #b2bec3;
+  
+  /* 边框色 */
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.15);
+  
+  /* 阴影 */
+  --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-button: 0 4px 15px rgba(102, 126, 234, 0.4);
+  --shadow-float: 0 15px 50px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.5);
+  
+  /* 渐变 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+  --gradient-candy: linear-gradient(135deg, #ff6b9d 0%, #ffa726 50%, #ffee58 100%);
+  --gradient-sky: linear-gradient(180deg, #a8edea 0%, #fed6e3 100%);
+  --gradient-sunset: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --gradient-ocean: linear-gradient(135deg, #667eea 0%, #00d4ff 100%);
+  --gradient-forest: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-fire: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-gold: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+}
+
+/* 深色主题 */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-card: #0f3460;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-medium: rgba(255, 255, 255, 0.2);
+}
+```
+
+### Tailwind 配置扩展
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
+  theme: {
+    extend: {
+      colors: {
+        bg: {
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          card: 'var(--bg-card)',
+        },
+        candy: {
+          pink: '#ff6b9d',
+          orange: '#ffa726',
+          yellow: '#ffee58',
+          green: '#66bb6a',
+          blue: '#42a5f5',
+          purple: '#ab47bc',
+          red: '#ef5350',
+          teal: '#26a69a',
+        },
+        game: {
+          primary: '#667eea',
+          secondary: '#764ba2',
+          accent: '#f093fb',
+          highlight: '#ffd700',
+        },
+      },
+      fontFamily: {
+        // 推荐的休闲游戏字体
+        display: ['Nunito', 'Comic Neue', 'system-ui', 'sans-serif'],
+        body: ['Quicksand', 'Nunito Sans', 'system-ui', 'sans-serif'],
+        game: ['Fredoka One', 'Baloo 2', 'Comic Sans MS', 'cursive'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      fontSize: {
+        'game-xs': ['0.75rem', { lineHeight: '1rem', fontWeight: '600' }],
+        'game-sm': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '600' }],
+        'game-base': ['1rem', { lineHeight: '1.5rem', fontWeight: '700' }],
+        'game-lg': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '700' }],
+        'game-xl': ['1.5rem', { lineHeight: '2rem', fontWeight: '800' }],
+        'game-2xl': ['2rem', { lineHeight: '2.5rem', fontWeight: '800' }],
+        'game-3xl': ['3rem', { lineHeight: '3.5rem', fontWeight: '900' }],
+      },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
+        '4xl': '2.5rem',
+        'blob': '60% 40% 30% 70% / 60% 30% 70% 40%',
+        'bubble': '50% 50% 50% 50% / 60% 60% 40% 40%',
+      },
+      boxShadow: {
+        'xs': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'soft': '0 4px 15px rgba(0, 0, 0, 0.1)',
+        'card': '0 8px 30px rgba(0, 0, 0, 0.12)',
+        'button': '0 4px 15px rgba(102, 126, 234, 0.4)',
+        'candy': '0 6px 20px rgba(255, 107, 157, 0.4)',
+        'candy-green': '0 6px 20px rgba(102, 187, 106, 0.4)',
+        'candy-blue': '0 6px 20px rgba(66, 165, 245, 0.4)',
+        'candy-yellow': '0 6px 20px rgba(255, 238, 88, 0.4)',
+        'float': '0 15px 50px rgba(0, 0, 0, 0.15)',
+        'inner-glow': 'inset 0 2px 10px rgba(255, 255, 255, 0.5)',
+        'glow': '0 0 20px rgba(102, 126, 234, 0.5)',
+        'glow-pink': '0 0 20px rgba(255, 107, 157, 0.5)',
+        'glow-gold': '0 0 20px rgba(255, 215, 0, 0.5)',
+      },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+      animation: {
+        // 弹跳效果
+        'bounce-in': 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'bounce-out': 'bounceOut 0.4s ease-in forwards',
+        'bounce-soft': 'bounceSoft 2s ease-in-out infinite',
+        'bounce-once': 'bounceOnce 0.5s ease-out',
+        // 摇晃效果
+        'wiggle': 'wiggle 0.5s ease-in-out',
+        'wiggle-more': 'wiggleMore 0.5s ease-in-out',
+        'shake': 'shake 0.5s ease-in-out',
+        'jelly': 'jelly 0.5s ease-in-out',
+        // 浮动效果
+        'float': 'float 3s ease-in-out infinite',
+        'float-slow': 'float 5s ease-in-out infinite',
+        'float-fast': 'float 1.5s ease-in-out infinite',
+        // 旋转效果
+        'spin-slow': 'spin 3s linear infinite',
+        'spin-reverse': 'spinReverse 2s linear infinite',
+        'rotate-y': 'rotateY 1s ease-in-out',
+        // 缩放效果
+        'pulse-scale': 'pulseScale 2s ease-in-out infinite',
+        'pop': 'pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'pop-in': 'popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'heartbeat': 'heartbeat 1.5s ease-in-out infinite',
+        // 闪烁效果
+        'sparkle': 'sparkle 1.5s ease-in-out infinite',
+        'glow-pulse': 'glowPulse 2s ease-in-out infinite',
+        'blink': 'blink 1s step-end infinite',
+        // 滑入效果
+        'slide-up': 'slideUp 0.5s ease-out',
+        'slide-down': 'slideDown 0.5s ease-out',
+        'slide-left': 'slideLeft 0.5s ease-out',
+        'slide-right': 'slideRight 0.5s ease-out',
+        'slide-up-fade': 'slideUpFade 0.5s ease-out',
+        // 得分/奖励动画
+        'score-pop': 'scorePop 0.8s ease-out forwards',
+        'coin-collect': 'coinCollect 0.6s ease-out forwards',
+        'star-burst': 'starBurst 0.8s ease-out forwards',
+        // 星星效果
+        'twinkle': 'twinkle 2s ease-in-out infinite',
+        // 彩虹效果
+        'rainbow': 'rainbow 3s linear infinite',
+        // 呼吸效果
+        'breathe': 'breathe 3s ease-in-out infinite',
+        // 淡入淡出
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'fade-out': 'fadeOut 0.3s ease-in forwards',
+        // 翻转效果
+        'flip': 'flip 0.6s ease-in-out',
+        'flip-x': 'flipX 0.6s ease-in-out',
+      },
+      keyframes: {
+        bounceIn: {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '50%': { transform: 'scale(1.15)' },
+          '70%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        bounceOut: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
+        },
+        bounceSoft: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        bounceOnce: {
+          '0%': { transform: 'translateY(0)' },
+          '40%': { transform: 'translateY(-20px)' },
+          '60%': { transform: 'translateY(-10px)' },
+          '80%': { transform: 'translateY(-5px)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-5deg)' },
+          '75%': { transform: 'rotate(5deg)' },
+        },
+        wiggleMore: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-12deg)' },
+          '75%': { transform: 'rotate(12deg)' },
+        },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '20%': { transform: 'translateX(-8px)' },
+          '40%': { transform: 'translateX(8px)' },
+          '60%': { transform: 'translateX(-4px)' },
+          '80%': { transform: 'translateX(4px)' },
+        },
+        jelly: {
+          '0%, 100%': { transform: 'scale(1, 1)' },
+          '25%': { transform: 'scale(0.9, 1.1)' },
+          '50%': { transform: 'scale(1.1, 0.9)' },
+          '75%': { transform: 'scale(0.95, 1.05)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-15px) rotate(3deg)' },
+        },
+        spinReverse: {
+          '100%': { transform: 'rotate(-360deg)' },
+        },
+        rotateY: {
+          '0%': { transform: 'rotateY(0deg)' },
+          '100%': { transform: 'rotateY(360deg)' },
+        },
+        pulseScale: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.08)' },
+        },
+        pop: {
+          '0%': { transform: 'scale(0.8)', opacity: '0' },
+          '50%': { transform: 'scale(1.1)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        popIn: {
+          '0%': { transform: 'scale(0) rotate(-10deg)', opacity: '0' },
+          '60%': { transform: 'scale(1.1) rotate(3deg)' },
+          '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
+        },
+        heartbeat: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '14%': { transform: 'scale(1.15)' },
+          '28%': { transform: 'scale(1)' },
+          '42%': { transform: 'scale(1.15)' },
+          '70%': { transform: 'scale(1)' },
+        },
+        sparkle: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1) rotate(0deg)' },
+          '50%': { opacity: '0.5', transform: 'scale(0.8) rotate(180deg)' },
+        },
+        glowPulse: {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(102, 126, 234, 0.4)' },
+          '50%': { boxShadow: '0 0 40px rgba(102, 126, 234, 0.8)' },
+        },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(30px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideDown: {
+          '0%': { transform: 'translateY(-30px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        slideLeft: {
+          '0%': { transform: 'translateX(30px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideRight: {
+          '0%': { transform: 'translateX(-30px)', opacity: '0' },
+          '100%': { transform: 'translateX(0)', opacity: '1' },
+        },
+        slideUpFade: {
+          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        scorePop: {
+          '0%': { transform: 'scale(0) translateY(0)', opacity: '1' },
+          '30%': { transform: 'scale(1.5) translateY(-15px)', opacity: '1' },
+          '100%': { transform: 'scale(1) translateY(-50px)', opacity: '0' },
+        },
+        coinCollect: {
+          '0%': { transform: 'scale(1) translateY(0)', opacity: '1' },
+          '50%': { transform: 'scale(1.3) translateY(-20px)', opacity: '1' },
+          '100%': { transform: 'scale(0) translateY(-40px)', opacity: '0' },
+        },
+        starBurst: {
+          '0%': { transform: 'scale(0) rotate(0deg)', opacity: '1' },
+          '50%': { transform: 'scale(1.5) rotate(180deg)', opacity: '1' },
+          '100%': { transform: 'scale(2) rotate(360deg)', opacity: '0' },
+        },
+        twinkle: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.3', transform: 'scale(0.5)' },
+        },
+        rainbow: {
+          '0%': { filter: 'hue-rotate(0deg)' },
+          '100%': { filter: 'hue-rotate(360deg)' },
+        },
+        breathe: {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.03)', opacity: '0.9' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+        flip: {
+          '0%': { transform: 'perspective(400px) rotateY(0)' },
+          '100%': { transform: 'perspective(400px) rotateY(360deg)' },
+        },
+        flipX: {
+          '0%': { transform: 'perspective(400px) rotateX(0)' },
+          '100%': { transform: 'perspective(400px) rotateX(360deg)' },
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;
+```
+
+---
+
+## 组件样式模式
+
+### 游戏卡片 - 休闲风格
+```tsx
+function GameCard({ game }: { game: Game }) {
+  return (
+    <div className="
+      group relative
+      bg-white rounded-3xl overflow-hidden
+      shadow-card hover:shadow-float
+      transition-all duration-300
+      hover:-translate-y-2
+      border-2 border-transparent
+      hover:border-candy-pink/30
+      active:scale-95
+    ">
+      {/* 游戏封面 */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <Image 
+          src={game.thumbnail} 
+          alt={game.name}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        {/* 渐变遮罩 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        
+        {/* 分类标签 */}
+        <div className="absolute top-3 left-3">
+          <span className="
+            px-3 py-1 
+            bg-white/90 backdrop-blur-sm
+            rounded-full text-sm font-medium
+            text-game-primary
+            shadow-xs
+          ">
+            {game.category}
+          </span>
+        </div>
+        
+        {/* 热门/新品标签 */}
+        {game.isHot && (
+          <div className="absolute top-3 right-3">
+            <span className="
+              px-2 py-1
+              bg-gradient-to-r from-candy-red to-candy-orange
+              rounded-full text-xs font-bold text-white
+              animate-pulse-scale
+            ">
+              🔥 热门
+            </span>
+          </div>
+        )}
+        
+        {/* 游戏图标 */}
+        <div className="
+          absolute -bottom-6 right-4
+          w-16 h-16 
+          bg-gradient-to-br from-candy-pink to-candy-orange
+          rounded-2xl shadow-candy
+          flex items-center justify-center
+          text-3xl
+          group-hover:animate-bounce-soft
+          border-4 border-white
+        ">
+          {game.icon}
+        </div>
+      </div>
+      
+      {/* 内容 */}
+      <div className="p-4 pt-8">
+        <h3 className="font-game text-xl text-gray-800 mb-1 truncate">
+          {game.name}
+        </h3>
+        <p className="font-body text-gray-500 text-sm line-clamp-2 min-h-[2.5rem]">
+          {game.description}
+        </p>
+        
+        {/* 底部信息 */}
+        <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center gap-1">
+            <span className="text-candy-yellow text-lg drop-shadow">⭐</span>
+            <span className="font-bold text-gray-700">{game.rating}</span>
+          </div>
+          <div className="flex items-center gap-1 text-gray-400 text-sm">
+            <span>🎮</span>
+            <span>{formatPlayCount(game.playCount)}</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* 悬停播放按钮 */}
+      <div className="
+        absolute inset-0 
+        flex items-center justify-center
+        bg-black/30 backdrop-blur-sm
+        opacity-0 group-hover:opacity-100
+        transition-all duration-300
+      ">
+        <div className="
+          w-16 h-16
+          bg-white rounded-full
+          flex items-center justify-center
+          shadow-float
+          transform scale-0 group-hover:scale-100
+          transition-transform duration-300 delay-100
+        ">
+          <span className="text-3xl ml-1">▶️</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### 卡通按钮（完整版）
+```tsx
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'candy' | 'ghost';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  icon?: string;
+  iconPosition?: 'left' | 'right';
+  loading?: boolean;
+  disabled?: boolean;
+  fullWidth?: boolean;
+  onClick?: () => void;
+}
+
+function CartoonButton({ 
+  children, 
+  variant = 'primary', 
+  size = 'md',
+  icon,
+  iconPosition = 'left',
+  loading = false,
+  disabled = false,
+  fullWidth = false,
+  onClick 
+}: ButtonProps) {
+  const variants = {
+    primary: 'bg-gradient-to-r from-game-primary to-game-secondary text-white shadow-button hover:shadow-glow',
+    secondary: 'bg-white text-game-primary border-2 border-game-primary hover:bg-game-primary/5',
+    success: 'bg-gradient-to-r from-candy-green to-emerald-400 text-white shadow-candy-green',
+    warning: 'bg-gradient-to-r from-candy-orange to-candy-yellow text-white shadow-candy-yellow',
+    danger: 'bg-gradient-to-r from-candy-red to-rose-500 text-white shadow-candy',
+    candy: 'bg-gradient-to-r from-candy-pink via-candy-purple to-candy-blue text-white animate-rainbow',
+    ghost: 'bg-transparent text-game-primary hover:bg-game-primary/10',
+  };
+  
+  const sizes = {
+    xs: 'px-3 py-1.5 text-xs rounded-lg gap-1',
+    sm: 'px-4 py-2 text-sm rounded-xl gap-1.5',
+    md: 'px-6 py-3 text-base rounded-2xl gap-2',
+    lg: 'px-8 py-4 text-lg rounded-2xl gap-2',
+    xl: 'px-10 py-5 text-xl rounded-3xl gap-3',
+  };
+  
+  return (
+    <button 
+      onClick={onClick}
+      disabled={disabled || loading}
+      className={`
+        ${variants[variant]}
+        ${sizes[size]}
+        ${fullWidth ? 'w-full' : ''}
+        font-game font-bold
+        transform transition-all duration-200
+        hover:scale-105 hover:-translate-y-1
+        active:scale-95 active:translate-y-0
+        disabled:opacity-50 disabled:cursor-not-allowed
+        disabled:hover:scale-100 disabled:hover:translate-y-0
+        flex items-center justify-center
+        min-h-[44px]
+        touch-manipulation
+      `}
+    >
+      {loading ? (
+        <span className="animate-spin text-xl">⏳</span>
+      ) : (
+        <>
+          {icon && iconPosition === 'left' && <span className="text-xl">{icon}</span>}
+          {children}
+          {icon && iconPosition === 'right' && <span className="text-xl">{icon}</span>}
+        </>
+      )}
+    </button>
+  );
+}
+```
+
+### 得分/金币/生命值显示
+```tsx
+// 分数显示
+function ScoreDisplay({ score, animate = false }: { score: number; animate?: boolean }) {
+  return (
+    <div className={`
+      inline-flex items-center gap-2
+      bg-white/95 backdrop-blur-sm
+      px-4 py-2 rounded-2xl
+      shadow-card
+      ${animate ? 'animate-pop' : ''}
+    `}>
+      <span className="text-2xl drop-shadow">⭐</span>
+      <span className="font-game text-2xl text-game-primary tabular-nums">
+        {score.toLocaleString()}
+      </span>
+    </div>
+  );
+}
+
+// 金币显示
+function CoinDisplay({ coins, animate = false }: { coins: number; animate?: boolean }) {
+  return (
+    <div className={`
+      inline-flex items-center gap-2
+      bg-gradient-to-r from-candy-yellow to-candy-orange
+      px-4 py-2 rounded-2xl
+      shadow-candy-yellow
+      ${animate ? 'animate-bounce-once' : ''}
+    `}>
+      <span className="text-2xl animate-spin-slow">🪙</span>
+      <span className="font-game text-xl text-white tabular-nums drop-shadow">
+        {coins.toLocaleString()}
+      </span>
+    </div>
+  );
+}
+
+// 生命值显示
+function LivesDisplay({ current, max = 3 }: { current: number; max?: number }) {
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: max }).map((_, i) => (
+        <span 
+          key={i} 
+          className={`
+            text-3xl transition-all duration-300
+            ${i < current 
+              ? 'animate-pulse-scale drop-shadow-lg' 
+              : 'grayscale opacity-30 scale-75'
+            }
+          `}
+        >
+          ❤️
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// 能量条/进度条
+function ProgressBar({ 
+  value, 
+  max = 100, 
+  color = 'primary',
+  showLabel = false,
+  size = 'md'
+}: ProgressBarProps) {
+  const percentage = Math.min((value / max) * 100, 100);
+  
+  const colors = {
+    primary: 'from-game-primary to-game-secondary',
+    success: 'from-candy-green to-emerald-400',
+    warning: 'from-candy-orange to-candy-yellow',
+    danger: 'from-candy-red to-rose-400',
+    candy: 'from-candy-pink via-candy-purple to-candy-blue',
+  };
+  
+  const sizes = {
+    sm: 'h-2',
+    md: 'h-4',
+    lg: 'h-6',
+  };
+  
+  return (
+    <div className="w-full">
+      <div className={`
+        w-full ${sizes[size]}
+        bg-gray-200 rounded-full
+        overflow-hidden shadow-inner
+      `}>
+        <div 
+          className={`
+            h-full rounded-full
+            bg-gradient-to-r ${colors[color]}
+            transition-all duration-500 ease-out
+            relative overflow-hidden
+          `}
+          style={{ width: `${percentage}%` }}
+        >
+          {/* 光泽效果 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent" />
+          {/* 动态光效 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+        </div>
+      </div>
+      {showLabel && (
+        <div className="text-center mt-1 font-game text-sm text-gray-600">
+          {value} / {max}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 游戏 HUD 样式 - 完整版
+```tsx
+function GameHUD({ 
+  score, 
+  lives, 
+  level, 
+  coins, 
+  time,
+  isPaused,
+  onPause,
+  onSettings 
+}: GameHUDProps) {
+  return (
+    <>
+      {/* 顶部 HUD */}
+      <div className="
+        fixed top-0 left-0 right-0
+        pt-safe-top p-4
+        flex justify-between items-start
+        pointer-events-none
+        z-50
+      ">
+        {/* 左侧 - 分数和等级 */}
+        <div className="flex flex-col gap-2 pointer-events-auto">
+          <ScoreDisplay score={score} />
+          <div className="
+            self-start
+            bg-gradient-to-r from-game-primary to-game-secondary
+            px-3 py-1 rounded-full
+            text-white font-game text-sm
+            shadow-button
+          ">
+            🎯 Lv.{level}
+          </div>
+        </div>
+        
+        {/* 中间 - 生命值 */}
+        <div className="flex flex-col items-center gap-2">
+          <LivesDisplay current={lives} max={3} />
+          {time !== undefined && (
+            <div className="
+              bg-white/95 backdrop-blur-sm
+              px-3 py-1 rounded-full
+              shadow-soft font-game text-gray-600
+            ">
+              ⏱️ {formatTime(time)}
+            </div>
+          )}
+        </div>
+        
+        {/* 右侧 - 金币和按钮 */}
+        <div className="flex flex-col gap-2 items-end pointer-events-auto">
+          <CoinDisplay coins={coins} />
+          <div className="flex gap-2">
+            <button 
+              onClick={onPause}
+              className="
+                w-10 h-10
+                bg-white/95 backdrop-blur-sm
+                rounded-xl shadow-soft
+                flex items-center justify-center
+                text-xl
+                active:scale-90 transition-transform
+              "
+            >
+              {isPaused ? '▶️' : '⏸️'}
+            </button>
+            <button 
+              onClick={onSettings}
+              className="
+                w-10 h-10
+                bg-white/95 backdrop-blur-sm
+                rounded-xl shadow-soft
+                flex items-center justify-center
+                text-xl
+                active:scale-90 transition-transform
+              "
+            >
+              ⚙️
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+```
+
+### 弹窗/对话框样式
+```tsx
+// 游戏结束弹窗
+function GameOverModal({ 
+  score, 
+  bestScore, 
+  stars,
+  coins,
+  onRestart, 
+  onHome,
+  onShare
+}: GameOverProps) {
+  const isNewRecord = score >= bestScore;
+  
+  return (
+    <div className="
+      fixed inset-0 z-50
+      flex items-center justify-center p-4
+      bg-black/60 backdrop-blur-sm
+      animate-fade-in
+    ">
+      <div className="
+        bg-white rounded-3xl
+        p-6 w-full max-w-sm
+        shadow-float
+        animate-bounce-in
+        text-center
+      ">
+        {/* 标题区域 */}
+        <div className="relative mb-4">
+          <div className="text-6xl mb-2">
+            {stars >= 3 ? '🏆' : stars >= 2 ? '🎉' : '🎮'}
+          </div>
+          <h2 className="font-game text-3xl text-gray-800">
+            {stars >= 3 ? '完美通关!' : stars >= 2 ? '太棒了!' : '游戏结束'}
+          </h2>
+          {isNewRecord && (
+            <div className="
+              absolute -top-2 -right-2
+              bg-gradient-to-r from-candy-yellow to-candy-orange
+              px-3 py-1 rounded-full
+              text-white font-game text-sm
+              animate-bounce-soft
+            ">
+              🎊 新纪录!
+            </div>
+          )}
+        </div>
+        
+        {/* 星星评级 */}
+        <div className="flex justify-center gap-2 mb-4">
+          {[1, 2, 3].map((i) => (
+            <span 
+              key={i}
+              className={`
+                text-4xl transition-all duration-500
+                ${i <= stars 
+                  ? 'animate-pop opacity-100' 
+                  : 'opacity-30 grayscale'
+                }
+              `}
+              style={{ animationDelay: `${i * 0.2}s` }}
+            >
+              ⭐
+            </span>
+          ))}
+        </div>
+        
+        {/* 分数展示 */}
+        <div className="
+          bg-gradient-to-br from-game-primary/10 to-game-secondary/10
+          rounded-2xl p-4 mb-4
+        ">
+          <div className="text-gray-500 text-sm mb-1">本次得分</div>
+          <div className="font-game text-4xl text-game-primary">
+            {score.toLocaleString()}
+          </div>
+        </div>
+        
+        {/* 奖励 */}
+        <div className="flex justify-center gap-4 mb-6">
+          <div className="flex items-center gap-1">
+            <span className="text-2xl">🪙</span>
+            <span className="font-game text-lg text-candy-orange">+{coins}</span>
+          </div>
+        </div>
+        
+        {/* 按钮组 */}
+        <div className="flex flex-col gap-3">
+          <CartoonButton 
+            variant="primary" 
+            size="lg" 
+            fullWidth 
+            icon="🔄"
+            onClick={onRestart}
+          >
+            再来一局
+          </CartoonButton>
+          <div className="flex gap-3">
+            <CartoonButton 
+              variant="secondary" 
+              size="md" 
+              fullWidth 
+              icon="🏠"
+              onClick={onHome}
+            >
+              首页
+            </CartoonButton>
+            <CartoonButton 
+              variant="ghost" 
+              size="md" 
+              fullWidth 
+              icon="📤"
+              onClick={onShare}
+            >
+              分享
+            </CartoonButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 暂停菜单
+function PauseMenu({ onResume, onRestart, onSettings, onHome }: PauseMenuProps) {
+  return (
+    <div className="
+      fixed inset-0 z-50
+      flex items-center justify-center p-4
+      bg-black/50 backdrop-blur-md
+      animate-fade-in
+    ">
+      <div className="
+        bg-white/95 rounded-3xl
+        p-6 w-full max-w-xs
+        shadow-float
+        animate-pop
+      ">
+        <h2 className="font-game text-2xl text-center text-gray-800 mb-6">
+          ⏸️ 暂停
+        </h2>
+        
+        <div className="flex flex-col gap-3">
+          <MenuButton icon="▶️" primary onClick={onResume}>
+            继续游戏
+          </MenuButton>
+          <MenuButton icon="🔄" onClick={onRestart}>
+            重新开始
+          </MenuButton>
+          <MenuButton icon="⚙️" onClick={onSettings}>
+            设置
+          </MenuButton>
+          <MenuButton icon="🏠" onClick={onHome}>
+            返回首页
+          </MenuButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MenuButton({ 
+  icon, 
+  children, 
+  primary = false,
+  onClick 
+}: MenuButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        w-full py-4 px-4
+        rounded-2xl
+        font-game text-lg
+        flex items-center gap-3
+        transition-all duration-200
+        active:scale-95
+        ${primary 
+          ? 'bg-gradient-to-r from-game-primary to-game-secondary text-white shadow-button' 
+          : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+        }
+      `}
+    >
+      <span className="text-2xl">{icon}</span>
+      {children}
+    </button>
+  );
+}
+```
+
+### 成就/徽章组件
+```tsx
+function AchievementBadge({ 
+  icon, 
+  title, 
+  description,
+  unlocked,
+  progress,
+  maxProgress,
+  rarity = 'common'
+}: AchievementBadgeProps) {
+  const rarityColors = {
+    common: 'from-gray-400 to-gray-500',
+    rare: 'from-candy-blue to-blue-500',
+    epic: 'from-candy-purple to-purple-600',
+    legendary: 'from-candy-yellow to-candy-orange',
+  };
+  
+  return (
+    <div className={`
+      relative p-4 rounded-2xl
+      transition-all duration-300
+      ${unlocked 
+        ? `bg-gradient-to-br ${rarityColors[rarity]} shadow-card` 
+        : 'bg-gray-100'
+      }
+      ${unlocked && 'hover:scale-105 hover:shadow-float'}
+    `}>
+      {/* 图标 */}
+      <div className={`
+        w-16 h-16 mx-auto mb-3
+        rounded-2xl
+        flex items-center justify-center
+        text-4xl
+        ${unlocked 
+          ? 'bg-white/20 animate-pulse-scale' 
+          : 'bg-gray-200 grayscale'
+        }
+      `}>
+        {icon}
+      </div>
+      
+      {/* 标题 */}
+      <h4 className={`
+        font-game text-center text-sm mb-1
+        ${unlocked ? 'text-white' : 'text-gray-400'}
+      `}>
+        {title}
+      </h4>
+      
+      {/* 进度条（未解锁时显示） */}
+      {!unlocked && progress !== undefined && (
+        <div className="mt-2">
+          <ProgressBar 
+            value={progress} 
+            max={maxProgress} 
+            size="sm" 
+            color="primary"
+          />
+          <div className="text-xs text-gray-400 text-center mt-1">
+            {progress}/{maxProgress}
+          </div>
+        </div>
+      )}
+      
+      {/* 稀有度标识 */}
+      {unlocked && rarity !== 'common' && (
+        <div className="absolute -top-1 -right-1">
+          <span className="text-lg animate-sparkle">
+            {rarity === 'legendary' ? '👑' : rarity === 'epic' ? '💎' : '✨'}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+## 背景效果
+
+### 渐变背景
+```tsx
+function GradientBackground({ variant = 'sky' }: { variant?: string }) {
+  const gradients = {
+    sky: 'from-blue-200 via-blue-100 to-pink-100',
+    sunset: 'from-orange-200 via-pink-200 to-purple-200',
+    forest: 'from-green-200 via-emerald-100 to-teal-100',
+    candy: 'from-pink-200 via-purple-100 to-blue-200',
+    night: 'from-indigo-900 via-purple-900 to-slate-900',
+  };
+  
+  return (
+    <div className={`
+      fixed inset-0 -z-10
+      bg-gradient-to-br ${gradients[variant]}
+    `} />
+  );
+}
+```
+
+### 动态云朵背景
+```tsx
+function CloudBackground() {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-300 via-sky-200 to-pink-100" />
+      
+      {[...Array(6)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute bg-white rounded-full opacity-90 animate-float-slow"
+          style={{
+            width: `${80 + i * 40}px`,
+            height: `${50 + i * 20}px`,
+            left: `${i * 18}%`,
+            top: `${15 + (i % 3) * 20}%`,
+            animationDelay: `${i * 0.8}s`,
+            animationDuration: `${4 + i}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+### 星星粒子背景
+```tsx
+function StarryBackground() {
+  return (
+    <div className="fixed inset-0 -z-10 bg-gradient-to-b from-indigo-900 via-purple-900 to-slate-900">
+      {[...Array(60)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full bg-white animate-twinkle"
+          style={{
+            width: `${Math.random() * 3 + 1}px`,
+            height: `${Math.random() * 3 + 1}px`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 3}s`,
+            animationDuration: `${2 + Math.random() * 2}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 响应式设计规范
+
+### 移动端优先（休闲游戏核心）
+```tsx
+function GameGrid({ games }: { games: Game[] }) {
+  return (
+    <div className="
+      grid gap-4 p-4
+      grid-cols-2          /* 移动端: 2列 */
+      sm:grid-cols-2       /* 小屏: 2列 */
+      md:grid-cols-3       /* 平板: 3列 */
+      lg:grid-cols-4       /* 桌面: 4列 */
+      xl:grid-cols-5       /* 大屏: 5列 */
+    ">
+      {games.map((game, i) => (
+        <div 
+          key={game.id}
+          className="animate-slide-up"
+          style={{ animationDelay: `${i * 0.05}s` }}
+        >
+          <GameCard game={game} />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### 安全区域适配（刘海屏）
+```tsx
+<div className="
+  pt-safe-top pb-safe-bottom
+  pl-safe-left pr-safe-right
+">
+  {/* 内容 */}
+</div>
+```
+
+### 触摸友好设计
+```tsx
+// 所有可点击元素最小 44x44px
+<button className="
+  min-w-[44px] min-h-[44px]
+  p-3
+  touch-manipulation
+  active:scale-95
+  transition-transform
+">
+  点击
+</button>
+```
+
+---
+
+## 加载状态
+
+### 可爱加载动画
+```tsx
+function CuteLoader({ text = '加载中' }: { text?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 p-8">
+      <div className="flex gap-2">
+        {['🎮', '🎯', '🎪', '🎨'].map((emoji, i) => (
+          <span 
+            key={i}
+            className="text-4xl animate-bounce"
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
+            {emoji}
+          </span>
+        ))}
+      </div>
+      <p className="font-game text-gray-500 animate-pulse">
+        {text}...
+      </p>
+    </div>
+  );
+}
+```
+
+### 骨架屏
+```tsx
+function GameCardSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl overflow-hidden shadow-card animate-pulse">
+      <div className="aspect-[4/3] bg-gray-200" />
+      <div className="p-4 pt-8">
+        <div className="h-6 bg-gray-200 rounded-lg mb-2 w-3/4" />
+        <div className="h-4 bg-gray-200 rounded-lg mb-1 w-full" />
+        <div className="h-4 bg-gray-200 rounded-lg w-2/3" />
+        <div className="flex justify-between mt-4">
+          <div className="h-5 bg-gray-200 rounded-lg w-16" />
+          <div className="h-5 bg-gray-200 rounded-lg w-20" />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## 工具类样式
+
+```css
+/* globals.css 中添加 */
+
+/* 文字描边效果 */
+.text-stroke {
+  -webkit-text-stroke: 2px currentColor;
+  paint-order: stroke fill;
+}
+
+/* 玻璃拟态 */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 光泽动画 */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* 禁用选择 */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 隐藏滚动条 */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 安全区域 padding */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+```
+
+---
+
+## 无障碍考虑
+
+```tsx
+// 焦点样式
+<button className="
+  focus:outline-none
+  focus:ring-4 focus:ring-game-primary/50
+  focus:ring-offset-2
+  rounded-2xl
+">
+  开始游戏
+</button>
+
+// 减少动画（尊重用户偏好）
+<div className="
+  animate-bounce-soft
+  motion-reduce:animate-none
+">
+  弹跳元素
+</div>
+
+// 足够的点击区域
+<button className="
+  min-w-[48px] min-h-[48px]
+  p-4
+">
+  <span className="sr-only">关闭</span>
+  ✕
+</button>
+```

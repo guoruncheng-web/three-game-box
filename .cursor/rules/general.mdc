@@ -1,0 +1,103 @@
+---
+description: 通用开发规则 - 适用于整个项目的基础规范
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# 通用开发规则
+
+## 项目概述
+这是一个基于 Next.js + PWA + Three.js 的休闲游戏盒子项目，包含多个 3D,2D 移动端小游戏。
+状态管理采用react-redux
+ui组件库使用antd-mobile
+
+## 代码风格规范
+
+### 命名约定
+- **文件名**: 使用 kebab-case（如 `game-card.tsx`）或 PascalCase 用于组件（如 `GameCard.tsx`）
+- **组件名**: 使用 PascalCase（如 `GameCard`）
+- **函数名**: 使用 camelCase（如 `handleClick`）
+- **常量**: 使用 UPPER_SNAKE_CASE（如 `MAX_SCORE`）
+- **类型/接口**: 使用 PascalCase，接口以 `I` 开头可选（如 `GameConfig` 或 `IGameConfig`）
+- **Hooks**: 以 `use` 开头（如 `useGameState`）
+
+### 文件组织原则
+- 每个文件只导出一个主要组件/函数
+- 相关的类型定义放在 `src/types/` 目录
+- 工具函数放在 `src/utils/` 目录
+- 自定义 Hooks 放在 `src/hooks/` 目录
+- 游戏实现放在 `src/games/` 目录
+
+### 注释规范
+- 复杂逻辑必须添加注释说明
+- 函数/组件使用 JSDoc 格式注释
+- TODO 注释格式：`// TODO: 描述`
+- FIXME 注释格式：`// FIXME: 描述`
+
+```typescript
+/**
+ * 游戏卡片组件
+ * @param game - 游戏数据对象
+ * @param onClick - 点击回调函数
+ */
+export function GameCard({ game, onClick }: GameCardProps) {
+  // ...
+}
+```
+
+## 导入顺序规范
+1. React 相关
+2. Next.js 相关
+3. 第三方库
+4. 内部模块（@/ 别名）
+5. 相对路径导入
+6. 类型导入
+
+```typescript
+// 1. React
+import { useState, useEffect } from 'react';
+
+// 2. Next.js
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+// 3. 第三方库
+import { Canvas } from '@react-three/fiber';
+import { useSpring } from '@react-spring/three';
+
+// 4. 内部模块
+import { useGameStore } from '@/stores/gameStore';
+import { Button } from '@/components/ui/Button';
+
+// 5. 相对路径
+import { Player } from './Player';
+
+// 6. 类型
+import type { Game } from '@/types/game';
+```
+
+## Git 提交规范
+- feat: 新功能
+- fix: 修复 bug
+- docs: 文档更新
+- style: 代码格式调整
+- refactor: 重构
+- perf: 性能优化
+- test: 测试相关
+- chore: 构建/工具相关
+
+## 错误处理
+- 使用 try-catch 处理异步操作
+- 提供有意义的错误信息
+- 在 UI 层面优雅地展示错误状态
+
+## 性能考虑
+- 避免不必要的重渲染
+- 使用 `useMemo` 和 `useCallback` 优化性能
+- 图片使用 Next.js Image 组件优化
+- 3D 资源使用懒加
+
+## 开发规则
+- 完成每一个功能需要调用相关的mcp工具过一遍测试,如果没有相关的mcp工具你就按照自己的逻辑走一遍测试
+- 不要轻易删除文件,要先备份再次进行
+- 完成功能后需要记录相关的思路以及功能要点

@@ -1,0 +1,234 @@
+---
+description: Next.js 开发规则 - App Router 和 React Server Components 规范
+globs: ["src/app/**/*", "next.config.*"]
+alwaysApply: false
+---
+
+# Next.js 开发规则
+
+## App Router 规范
+
+### 目录结构
+```
+src/app/
+├── layout.tsx          # 根布局（必须）
+├── page.tsx            # 首页
+├── loading.tsx         # 加载状态
+├── error.tsx           # 错误边界
+├── not-found.tsx       # 404 页面
+├── games/
+│   ├── [gameId]/
+│   │   └── page.tsx    # 动态路由
+│   └── play/
+│       └── [gameId]/
+│           └── page.tsx
+└── api/                # API 路由
+    └── games/
+        └── route.ts
+```
+
+### 服务端组件 vs 客户端组件
+
+#### 默认使用服务端组件
+- 数据获取
+- 访问后端资源
+- 敏感信息处理
+- 大型依赖（保持在服务端）
+
+#### 使用客户端组件（添加 'use client'）
+- 使用 React Hooks（useState, useEffect 等）
+- 使用浏览器 API
+- 事件监听器
+- Three.js/WebGL 渲染
+- 交互式 UI 组件
+
+```typescript
+// 服务端组件（默认）
+async function GameList() {
+  const games = await fetchGames(); // 直接获取数据
+  return <div>{/* ... */}</div>;
+}
+
+// 客户端组件
+'use client';
+import { useState } from 'react';
+
+function GameControls() {
+  const [score, setScore] = useState(0);
+  return <div>{/* ... */}</div>;
+}
+```
+
+### 数据获取模式
+
+#### 服务端数据获取
+```typescript
+// app/games/page.tsx
+async function GamesPage() {
+  // 直接在组件中获取数据
+  const games = await fetch('/api/games', {
+    cache: 'no-store', // 或 'force-cache'
+  }).then(res => res.json());
+  
+  return <GameGrid games={games} />;
+}
+```
+
+#### 客户端数据获取
+```typescript
+'use client';
+import { useEffect, useState } from 'react';
+
+function GameStats() {
+  const [stats, setStats] = useState(null);
+  
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(setStats);
+  }, []);
+  
+  return <div>{/* ... */}</div>;
+}
+```
+
+### API 路由规范
+
+```typescript
+// app/api/games/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  try {
+    const games = await getGames();
+    return NextResponse.json(games);
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to fetch games' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    // 处理逻辑
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Invalid request' },
+      { status: 400 }
+    );
+  }
+}
+```
+
+### 动态路由
+
+```typescript
+// app/games/[gameId]/page.tsx
+interface PageProps {
+  params: { gameId: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function GamePage({ params, searchParams }: PageProps) {
+  const { gameId } = params;
+  return <div>Game: {gameId}</div>;
+}
+
+// 生成静态参数（可选）
+export async function generateStaticParams() {
+  const games = await getGames();
+  return games.map((game) => ({
+    gameId: game.id,
+  }));
+}
+```
+
+### Metadata 配置
+
+```typescript
+// app/layout.tsx
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Three Game Box',
+    template: '%s | Three Game Box',
+  },
+  description: '3D 游戏盒子 - 精选休闲小游戏合集',
+  manifest: '/manifest.json',
+  themeColor: '#667eea',
+};
+
+// 动态 metadata
+// app/games/[gameId]/page.tsx
+export async function generateMetadata({ params }): Promise<Metadata> {
+  const game = await getGame(params.gameId);
+  return {
+    title: game.name,
+    description: game.description,
+  };
+}
+```
+
+### Loading 和 Error 处理
+
+```typescript
+// app/games/loading.tsx
+export default function Loading() {
+  return <div className="loading-spinner">加载中...</div>;
+}
+
+// app/games/error.tsx
+'use client';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
+  return (
+    <div>
+      <h2>出错了！</h2>
+      <button onClick={() => reset()}>重试</button>
+    </div>
+  );
+}
+```
+
+### 图片优化
+
+```typescript
+import Image from 'next/image';
+
+function GameCover({ src, alt }: { src: string; alt: string }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={400}
+      height={300}
+      placeholder="blur"
+      blurDataURL="data:image/jpeg;base64,..."
+      priority={false} // 首屏图片设为 true
+    />
+  );
+}
+```
+
+### 环境变量
+- `NEXT_PUBLIC_*`: 客户端可访问
+- 其他: 仅服务端可访问
+
+```typescript
+// 服务端
+const apiKey = process.env.API_KEY;
+
+// 客户端
+const publicUrl = process.env.NEXT_PUBLIC_API_URL;
+```

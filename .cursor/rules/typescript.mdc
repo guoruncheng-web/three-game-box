@@ -1,0 +1,304 @@
+---
+description: TypeScript 开发规则 - 类型安全和最佳实践
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+# TypeScript 开发规则
+
+## 类型定义规范
+
+### 基础类型定义位置
+- 全局类型: `src/types/` 目录
+- 组件 Props: 与组件同文件或 `ComponentName.types.ts`
+- API 响应: `src/types/api.ts`
+- 游戏相关: `src/types/game.ts`
+
+### 类型 vs 接口
+```typescript
+// 使用 interface 定义对象结构
+interface Game {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  category: GameCategory;
+}
+
+// 使用 type 定义联合类型、交叉类型、工具类型
+type GameCategory = 'action' | 'puzzle' | 'racing' | 'shooter';
+type GameWithScore = Game & { score: number };
+type PartialGame = Partial<Game>;
+```
+
+### 游戏相关类型定义示例
+
+```typescript
+// src/types/game.ts
+
+/** 游戏分类 */
+export type GameCategory = 'action' | 'puzzle' | 'racing' | 'shooter' | 'arcade';
+
+/** 游戏难度 */
+export type GameDifficulty = 'easy' | 'medium' | 'hard';
+
+/** 游戏状态 */
+export type GameState = 'idle' | 'playing' | 'paused' | 'gameover';
+
+/** 游戏配置 */
+export interface GameConfig {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  category: GameCategory;
+  difficulty: GameDifficulty;
+  controls: ControlScheme;
+  settings: GameSettings;
+}
+
+/** 控制方案 */
+export interface ControlScheme {
+  keyboard: Record<string, string>;
+  touch: boolean;
+  gamepad: boolean;
+}
+
+/** 游戏设置 */
+export interface GameSettings {
+  soundEnabled: boolean;
+  musicVolume: number;
+  sfxVolume: number;
+  quality: 'low' | 'medium' | 'high';
+}
+
+/** 游戏分数记录 */
+export interface GameScore {
+  gameId: string;
+  score: number;
+  playedAt: Date;
+  duration: number;
+}
+
+/** 玩家位置（3D） */
+export interface Position3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/** 玩家旋转（欧拉角） */
+export interface Rotation3D {
+  x: number;
+  y: number;
+  z: number;
+}
+```
+
+### 组件 Props 类型
+
+```typescript
+// 基础 Props 定义
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  onClick?: () => void;
+}
+
+// 扩展 HTML 元素 Props
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+// 带泛型的 Props
+interface ListProps<T> {
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  keyExtractor: (item: T) => string;
+}
+```
+
+### Three.js 相关类型
+
+```typescript
+// src/types/three.ts
+import type * as THREE from 'three';
+
+/** 3D 对象引用 */
+export type MeshRef = React.RefObject<THREE.Mesh>;
+export type GroupRef = React.RefObject<THREE.Group>;
+
+/** 材质类型 */
+export type MaterialType = 
+  | THREE.MeshStandardMaterial
+  | THREE.MeshBasicMaterial
+  | THREE.MeshPhongMaterial;
+
+/** 游戏对象基础接口 */
+export interface GameObject3D {
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  scale: THREE.Vector3;
+  visible: boolean;
+}
+
+/** 碰撞体 */
+export interface Collider {
+  type: 'box' | 'sphere' | 'capsule';
+  size: THREE.Vector3 | number;
+  offset?: THREE.Vector3;
+}
+```
+
+## 泛型使用指南
+
+### 常用泛型模式
+```typescript
+// API 响应包装
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message: string;
+}
+
+// 分页数据
+interface PaginatedData<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+// 使用示例
+type GamesResponse = ApiResponse<Game[]>;
+type PaginatedGames = PaginatedData<Game>;
+```
+
+### 工具类型使用
+```typescript
+// Partial - 所有属性可选
+type PartialGame = Partial<Game>;
+
+// Required - 所有属性必需
+type RequiredGame = Required<Game>;
+
+// Pick - 选择部分属性
+type GamePreview = Pick<Game, 'id' | 'name' | 'thumbnail'>;
+
+// Omit - 排除部分属性
+type GameWithoutId = Omit<Game, 'id'>;
+
+// Record - 键值对映射
+type GameScores = Record<string, number>;
+
+// Extract / Exclude - 联合类型操作
+type ActionCategories = Extract<GameCategory, 'action' | 'shooter'>;
+```
+
+## 类型断言和类型守卫
+
+### 类型守卫
+```typescript
+// 自定义类型守卫
+function isGame(obj: unknown): obj is Game {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj
+  );
+}
+
+// 使用
+function processData(data: unknown) {
+  if (isGame(data)) {
+    console.log(data.name); // 类型安全
+  }
+}
+```
+
+### 类型断言（谨慎使用）
+```typescript
+// 使用 as 断言
+const element = document.getElementById('canvas') as HTMLCanvasElement;
+
+// 非空断言（确定不为 null 时）
+const name = game!.name;
+
+// 避免使用 any，使用 unknown 替代
+function parseJSON(json: string): unknown {
+  return JSON.parse(json);
+}
+```
+
+## Zustand Store 类型
+
+```typescript
+// src/stores/gameStore.ts
+import { create } from 'zustand';
+
+interface GameState {
+  // 状态
+  currentGame: Game | null;
+  score: number;
+  isPlaying: boolean;
+  
+  // 动作
+  setCurrentGame: (game: Game | null) => void;
+  updateScore: (delta: number) => void;
+  startGame: () => void;
+  pauseGame: () => void;
+  resetGame: () => void;
+}
+
+export const useGameStore = create<GameState>((set, get) => ({
+  currentGame: null,
+  score: 0,
+  isPlaying: false,
+  
+  setCurrentGame: (game) => set({ currentGame: game }),
+  updateScore: (delta) => set((state) => ({ score: state.score + delta })),
+  startGame: () => set({ isPlaying: true }),
+  pauseGame: () => set({ isPlaying: false }),
+  resetGame: () => set({ score: 0, isPlaying: false }),
+}));
+```
+
+## 严格模式配置
+
+```json
+// tsconfig.json 推荐配置
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
+  }
+}
+```
+
+## 常见错误处理
+
+```typescript
+// 处理可能为 undefined 的值
+const games: Game[] = [];
+const firstGame = games[0]; // Game | undefined
+
+// 方式1: 可选链
+const name = firstGame?.name;
+
+// 方式2: 空值合并
+const name = firstGame?.name ?? 'Unknown';
+
+// 方式3: 类型守卫
+if (firstGame) {
+  console.log(firstGame.name); // 类型安全
+}
+```
