@@ -12,6 +12,12 @@
   "lang": "zh-CN",
   "icons": [
     {
+      "src": "/icons/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",

@@ -72,17 +72,21 @@ export async function createUser(userData: {
   phone?: string;
   password_hash: string;
   nickname?: string;
+  role?: string;
+  status?: string;
 }): Promise<User> {
   const result = await query(
-    `INSERT INTO users (username, email, phone, password_hash, nickname)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO users (username, email, phone, password_hash, nickname, role, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       userData.username,
       userData.email ?? null,
       userData.phone ?? null,
       userData.password_hash,
-      userData.nickname ?? null
+      userData.nickname ?? null,
+      userData.role ?? 'user',
+      userData.status ?? 'active'
     ]
   );
 

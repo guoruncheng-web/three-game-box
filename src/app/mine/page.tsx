@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { TabBar } from '@/components/layout/TabBar';
 import { useAuth } from '@/stores/authHooks';
+import { CreateUserDialog } from '@/components/admin/CreateUserDialog';
 import type { TabItem } from '@/components/layout/TabBar';
 
 // TabBar 配置
@@ -167,8 +168,12 @@ const menuItems = [
 
 export default function MinePage() {
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const [activeTab, setActiveTab] = useState<'achievements' | 'tasks'>('achievements');
+    const [showCreateUser, setShowCreateUser] = useState(false);
+
+    // 判断是否为超级管理员
+    const isSuperAdmin = user?.role === 'super_admin';
 
     const handleLogout = async () => {
         await logout();
@@ -481,6 +486,44 @@ export default function MinePage() {
 
                 {/* 菜单列表 */}
                 <div className="mt-6 bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in-up delay-400">
+                    {/* 创建账号（仅超级管理员） */}
+                    {isSuperAdmin && (
+                        <>
+                            <button
+                                onClick={() => setShowCreateUser(true)}
+                                className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-10 h-10 rounded-[14px] flex items-center justify-center"
+                                        style={{
+                                            backgroundImage: 'linear-gradient(135deg, rgb(147, 51, 234) 0%, rgb(219, 39, 119) 100%)',
+                                        }}
+                                    >
+                                        <span className="text-xl">👤</span>
+                                    </div>
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-base font-bold text-[#1e2939]">创建账号</span>
+                                        <span className="text-xs font-normal text-[#6a7282]">添加新用户</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-1 bg-[#fef2f2] rounded-full text-xs font-black text-[#9333ea] opacity-60">
+                                        ADMIN
+                                    </span>
+                                    <Image
+                                        src="/images/profile/icon-chevron-right.svg"
+                                        alt="arrow"
+                                        width={20}
+                                        height={20}
+                                        className="group-hover:translate-x-1 transition-transform"
+                                    />
+                                </div>
+                            </button>
+                            <div className="h-[1px] bg-[#f3f4f6]" />
+                        </>
+                    )}
+
                     {menuItems.map((item, index) => (
                         <div key={item.id}>
                             <button className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
@@ -546,6 +589,15 @@ export default function MinePage() {
 
             {/* 底部导航栏 */}
             <TabBar tabs={tabs} />
+
+            {/* 创建用户弹窗 */}
+            <CreateUserDialog
+                visible={showCreateUser}
+                onClose={() => setShowCreateUser(false)}
+                onSuccess={() => {
+                    // 创建成功后可以刷新用户列表等
+                }}
+            />
         </div>
     );
 }

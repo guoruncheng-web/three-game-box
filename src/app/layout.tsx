@@ -29,6 +29,10 @@ export const metadata: Metadata = {
   },
   description: "🎮 休闲游戏盒子 - 精选小游戏合集",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/logo.jpg",
+    apple: "/icons/logo.jpg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -42,6 +46,7 @@ export const metadata: Metadata = {
     siteName: "Three Game Box",
     title: "Three Game Box",
     description: "🎮 休闲游戏盒子 - 精选小游戏合集",
+    images: ["/icons/logo.jpg"],
   },
 };
 

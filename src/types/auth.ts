@@ -2,6 +2,9 @@
  * 认证相关的类型定义
  */
 
+/** 用户角色 */
+export type UserRole = 'super_admin' | 'admin' | 'user';
+
 /** 用户信息 */
 export interface User {
   id: number;
@@ -11,6 +14,7 @@ export interface User {
   avatar_url?: string;
   phone?: string;
   status: string;
+  role: UserRole; // 用户角色
   created_at: Date | string;
   updated_at: Date | string;
   last_login_at?: Date | string;
@@ -30,6 +34,7 @@ export interface PublicUser {
   avatar_url?: string;
   phone?: string;
   status: string;
+  role: UserRole; // 用户角色
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -47,6 +52,16 @@ export interface RegisterRequest {
 export interface LoginRequest {
   username: string; // 支持用户名或邮箱
   password: string;
+}
+
+/** 创建用户请求（管理员专用） */
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  email: string;
+  nickname?: string;
+  phone?: string;
+  role: UserRole;
 }
 
 /** 登录响应 */

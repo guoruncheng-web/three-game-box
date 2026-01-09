@@ -298,15 +298,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* 注册链接 */}
-          <div className="px-8 pb-6 text-center animate-fade-in-up delay-700">
-            <p className="text-base font-medium text-[#4a5565] tracking-[-0.31px]">
-              还没有账号？{' '}
-              <Link href="/register" className="text-base font-black text-[#9810fa] hover:scale-110 inline-block transform transition-all">
-                立即注册 ➡️
-              </Link>
-            </p>
-          </div>
         </div>
 
         {/* 用户协议和隐私政策 */}
