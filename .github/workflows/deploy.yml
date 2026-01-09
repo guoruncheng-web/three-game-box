@@ -1,0 +1,81 @@
+name: CI/CD Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # 允许手动触发
+
+env:
+  NODE_ENV: production
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          timeout: 300s
+          script: |
+            set -e
+            
+            # 项目目录
+            PROJECT_DIR="/var/www/three-game"
+            
+            # 如果目录不存在，克隆仓库
+            if [ ! -d "$PROJECT_DIR" ]; then
+              echo "项目目录不存在，开始克隆..."
+              mkdir -p /var/www
+              cd /var/www
+              git clone https://github.com/guoruncheng-web/three-game-box.git three-game
+              cd $PROJECT_DIR
+            else
+              echo "更新代码..."
+              cd $PROJECT_DIR
+              git fetch origin
+              git reset --hard origin/main
+            fi
+            
+            # 安装依赖
+            echo "安装依赖..."
+            npm ci --production=false
+            
+            # 构建项目
+            echo "构建项目..."
+            npm run build
+            
+            # 使用 PM2 管理进程
+            echo "重启应用..."
+            if pm2 list | grep -q "three-game"; then
+              pm2 restart three-game
+            else
+              pm2 start npm --name "three-game" -- start
+              pm2 save
+            fi
+            
+            # 显示状态
+            pm2 status
+            
+            echo "部署完成！"
