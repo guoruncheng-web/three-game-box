@@ -1,26 +1,145 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 背景色 - 柔和渐变 */
+  --bg-primary: #fef7ff;
+  --bg-secondary: #f0f4ff;
+  --bg-card: #ffffff;
+  --bg-game: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* 糖果色 - 主要色彩 */
+  --candy-pink: #ff6b9d;
+  --candy-orange: #ffa726;
+  --candy-yellow: #ffee58;
+  --candy-green: #66bb6a;
+  --candy-blue: #42a5f5;
+  --candy-purple: #ab47bc;
+  --candy-red: #ef5350;
+  --candy-teal: #26a69a;
+
+  /* 游戏主色 */
+  --game-primary: #667eea;
+  --game-secondary: #764ba2;
+  --game-accent: #f093fb;
+  --game-highlight: #ffd700;
+
+  /* 功能色 */
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --info: #2196f3;
+
+  /* 文字色 */
+  --text-primary: #2d3436;
+  --text-secondary: #636e72;
+  --text-light: #ffffff;
+  --text-accent: #6c5ce7;
+  --text-muted: #b2bec3;
+
+  /* 边框色 */
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.15);
+
+  /* 阴影 */
+  --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-button: 0 4px 15px rgba(102, 126, 234, 0.4);
+  --shadow-float: 0 15px 50px rgba(0, 0, 0, 0.15);
+
+  /* 渐变 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-candy: linear-gradient(135deg, #ff6b9d 0%, #ffa726 50%, #ffee58 100%);
+  --gradient-sky: linear-gradient(180deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* 深色主题 */
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --bg-card: #0f3460;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-medium: rgba(255, 255, 255, 0.2);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body), system-ui, sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* 安全区域 */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* 禁用选择 */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 隐藏滚动条 */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 玻璃拟态 */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 光泽动画 */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* 游戏字体 */
+.font-game {
+  font-family: var(--font-display), "Comic Sans MS", cursive;
+  font-weight: 700;
 }
