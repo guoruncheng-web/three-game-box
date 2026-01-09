@@ -49,13 +49,11 @@ export function PWAInstallPrompt() {
       standalone: window.matchMedia('(display-mode: standalone)').matches,
     });
 
-    // 检查用户是否已经拒绝过安装
-    const hasDeclined = localStorage.getItem('pwa-install-declined');
-    const declineTime = hasDeclined ? parseInt(hasDeclined) : 0;
-    const now = Date.now();
-    const threeDays = 3 * 24 * 60 * 60 * 1000; // 3天
-
-    // 如果用户在3天内拒绝过，不显示提示
+    // 检查用户是否已经拒绝过安装（已注释，允许测试）
+    // const hasDeclined = localStorage.getItem('pwa-install-declined');
+    // const declineTime = hasDeclined ? parseInt(hasDeclined) : 0;
+    // const now = Date.now();
+    // const threeDays = 3 * 24 * 60 * 60 * 1000; // 3天
     // if (hasDeclined && (now - declineTime < threeDays)) {
     //   console.log('[PWA] 用户在3天内拒绝过安装');
     //   return;
@@ -288,17 +286,22 @@ export function PWAInstallPrompt() {
                 </>
               ) : isIOS ? (
                 // iOS Safari - 手动安装提示
-                <button
-                  onClick={handleClose}
-                  className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
-                  style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    我知道了
-                    <span className="inline-block group-hover:animate-bounce-once">✅</span>
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleClose}
+                    className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      开始安装
+                      <span className="inline-block group-hover:animate-bounce-once">🚀</span>
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                  </button>
+                  <p className="text-center text-xs text-gray-500">
+                    点击后，请按照上方说明操作
+                  </p>
+                </div>
               ) : (
                 // Android/Chrome 自动安装
                 <>
