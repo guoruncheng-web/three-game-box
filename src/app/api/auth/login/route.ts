@@ -42,10 +42,21 @@ export async function POST(request: NextRequest) {
 
     const { username, password } = validationResult.data;
 
-    // 检查登录失败次数
-    const attemptKey = `login:attempt:${username}`;
-    const attemptCountStr = await redis.get(attemptKey);
-    const attemptCount = attemptCountStr ? parseInt(attemptCountStr, 10) : 0;
+    // 检查登录失败次数（带错误处理，Redis 失败时跳过限制）
+    let attemptCount = 0;
+    try {
+      const attemptKey = `login:attempt:${username}`;
+      const attemptCountStr = await Promise.race([
+        redis.get(attemptKey),
+        new Promise<string | null>((_, reject) => 
+          setTimeout(() => reject(new Error('Redis timeout')), 3000)
+        )
+      ]) as string | null;
+      attemptCount = attemptCountStr ? parseInt(attemptCountStr, 10) : 0;
+    } catch (redisError) {
+      console.warn('Redis error (login attempt check), continuing without rate limit:', redisError);
+      // Redis 失败时继续执行，不进行登录失败次数限制
+    }
 
     if (attemptCount >= MAX_LOGIN_ATTEMPTS) {
       return NextResponse.json<ApiResponse>(
@@ -61,9 +72,21 @@ export async function POST(request: NextRequest) {
     // 获取用户（支持用户名或邮箱登录）
     const user = await getUserByIdentifier(username);
     if (!user) {
-      // 增加失败次数
-      await redis.incr(attemptKey);
-      await redis.expire(attemptKey, LOGIN_ATTEMPT_WINDOW);
+      // 增加失败次数（带错误处理）
+      try {
+        const attemptKey = `login:attempt:${username}`;
+        await Promise.race([
+          Promise.all([
+            redis.incr(attemptKey),
+            redis.expire(attemptKey, LOGIN_ATTEMPT_WINDOW)
+          ]),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Redis timeout')), 3000)
+          )
+        ]);
+      } catch (redisError) {
+        console.warn('Redis error (increment attempt), continuing:', redisError);
+      }
 
       return NextResponse.json<ApiResponse>(
         {
@@ -78,9 +101,21 @@ export async function POST(request: NextRequest) {
     // 验证密码
     const passwordValid = await verifyPassword(password, user.password_hash);
     if (!passwordValid) {
-      // 增加失败次数
-      await redis.incr(attemptKey);
-      await redis.expire(attemptKey, LOGIN_ATTEMPT_WINDOW);
+      // 增加失败次数（带错误处理）
+      try {
+        const attemptKey = `login:attempt:${username}`;
+        await Promise.race([
+          Promise.all([
+            redis.incr(attemptKey),
+            redis.expire(attemptKey, LOGIN_ATTEMPT_WINDOW)
+          ]),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Redis timeout')), 3000)
+          )
+        ]);
+      } catch (redisError) {
+        console.warn('Redis error (increment attempt), continuing:', redisError);
+      }
 
       return NextResponse.json<ApiResponse>(
         {
@@ -92,8 +127,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 清除登录失败次数
-    await redis.del(attemptKey);
+    // 清除登录失败次数（带错误处理）
+    try {
+      const attemptKey = `login:attempt:${username}`;
+      await Promise.race([
+        redis.del(attemptKey),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Redis timeout')), 3000)
+        )
+      ]);
+    } catch (redisError) {
+      console.warn('Redis error (clear attempt), continuing:', redisError);
+    }
 
     // 更新最后登录时间
     await updateUserLastLogin(user.id);
@@ -118,9 +163,19 @@ export async function POST(request: NextRequest) {
       expires_at: expiresAt,
     });
 
-    // 缓存用户信息到 Redis
+    // 缓存用户信息到 Redis（带错误处理，失败时不影响登录）
     const publicUser = toPublicUser(user);
-    await setCache(`user:${user.id}`, publicUser, 3600); // 缓存 1 小时
+    try {
+      await Promise.race([
+        setCache(`user:${user.id}`, publicUser, 3600), // 缓存 1 小时
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Redis timeout')), 3000)
+        )
+      ]);
+    } catch (redisError) {
+      console.warn('Redis error (cache user), continuing without cache:', redisError);
+      // Redis 失败时继续执行，只是不缓存用户信息
+    }
 
     // 返回响应
     const response: LoginResponse = {

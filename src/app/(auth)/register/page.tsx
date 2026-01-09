@@ -159,65 +159,65 @@ export default function RegisterPage() {
       {/* 背景装饰元素 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* 左上角云朵装饰 */}
-        <div className="absolute left-5 top-6 w-16 h-10">
+        <div className="absolute left-5 top-6 w-16 h-10 animate-float">
           <div className="absolute bg-white/90 h-10 left-0 rounded-full top-0 w-16 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/90 h-8 left-[-16px] rounded-full top-2 w-12 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/90 h-8 left-8 rounded-full top-2 w-10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
         </div>
 
         {/* 右上角云朵装饰 */}
-        <div className="absolute right-5 top-[103px] w-12 h-8">
+        <div className="absolute right-5 top-[103px] w-12 h-8 animate-float-delayed">
           <div className="absolute bg-white/80 h-8 left-0 rounded-full top-0 w-12 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/80 h-6 left-[-12px] rounded-full top-1 w-10 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/80 h-6 left-6 rounded-full top-1 w-8 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
         </div>
 
-        {/* 星星装饰 - 右上角 */}
-        <div className="absolute right-[117px] top-3 w-10 h-11 rotate-[176deg]">
-          <span className="text-4xl">⭐</span>
-        </div>
-
-        {/* 其他装饰 emoji */}
-        <div className="absolute left-[39px] top-[956px]">
-          <span className="text-3xl">🌟</span>
-        </div>
-        <div className="absolute right-[40px] top-[382px] rotate-[-8deg]">
-          <span className="text-3xl">💖</span>
-        </div>
-        <div className="absolute left-[61px] top-[734px] rotate-[-10deg]">
-          <span className="text-3xl">⚡</span>
-        </div>
-        <div className="absolute left-[98px] top-[559px]">
-          <span className="text-2xl">🎈</span>
-        </div>
-        <div className="absolute right-[98px] top-[774px]">
-          <span className="text-2xl">🎮</span>
-        </div>
-        <div className="absolute left-[91px] top-[230px] rotate-[215deg]">
-          <span className="text-2xl">🍭</span>
-        </div>
-        <div className="absolute right-[131px] top-[838px]">
-          <span className="text-2xl">🎯</span>
-        </div>
-
-        {/* 彩色圆点装饰 */}
-        <div className="absolute right-[97px] top-[291px] w-[15px] h-[15px] rounded-full bg-[#fdc700] opacity-90" />
-        <div className="absolute left-[98px] top-[867px] w-[9px] h-[9px] rounded-full bg-[#fb64b6] opacity-75" />
-        <div className="absolute right-[130px] top-[582px] w-[19px] h-[19px] rounded-full bg-[#51a2ff] opacity-90" />
-
         {/* 左下角云朵装饰 */}
-        <div className="absolute left-[47px] bottom-[130px] w-14 h-10 rotate-[1.5deg]">
+        <div className="absolute left-[47px] bottom-[130px] w-14 h-10 rotate-[1.5deg] animate-float-slow">
           <div className="absolute bg-white/85 h-[37px] left-0 rounded-full top-0 w-[57px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/85 h-[29px] left-[-12px] rounded-full top-2 w-[45px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
           <div className="absolute bg-white/85 h-[30px] left-7 rounded-full top-[9px] w-[37px] shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1)]" />
         </div>
+
+        {/* 星星装饰 - 右上角 */}
+        <div className="absolute right-[117px] top-3 w-10 h-11 rotate-[176deg] animate-float-rotate">
+          <span className="text-4xl">⭐</span>
+        </div>
+
+        {/* 其他装饰 emoji */}
+        <div className="absolute left-[39px] top-[956px] animate-bounce-fun">
+          <span className="text-3xl">🌟</span>
+        </div>
+        <div className="absolute right-[40px] top-[382px] rotate-[-8deg] animate-swing">
+          <span className="text-3xl">💖</span>
+        </div>
+        <div className="absolute left-[61px] top-[734px] rotate-[-10deg] animate-wiggle-fun">
+          <span className="text-3xl">⚡</span>
+        </div>
+        <div className="absolute left-[98px] top-[559px] animate-float-delayed">
+          <span className="text-2xl">🎈</span>
+        </div>
+        <div className="absolute right-[98px] top-[774px] animate-bounce-fun delay-500">
+          <span className="text-2xl">🎮</span>
+        </div>
+        <div className="absolute left-[91px] top-[230px] rotate-[215deg] animate-spin-slow">
+          <span className="text-2xl">🍭</span>
+        </div>
+        <div className="absolute right-[131px] top-[838px] animate-float-slow">
+          <span className="text-2xl">🎯</span>
+        </div>
+
+        {/* 彩色圆点装饰 */}
+        <div className="absolute right-[97px] top-[291px] w-[15px] h-[15px] rounded-full bg-[#fdc700] opacity-90 animate-pulse-soft" />
+        <div className="absolute left-[98px] top-[867px] w-[9px] h-[9px] rounded-full bg-[#fb64b6] opacity-75 animate-pulse-soft delay-300" />
+        <div className="absolute right-[130px] top-[582px] w-[19px] h-[19px] rounded-full bg-[#51a2ff] opacity-90 animate-pulse-soft delay-700" />
       </div>
 
       {/* 主内容区域 */}
       <div className="relative z-10 flex flex-col items-center px-4 py-4 min-h-screen">
         {/* 返回登录按钮 */}
-        <div className="w-full max-w-[361px] mb-4">
-          <Link href="/login" className="inline-flex items-center gap-2 bg-white/30 rounded-full px-4 py-2">
+        <div className="w-full max-w-[361px] mb-4 animate-slide-down">
+          <Link href="/login" className="inline-flex items-center gap-2 bg-white/30 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-white/40 hover:scale-105 transition-all duration-200">
             <div className="w-5 h-5">
               <Image src={iconBack} alt="" width={20} height={20} className="w-full h-full" />
             </div>
@@ -226,14 +226,14 @@ export default function RegisterPage() {
         </div>
 
         {/* Logo 和标题区域 */}
-        <div className="w-full max-w-[361px] mb-4 relative h-[192px]">
+        <div className="w-full max-w-[361px] mb-4 relative h-[192px] animate-slide-down">
           {/* Logo 圆形图标 */}
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-24 h-24 rounded-full shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]"
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 w-24 h-24 rounded-full shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] animate-bounce-gentle hover:scale-110 hover:rotate-12 transition-all duration-300 relative"
             style={{ backgroundImage: 'linear-gradient(135deg, rgb(253, 199, 0) 0%, rgb(255, 105, 0) 100%)' }}>
             {/* 外圈装饰 */}
-            <div className="absolute left-[-10px] top-[-10px] w-[117px] h-[117px] rounded-full bg-white/30 opacity-30" />
+            <div className="absolute left-[-10px] top-[-10px] w-[117px] h-[117px] rounded-full bg-white/30 opacity-30 animate-ping-slow" />
             {/* 星星装饰 */}
-            <div className="absolute right-[-24px] top-[-8px] w-6 h-6">
+            <div className="absolute right-[-24px] top-[-8px] w-6 h-6 animate-pulse">
               <Image src={iconStar} alt="" width={24} height={24} className="w-full h-full" />
             </div>
             {/* 游戏手柄图标 */}
@@ -244,34 +244,34 @@ export default function RegisterPage() {
 
           {/* 标题 */}
           <div className="absolute left-0 top-[112px] w-full flex items-center justify-center">
-            <h1 className="text-[48px] font-black leading-[48px] text-white text-center whitespace-nowrap tracking-[0.35px]">
+            <h1 className="text-[48px] font-black leading-[48px] text-white text-center whitespace-nowrap tracking-[0.35px]" style={{ textShadow: '4px 4px 0px rgba(0,0,0,0.1)' }}>
               加入我们 🎉
             </h1>
           </div>
 
           {/* 副标题 */}
           <div className="absolute left-0 top-[168px] w-full">
-            <p className="text-base font-medium leading-6 text-white text-center whitespace-nowrap tracking-[-0.31px]">
+            <p className="text-base font-medium leading-6 text-white text-center whitespace-nowrap tracking-[-0.31px] animate-fade-in">
               创建账号，开启游戏之旅 ✨
             </p>
           </div>
         </div>
 
         {/* 注册表单卡片 */}
-        <div className="w-full max-w-[361px] bg-white rounded-[24px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] relative overflow-hidden">
+        <div className="w-full max-w-[361px] bg-white rounded-[24px] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] relative overflow-hidden animate-slide-up backdrop-blur-sm">
           {/* 装饰性渐变圆圈 */}
-          <div className="absolute right-[-40px] top-[-46px] w-[135px] h-[135px] rounded-full opacity-50 rotate-[1.5deg]"
+          <div className="absolute right-[-40px] top-[-46px] w-[135px] h-[135px] rounded-full opacity-50 rotate-[1.5deg] animate-float-slow"
             style={{ backgroundImage: 'linear-gradient(135deg, rgb(233, 212, 255) 0%, rgb(252, 206, 232) 100%)' }} />
-          <div className="absolute left-[-40px] bottom-[113px] w-32 h-32 rounded-full opacity-50"
+          <div className="absolute left-[-40px] bottom-[113px] w-32 h-32 rounded-full opacity-50 animate-float-delayed"
             style={{ backgroundImage: 'linear-gradient(135deg, rgb(190, 219, 255) 0%, rgb(162, 244, 253) 100%)' }} />
 
           <form onSubmit={handleSubmit} className="p-8 relative z-10">
             {/* 表单字段 */}
             <div className="flex flex-col gap-4 mb-4">
               {/* 手机号/邮箱输入 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 animate-fade-in-up delay-100">
                 <label className="h-7 flex items-center">
-                  <span className="text-lg font-bold text-[#364153] mr-2">📱</span>
+                  <span className="text-lg font-bold text-[#364153] mr-2 animate-wiggle-gentle">📱</span>
                   <span className="text-sm font-bold text-[#364153] tracking-[-0.15px]">手机号/邮箱</span>
                 </label>
                 <Input
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                   placeholder="输入手机号或邮箱 📱"
                   value={formData.contact}
                   onChange={(val: string) => setFormData({ ...formData, contact: val, username: val })}
-                  className="!h-[60px] !rounded-2xl !border-2 !border-[#e9d4ff] !px-5 !text-base"
+                  className="!h-[60px] !rounded-2xl !border-2 !border-[#e9d4ff] !px-5 !text-base hover:!border-purple-300 focus:!border-purple-400 focus:!scale-[1.02] transition-all duration-300 focus:!shadow-lg placeholder:!text-gray-400"
                   style={{
                     background: 'linear-gradient(to right, #faf5ff, #fdf2f8)',
                   }}
@@ -287,9 +287,9 @@ export default function RegisterPage() {
               </div>
 
               {/* 验证码输入 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 animate-fade-in-up delay-150">
                 <label className="h-7 flex items-center">
-                  <span className="text-lg font-bold text-[#364153] mr-2">🔢</span>
+                  <span className="text-lg font-bold text-[#364153] mr-2 animate-wiggle-gentle delay-100">🔢</span>
                   <span className="text-sm font-bold text-[#364153] tracking-[-0.15px]">验证码</span>
                 </label>
                 <div className="flex gap-3">
@@ -298,7 +298,7 @@ export default function RegisterPage() {
                     placeholder="输入验证码"
                     value={formData.code}
                     onChange={(val: string) => setFormData({ ...formData, code: val })}
-                    className="!flex-1 !h-[60px] !rounded-2xl !border-2 !border-[#b9f8cf] !px-5 !text-base"
+                    className="!flex-1 !h-[60px] !rounded-2xl !border-2 !border-[#b9f8cf] !px-5 !text-base hover:!border-green-300 focus:!border-green-400 focus:!scale-[1.02] transition-all duration-300 focus:!shadow-lg placeholder:!text-gray-400"
                     style={{
                       background: 'linear-gradient(to right, #f0fdf4, #ecfdf5)',
                     }}
@@ -307,9 +307,13 @@ export default function RegisterPage() {
                     type="button"
                     onClick={handleSendCode}
                     disabled={sendingCode || countdown > 0}
-                    className="h-[60px] w-[68px] rounded-2xl text-sm font-bold text-white shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1)]"
+                    className={`h-[60px] w-[68px] rounded-2xl text-sm font-bold text-white shadow-md transition-all duration-300 ${
+                      countdown > 0 || sendingCode
+                        ? 'bg-gray-200 !text-gray-400 cursor-not-allowed'
+                        : 'hover:scale-105 active:scale-95 hover:shadow-lg'
+                    }`}
                     style={{
-                      background: 'linear-gradient(to right, #05df72, #00d492)',
+                      background: countdown > 0 || sendingCode ? undefined : 'linear-gradient(to right, #05df72, #00d492)',
                     }}
                   >
                     {countdown > 0 ? `${countdown}s` : '发送'}
@@ -318,9 +322,9 @@ export default function RegisterPage() {
               </div>
 
               {/* 设置密码输入 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 animate-fade-in-up delay-200">
                 <label className="h-7 flex items-center">
-                  <span className="text-lg font-bold text-[#364153] mr-2">🔐</span>
+                  <span className="text-lg font-bold text-[#364153] mr-2 animate-wiggle-gentle delay-150">🔐</span>
                   <span className="text-sm font-bold text-[#364153] tracking-[-0.15px]">设置密码</span>
                 </label>
                 <div className="relative">
@@ -329,7 +333,7 @@ export default function RegisterPage() {
                     placeholder="至少 8 位字符 🔐"
                     value={formData.password}
                     onChange={(val: string) => setFormData({ ...formData, password: val })}
-                    className="!h-[60px] !rounded-2xl !border-2 !border-[#bedbff] !px-5 !pr-12 !text-base"
+                    className="!h-[60px] !rounded-2xl !border-2 !border-[#bedbff] !px-5 !pr-12 !text-base hover:!border-blue-300 focus:!border-blue-400 focus:!scale-[1.02] transition-all duration-300 focus:!shadow-lg placeholder:!text-gray-400"
                     style={{
                       background: 'linear-gradient(to right, #eff6ff, #ecfeff)',
                     }}
@@ -337,17 +341,17 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-[#99a1af]"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-[#99a1af] hover:text-gray-600 transition-all hover:scale-125 transform duration-200"
                   >
-                    🙈
+                    <span className="inline-block hover:animate-bounce-once">{showPassword ? '👁️' : '🙈'}</span>
                   </button>
                 </div>
               </div>
 
               {/* 确认密码输入 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 animate-fade-in-up" style={{ animationDelay: '0.25s' }}>
                 <label className="h-7 flex items-center">
-                  <span className="text-lg font-bold text-[#364153] mr-2">✅</span>
+                  <span className="text-lg font-bold text-[#364153] mr-2 animate-wiggle-gentle delay-200">✅</span>
                   <span className="text-sm font-bold text-[#364153] tracking-[-0.15px]">确认密码</span>
                 </label>
                 <div className="relative">
@@ -356,7 +360,7 @@ export default function RegisterPage() {
                     placeholder="再次输入密码 ✅"
                     value={formData.confirmPassword}
                     onChange={(val: string) => setFormData({ ...formData, confirmPassword: val })}
-                    className="!h-[60px] !rounded-2xl !border-2 !border-[#c6d2ff] !px-5 !pr-12 !text-base"
+                    className="!h-[60px] !rounded-2xl !border-2 !border-[#c6d2ff] !px-5 !pr-12 !text-base hover:!border-indigo-300 focus:!border-indigo-400 focus:!scale-[1.02] transition-all duration-300 focus:!shadow-lg placeholder:!text-gray-400"
                     style={{
                       background: 'linear-gradient(to right, #eef2ff, #faf5ff)',
                     }}
@@ -364,27 +368,27 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-[#99a1af]"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xl text-[#99a1af] hover:text-gray-600 transition-all hover:scale-125 transform duration-200"
                   >
-                    🙈
+                    <span className="inline-block hover:animate-bounce-once">{showConfirmPassword ? '👁️' : '🙈'}</span>
                   </button>
                 </div>
               </div>
             </div>
 
             {/* 用户协议 */}
-            <div className="flex items-start gap-2 mb-5">
+            <div className="flex items-start gap-2 mb-5 animate-fade-in-up delay-300">
               <Checkbox
                 checked={agreeTerms}
                 onChange={setAgreeTerms}
-                className="!mt-0.5"
+                className="!mt-0.5 hover:scale-110 transition-transform"
               />
               <p className="text-sm font-medium text-[#4a5565] tracking-[-0.15px] leading-6">
                 我已阅读并同意{' '}
                 <button
                   type="button"
                   onClick={() => showToast('info', '用户协议功能开发中', '🚧')}
-                  className="text-base font-bold text-[#9810fa] tracking-[-0.31px]"
+                  className="text-base font-bold text-[#9810fa] tracking-[-0.31px] hover:text-purple-700 transition-colors"
                 >
                   用户协议
                 </button>
@@ -392,7 +396,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => showToast('info', '隐私政策功能开发中', '🚧')}
-                  className="text-base font-bold text-[#9810fa] tracking-[-0.31px]"
+                  className="text-base font-bold text-[#9810fa] tracking-[-0.31px] hover:text-purple-700 transition-colors"
                 >
                   隐私政策
                 </button>
@@ -400,23 +404,28 @@ export default function RegisterPage() {
             </div>
 
             {/* 注册按钮 */}
-            <Button
-              type="submit"
-              block
-              loading={submitting || isLoading}
-              disabled={submitting || isLoading}
-              className="!h-[60px] !rounded-2xl !text-lg !font-black !text-white !shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)]"
-              style={{
-                background: 'linear-gradient(to right, #ad46ff, #ff6900)',
-              }}
-            >
-              立即注册 🚀
-            </Button>
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.35s' }}>
+              <Button
+                type="submit"
+                block
+                loading={submitting || isLoading}
+                disabled={submitting || isLoading}
+                className="!h-[60px] !rounded-2xl !text-lg !font-black !text-white !shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.1),0px_8px_10px_-6px_rgba(0,0,0,0.1)] hover:!shadow-2xl hover:!scale-[1.05] active:!scale-95 transition-all duration-300 relative overflow-hidden group"
+                style={{
+                  background: 'linear-gradient(to right, #ad46ff, #ff6900)',
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
+                }}
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  立即注册 🚀
+                </span>
+              </Button>
+            </div>
           </form>
 
           {/* 快速注册分隔线 */}
-          <div className="relative px-8 mb-5">
-            <div className="h-[1px] bg-[#e5e7eb] w-full" />
+          <div className="relative px-8 mb-5 animate-fade-in-up delay-400">
+            <div className="h-[1px] bg-[#e5e7eb] w-full border-dashed" />
             <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-white px-4">
               <p className="text-sm font-bold text-[#6a7282] tracking-[-0.15px] whitespace-nowrap">
                 快速注册 ⚡
@@ -425,17 +434,17 @@ export default function RegisterPage() {
           </div>
 
           {/* 第三方注册按钮 */}
-          <div className="px-8 pb-5 flex gap-4 justify-center">
+          <div className="px-8 pb-5 flex gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '0.45s' }}>
             {/* 微信注册 */}
             <button
               type="button"
               onClick={() => handleSocialRegister('wechat')}
-              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]"
+              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] hover:shadow-xl hover:scale-110 hover:rotate-3 active:scale-95 active:rotate-0 transition-all duration-300 group"
               style={{
                 background: 'linear-gradient(136.48deg, rgb(220, 252, 231) 0%, rgb(185, 248, 207) 100%)',
               }}
             >
-              <Image src={iconWechat} alt="微信" width={32} height={32} className="w-8 h-8" />
+              <Image src={iconWechat} alt="微信" width={32} height={32} className="w-8 h-8 group-hover:animate-wiggle-subtle" />
               <span className="text-xs font-bold text-[#00a63e]">微信</span>
             </button>
 
@@ -443,12 +452,12 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => handleSocialRegister('qq')}
-              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]"
+              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] hover:shadow-xl hover:scale-110 hover:-rotate-3 active:scale-95 active:rotate-0 transition-all duration-300 group"
               style={{
                 background: 'linear-gradient(136.48deg, rgb(219, 234, 254) 0%, rgb(190, 219, 255) 100%)',
               }}
             >
-              <Image src={iconQQ} alt="QQ" width={32} height={32} className="w-8 h-8" />
+              <Image src={iconQQ} alt="QQ" width={32} height={32} className="w-8 h-8 group-hover:animate-wiggle-subtle" />
               <span className="text-xs font-bold text-[#155dfc]">QQ</span>
             </button>
 
@@ -456,21 +465,21 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => handleSocialRegister('weibo')}
-              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)]"
+              className="flex flex-col items-center justify-center gap-1 h-[84px] w-[88px] rounded-2xl shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1),0px_2px_4px_-2px_rgba(0,0,0,0.1)] hover:shadow-xl hover:scale-110 hover:rotate-3 active:scale-95 active:rotate-0 transition-all duration-300 group"
               style={{
                 background: 'linear-gradient(136.486deg, rgb(255, 226, 226) 0%, rgb(255, 201, 201) 100%)',
               }}
             >
-              <Image src={iconWeibo} alt="微博" width={32} height={32} className="w-8 h-8" />
+              <Image src={iconWeibo} alt="微博" width={32} height={32} className="w-8 h-8 group-hover:animate-wiggle-subtle" />
               <span className="text-xs font-bold text-[#e7000b]">微博</span>
             </button>
           </div>
 
           {/* 登录链接 */}
-          <div className="px-8 pb-6 text-center">
+          <div className="px-8 pb-6 text-center animate-fade-in-up delay-500">
             <p className="text-base font-medium text-[#4a5565] tracking-[-0.31px]">
               已有账号？{' '}
-              <Link href="/login" className="text-base font-black text-[#9810fa]">
+              <Link href="/login" className="text-base font-black text-[#9810fa] hover:scale-110 inline-block transform transition-all">
                 立即登录 ➡️
               </Link>
             </p>
@@ -478,7 +487,7 @@ export default function RegisterPage() {
         </div>
 
         {/* 安全提示 */}
-        <div className="mt-4 flex items-center justify-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-2 animate-fade-in delay-600">
           <div className="w-4 h-4">
             <Image src={iconLock} alt="" width={16} height={16} className="w-full h-full" />
           </div>

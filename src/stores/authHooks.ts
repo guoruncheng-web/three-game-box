@@ -31,6 +31,10 @@ export function useAuth() {
     dispatch(setLoading(true));
     dispatch(setError(null));
 
+    // 创建 AbortController 用于超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 秒超时
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -38,7 +42,24 @@ export function useAuth() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(credentials),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        // 如果响应状态不是 2xx，尝试解析错误信息
+        let errorMessage = '登录失败';
+        try {
+          const errorResult: ApiResponse = await response.json();
+          errorMessage = errorResult.message || '登录失败';
+        } catch (parseError) {
+          // JSON 解析失败，使用默认错误信息
+          errorMessage = `请求失败: ${response.status} ${response.statusText}`;
+        }
+        dispatch(loginFailure(errorMessage));
+        throw new Error(errorMessage);
+      }
 
       const result: ApiResponse<LoginResponse> = await response.json();
 
@@ -49,9 +70,19 @@ export function useAuth() {
         throw new Error(result.message || '登录失败');
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : '登录失败';
+      clearTimeout(timeoutId);
+      
+      let message = '登录失败';
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          message = '请求超时，请检查网络连接后重试';
+        } else {
+          message = error.message;
+        }
+      }
+      
       dispatch(loginFailure(message));
-      throw error;
+      throw new Error(message);
     } finally {
       dispatch(setLoading(false));
     }

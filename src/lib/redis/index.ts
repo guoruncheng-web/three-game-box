@@ -10,11 +10,15 @@ const REDIS_CONFIG = {
   port: parseInt(process.env.REDIS_PORT || '6379', 10),
   password: process.env.REDIS_PASSWORD || undefined,
   db: parseInt(process.env.REDIS_DB || '0', 10),
+  connectTimeout: 5000, // 连接超时 5 秒
+  commandTimeout: 3000, // 命令超时 3 秒
   retryStrategy: (times: number) => {
     const delay = Math.min(times * 50, 2000);
     return delay;
   },
   maxRetriesPerRequest: 3,
+  enableOfflineQueue: false, // 禁用离线队列，避免请求堆积
+  lazyConnect: false, // 立即连接
 };
 
 // 创建 Redis 客户端
