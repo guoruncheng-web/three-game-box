@@ -6,8 +6,8 @@ module.exports = {
   apps: [
     {
       name: 'three-game',
-      script: 'npm',
-      args: 'start',
+      script: 'node_modules/.bin/next',
+      args: 'start -p 7006',
       cwd: '/var/www/three-game',
       instances: 1,
       exec_mode: 'fork',

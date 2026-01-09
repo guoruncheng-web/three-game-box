@@ -68,16 +68,23 @@ jobs:
             echo "构建项目..."
             npm run build
             
+            # 检查构建产物
+            if [ ! -d ".next" ]; then
+              echo "❌ 错误：构建产物 .next 目录不存在"
+              exit 1
+            fi
+
             # 使用 PM2 管理进程
             echo "重启应用..."
             if pm2 list | grep -q "three-game"; then
-              pm2 restart three-game
+              pm2 reload ecosystem.config.js --only three-game
             else
-              pm2 start npm --name "three-game" -- start
+              pm2 start ecosystem.config.js
               pm2 save
             fi
-            
-            # 显示状态
+
+            # 显示状态和日志
             pm2 status
-            
+            pm2 logs three-game --lines 50 --nostream
+
             echo "部署完成！"

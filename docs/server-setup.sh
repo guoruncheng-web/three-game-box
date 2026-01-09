@@ -105,9 +105,9 @@ fi
 echo "🚀 启动应用..."
 cd $PROJECT_DIR
 if pm2 list | grep -q "three-game"; then
-    pm2 restart three-game
+    pm2 reload ecosystem.config.js --only three-game
 else
-    pm2 start npm --name "three-game" -- start
+    pm2 start ecosystem.config.js
     pm2 save
 fi
 
