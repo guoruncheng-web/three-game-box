@@ -188,7 +188,7 @@ export const {
   updateSettings,
 } = gameSlice.actions;
 
-import authReducer from './authStore';
+import authReducer, { restoreAuth } from './authStore';
 
 // 创建 store
 export const store = configureStore({
@@ -197,6 +197,11 @@ export const store = configureStore({
     auth: authReducer,
   },
 });
+
+// 立即从 localStorage 恢复认证状态（在浏览器环境）
+if (typeof window !== 'undefined') {
+  store.dispatch(restoreAuth());
+}
 
 // 类型定义
 export type RootState = ReturnType<typeof store.getState>;

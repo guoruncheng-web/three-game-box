@@ -39,10 +39,10 @@ const tabs: TabItem[] = [
 // 模拟游戏数据
 const gamesData: GameCardData[] = [
   {
-    id: '1',
-    name: '消消乐',
+    id: 'fruit-match',
+    name: '水果消消乐',
     category: '休闲益智',
-    icon: '🍬',
+    icon: '🍓',
     rating: 4.8,
     playCount: '1.2万',
     isHot: true,
@@ -146,7 +146,7 @@ export default function HomePage() {
   };
 
   const handleHotGamePlay = () => {
-    router.push('/games/1'); // 消消乐大师
+    router.push('/games/fruit-match'); // 水果消消乐
   };
 
   return (

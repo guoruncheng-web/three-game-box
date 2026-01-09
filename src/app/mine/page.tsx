@@ -169,16 +169,39 @@ export default function MinePage() {
     const router = useRouter();
     const { logout, user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<'achievements' | 'tasks'>('achievements');
+    const [isReady, setIsReady] = useState(false);
 
     // 判断是否为超级管理员
     const isSuperAdmin = user?.role === 'super_admin';
 
-    // 未登录重定向到登录页
+    // 等待认证状态初始化完成
     useEffect(() => {
-        if (!isAuthenticated) {
+        // 给一点时间让 AuthProvider 恢复状态
+        const timer = setTimeout(() => {
+            setIsReady(true);
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // 未登录重定向到登录页（等待状态准备好后再检查）
+    useEffect(() => {
+        if (isReady && !isAuthenticated) {
             router.push('/login');
         }
-    }, [isAuthenticated, router]);
+    }, [isReady, isAuthenticated, router]);
+
+    // 加载中不渲染
+    if (!isReady) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f3e8ff] via-[#fef3c7] to-[#ffedd4]">
+                <div className="text-center">
+                    <div className="text-6xl mb-4 animate-bounce">🎮</div>
+                    <p className="text-lg font-bold text-gray-600">加载中...</p>
+                </div>
+            </div>
+        );
+    }
 
     const handleLogout = async () => {
         await logout();
