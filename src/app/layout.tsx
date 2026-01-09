@@ -3,6 +3,7 @@ import { Nunito, Quicksand } from "next/font/google";
 import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
 import { ToastProvider } from "@/components/toast";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import "./globals.css";
 
 // 显示字体
@@ -63,7 +64,10 @@ export default function RootLayout({
       >
         <ClientInit>
           <ReduxProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              {children}
+              <PWAInstallPrompt />
+            </ToastProvider>
           </ReduxProvider>
         </ClientInit>
       </body>
