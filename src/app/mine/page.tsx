@@ -178,17 +178,17 @@ export default function MinePage() {
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#f3e8ff] via-[#fef3c7] to-[#ffedd4]">
             {/* 主要内容区域 */}
-            <div className="px-4 pt-4 pb-24">
+            <div className="max-w-md mx-auto px-4 pt-4 pb-24">
                 {/* 用户信息卡片 */}
                 <div
-                    className="relative rounded-3xl overflow-hidden shadow-2xl"
+                    className="relative rounded-3xl overflow-hidden shadow-2xl animate-slide-down"
                     style={{
                         backgroundImage: 'linear-gradient(145.532deg, rgb(173, 70, 255) 0%, rgb(246, 51, 154) 50%, rgb(255, 105, 0) 100%)',
                     }}
                 >
                     {/* 装饰圆形 */}
-                    <div className="absolute -top-16 right-[-30px] w-32 h-32 rounded-full bg-white/10 opacity-60" />
-                    <div className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-white/10 opacity-50" />
+                    <div className="absolute -top-16 right-[-30px] w-32 h-32 rounded-full bg-white/10 opacity-60 animate-pulse-soft" />
+                    <div className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-white/10 opacity-50 animate-pulse-soft delay-500" />
 
                     <div className="relative p-6">
                         {/* 头像和用户名 */}
@@ -196,7 +196,7 @@ export default function MinePage() {
                             <div className="flex items-center gap-4">
                                 {/* 头像 */}
                                 <div className="relative">
-                                    <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center">
+                                    <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center animate-bounce-gentle">
                                         <span className="text-4xl">🎮</span>
                                     </div>
                                     {/* 编辑按钮 */}
@@ -291,14 +291,14 @@ export default function MinePage() {
                 </div>
 
                 {/* 快捷操作按钮 */}
-                <div className="flex gap-3 mt-6">
+                <div className="flex gap-3 mt-6 animate-fade-in-up delay-100">
                     {quickActions.map((action) => (
                         <button
                             key={action.id}
-                            className="flex-1 bg-white rounded-2xl shadow-md p-3 flex flex-col items-center gap-2"
+                            className="flex-1 bg-white rounded-2xl shadow-md p-3 flex flex-col items-center gap-2 hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 group relative"
                         >
                             <div
-                                className="w-12 h-12 rounded-[14px] shadow-md flex items-center justify-center relative"
+                                className="w-12 h-12 rounded-[14px] shadow-md flex items-center justify-center relative group-hover:rotate-12 transition-transform"
                                 style={{ backgroundImage: action.gradient }}
                             >
                                 <Image
@@ -317,7 +317,7 @@ export default function MinePage() {
                 </div>
 
                 {/* 最近玩过 */}
-                <div className="mt-6">
+                <div className="mt-6 animate-fade-in-up delay-200">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                             <h2 className="text-lg font-black text-[#1e2939]">最近玩过</h2>
@@ -337,12 +337,12 @@ export default function MinePage() {
                         {recentGames.map((game) => (
                             <div
                                 key={game.id}
-                                className="bg-white rounded-2xl shadow-md px-4 py-4 flex items-center justify-between"
+                                className="bg-white rounded-2xl shadow-md px-4 py-4 flex items-center justify-between hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer group"
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
                                         <div
-                                            className="w-14 h-14 rounded-2xl shadow-md flex items-center justify-center"
+                                            className="w-14 h-14 rounded-2xl shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
                                             style={{
                                                 backgroundImage: 'linear-gradient(135deg, rgb(233, 212, 255) 0%, rgb(252, 206, 232) 100%)',
                                             }}
@@ -370,7 +370,7 @@ export default function MinePage() {
                 </div>
 
                 {/* 成就徽章 / 每日任务 切换 */}
-                <div className="mt-6 bg-white rounded-2xl shadow-lg p-1">
+                <div className="mt-6 bg-white rounded-2xl shadow-lg p-1 animate-fade-in-up delay-300">
                     <div className="flex">
                         <button
                             onClick={() => setActiveTab('achievements')}
@@ -410,14 +410,14 @@ export default function MinePage() {
 
                 {/* 成就列表 */}
                 {activeTab === 'achievements' && (
-                    <div className="mt-3 flex flex-col gap-3">
+                    <div className="mt-3 flex flex-col gap-3 animate-fade-in">
                         {achievements.map((achievement) => (
                             <div
                                 key={achievement.id}
-                                className={`bg-white rounded-2xl p-4 ${
+                                className={`bg-white rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] ${
                                     achievement.unlocked
-                                        ? 'border border-[#fdc700] shadow-[0px_0px_16px_0px_rgba(250,204,21,0.73)]'
-                                        : 'shadow-md'
+                                        ? 'border border-[#fdc700] shadow-[0px_0px_16px_0px_rgba(250,204,21,0.73)] animate-glow'
+                                        : 'shadow-md hover:shadow-xl'
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-3">
@@ -471,7 +471,7 @@ export default function MinePage() {
 
                 {/* 每日任务（占位） */}
                 {activeTab === 'tasks' && (
-                    <div className="mt-3 bg-white rounded-2xl p-6 shadow-md">
+                    <div className="mt-3 bg-white rounded-2xl p-6 shadow-md animate-fade-in">
                         <div className="text-center text-[#6a7282]">
                             <span className="text-4xl">📋</span>
                             <p className="mt-2 text-sm font-medium">每日任务功能即将上线</p>
@@ -480,10 +480,10 @@ export default function MinePage() {
                 )}
 
                 {/* 菜单列表 */}
-                <div className="mt-6 bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="mt-6 bg-white rounded-2xl shadow-lg overflow-hidden animate-fade-in-up delay-400">
                     {menuItems.map((item, index) => (
                         <div key={item.id}>
-                            <button className="w-full px-4 py-4 flex items-center justify-between">
+                            <button className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group">
                                 <div className="flex items-center gap-3">
                                     <div
                                         className="w-10 h-10 rounded-[14px] flex items-center justify-center"
@@ -515,6 +515,7 @@ export default function MinePage() {
                                         alt="arrow"
                                         width={20}
                                         height={20}
+                                        className="group-hover:translate-x-1 transition-transform"
                                     />
                                 </div>
                             </button>
@@ -528,7 +529,7 @@ export default function MinePage() {
                 {/* 退出登录按钮 */}
                 <button
                     onClick={handleLogout}
-                    className="w-full mt-6 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2"
+                    className="w-full mt-6 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 animate-fade-in-up delay-500"
                     style={{
                         backgroundImage: 'linear-gradient(to right, #fb2c36, #f6339a)',
                     }}

@@ -26,6 +26,7 @@ export function PWAInstallPrompt() {
 
     // 如果用户在3天内拒绝过，不显示提示
     if (hasDeclined && (now - declineTime < threeDays)) {
+      console.log('[PWA] 用户在3天内拒绝过安装');
       return;
     }
 
@@ -35,19 +36,24 @@ export function PWAInstallPrompt() {
     const isInstalled = window.navigator.standalone === true;
 
     if (isStandalone || isInstalled) {
+      console.log('[PWA] 应用已安装');
       return;
     }
 
+    console.log('[PWA] 等待 beforeinstallprompt 事件...');
+
     // 监听 beforeinstallprompt 事件
     const handler = (e: Event) => {
+      console.log('[PWA] beforeinstallprompt 事件触发');
       e.preventDefault();
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
 
-      // 延迟5秒显示提示，让用户先体验应用
+      // 延迟3秒显示提示，让用户先体验应用
       setTimeout(() => {
+        console.log('[PWA] 显示安装提示');
         setShowPrompt(true);
-      }, 5000);
+      }, 3000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);

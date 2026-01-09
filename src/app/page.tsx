@@ -156,9 +156,9 @@ export default function HomePage() {
         background: 'linear-gradient(to bottom, #f3e8ff, #ffedd4)',
       }}
     >
-      <div className="px-4 pt-4 flex flex-col gap-6">
+      <div className="max-w-md mx-auto px-4 pt-4 flex flex-col gap-6">
         {/* 头部区域 */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 animate-slide-down">
           {/* 欢迎语和游戏图标 */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
@@ -178,7 +178,7 @@ export default function HomePage() {
               </p>
             </div>
             <div
-              className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
+              className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg animate-bounce-gentle"
               style={{
                 backgroundImage: 'linear-gradient(135deg, #fdc700 0%, #ff6900 100%)',
               }}
@@ -195,22 +195,26 @@ export default function HomePage() {
         </div>
 
         {/* 游戏分类 */}
-        <CategoryTabs
-          categories={defaultCategories}
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-        />
+        <div className="animate-fade-in-up delay-100">
+          <CategoryTabs
+            categories={defaultCategories}
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+          />
+        </div>
 
         {/* 热门游戏横幅 */}
-        <HotGameBanner
-          title="🍬 消消乐大师"
-          subtitle="本周最热"
-          playerCount="已有 12,000+ 玩家在线！"
-          onPlay={handleHotGamePlay}
-        />
+        <div className="animate-fade-in-up delay-200">
+          <HotGameBanner
+            title="🍬 消消乐大师"
+            subtitle="本周最热"
+            playerCount="已有 12,000+ 玩家在线！"
+            onPlay={handleHotGamePlay}
+          />
+        </div>
 
         {/* 精选游戏 */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 animate-fade-in-up delay-300">
           {/* 标题 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
