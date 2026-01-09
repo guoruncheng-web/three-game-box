@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { generateGames } from '@/mocks/games.mock';
 import type { Game } from '@/types/game';
 
 // 格式化播放次数
@@ -124,13 +123,22 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 模拟加载游戏数据
-    const timer = setTimeout(() => {
-      setGames(generateGames(8));
-      setIsLoading(false);
-    }, 500);
+    // 从 API 获取游戏数据
+    const fetchGames = async () => {
+      try {
+        const response = await fetch('/api/games?limit=8');
+        const result = await response.json();
+        if (result.code === 200) {
+          setGames(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch games:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    fetchGames();
   }, []);
 
   return (

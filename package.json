@@ -14,7 +14,6 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/postcss": "^4",
     "antd-mobile": "^5.42.2",
-    "mockjs": "^1.1.0",
     "next": "16.1.1",
     "next-pwa": "^5.6.0",
     "react": "19.2.3",
@@ -24,7 +23,6 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "@types/mockjs": "^1.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

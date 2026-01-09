@@ -1,11 +1,8 @@
 /**
- * 游戏数据 Mock
+ * 游戏数据生成工具
  */
 
-import Mock from 'mockjs';
 import type { Game, GameCategory } from '@/types/game';
-
-const Random = Mock.Random;
 
 // 游戏分类
 const categories: GameCategory[] = ['action', 'puzzle', 'arcade', 'casual', 'racing', 'shooter'];
@@ -87,66 +84,93 @@ const presetGames: Partial<Game>[] = [
 ];
 
 /**
+ * 生成随机数字
+ */
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * 生成随机浮点数
+ */
+function randomFloat(min: number, max: number, decimals: number = 2): number {
+  return Number((Math.random() * (max - min) + min).toFixed(decimals));
+}
+
+/**
+ * 生成随机 GUID
+ */
+function generateGuid(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * 从数组中随机选择
+ */
+function randomPick<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+/**
+ * 生成随机中文标题
+ */
+function randomChineseTitle(min: number = 3, max: number = 6): string {
+  const words = ['游戏', '冒险', '挑战', '竞技', '益智', '休闲', '动作', '跑酷', '射击', '拼图', '消除', '竞速'];
+  const length = randomInt(min, max);
+  return Array.from({ length }, () => randomPick(words)).join('');
+}
+
+/**
+ * 生成随机中文段落
+ */
+function randomChineseParagraph(min: number = 1, max: number = 2): string {
+  const sentences = [
+    '这是一款非常有趣的游戏！',
+    '快来挑战你的极限吧！',
+    '简单易上手，老少皆宜。',
+    '考验你的反应能力和技巧。',
+    '收集道具，解锁更多内容。',
+    '和朋友一起比拼高分！',
+  ];
+  const length = randomInt(min, max);
+  return Array.from({ length }, () => randomPick(sentences)).join('');
+}
+
+/**
  * 生成游戏数据
  */
 export function generateGames(count: number = 8): Game[] {
+  const now = new Date().toISOString();
+  
   return presetGames.slice(0, count).map((preset, index) => ({
-    id: preset.id || Random.guid(),
-    name: preset.name || Random.ctitle(3, 6),
-    description: preset.description || Random.cparagraph(1, 2),
+    id: preset.id || generateGuid(),
+    name: preset.name || randomChineseTitle(3, 6),
+    description: preset.description || randomChineseParagraph(1, 2),
     thumbnail: `https://picsum.photos/seed/${preset.id || index}/400/300`,
-    icon: preset.icon || Random.pick(gameIcons),
-    category: preset.category || Random.pick(categories),
-    difficulty: preset.difficulty || Random.pick(['easy', 'medium', 'hard']),
-    rating: Number((Random.float(3.5, 5, 1, 1)).toFixed(1)),
-    playCount: Random.integer(1000, 100000),
-    isHot: preset.isHot || false,
-    isNew: preset.isNew || false,
-    createdAt: Random.datetime(),
-    updatedAt: Random.datetime(),
+    icon: preset.icon || randomPick(gameIcons),
+    category: preset.category || randomPick(categories),
+    difficulty: preset.difficulty || randomPick(['easy', 'medium', 'hard']),
+    rating: preset.rating || randomFloat(3.5, 5, 1),
+    playCount: preset.playCount || randomInt(1000, 100000),
+    isHot: preset.isHot ?? false,
+    isNew: preset.isNew ?? false,
+    createdAt: preset.createdAt || now,
+    updatedAt: preset.updatedAt || now,
   })) as Game[];
 }
 
 /**
- * 生成随机游戏
+ * 根据 ID 获取游戏
  */
-export function generateRandomGame(): Game {
-  return {
-    id: Random.guid(),
-    name: Random.ctitle(3, 6),
-    description: Random.cparagraph(1, 2),
-    thumbnail: `https://picsum.photos/seed/${Random.word()}/400/300`,
-    icon: Random.pick(gameIcons),
-    category: Random.pick(categories),
-    difficulty: Random.pick(['easy', 'medium', 'hard']),
-    rating: Number((Random.float(3.5, 5, 1, 1)).toFixed(1)),
-    playCount: Random.integer(1000, 100000),
-    isHot: Random.boolean(),
-    isNew: Random.boolean(),
-    createdAt: Random.datetime(),
-    updatedAt: Random.datetime(),
-  } as Game;
+export function getGameById(id: string): Game | null {
+  const games = generateGames(8);
+  return games.find(g => g.id === id) || null;
 }
 
-// Mock API
-Mock.mock('/api/games', 'get', () => {
-  return {
-    code: 200,
-    message: 'success',
-    data: generateGames(8),
-  };
-});
-
-Mock.mock(/\/api\/games\/\w+/, 'get', (options: { url: string }) => {
-  const id = options.url.split('/').pop();
+/**
+ * 根据分类获取游戏
+ */
+export function getGamesByCategory(category: GameCategory): Game[] {
   const games = generateGames(8);
-  const game = games.find(g => g.id === id);
-  
-  return {
-    code: game ? 200 : 404,
-    message: game ? 'success' : 'Game not found',
-    data: game || null,
-  };
-});
-
-export default Mock;
+  return games.filter(g => g.category === category);
+}
