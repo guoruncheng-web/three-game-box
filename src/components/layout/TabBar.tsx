@@ -36,7 +36,7 @@ export function TabBar({ tabs }: TabBarProps) {
                 boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.08)',
             }}
         >
-            <div className="flex items-center h-[76px] px-4 pt-4 pb-0">
+            <div className="max-w-md mx-auto flex items-center h-[76px] px-4 pt-4 pb-0">
                 {tabs.map((tab) => {
                     const isActive = pathname === tab.path || pathname.startsWith(tab.path + '/');
 
