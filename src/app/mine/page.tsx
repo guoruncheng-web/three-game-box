@@ -234,7 +234,10 @@ export default function MinePage() {
                             </div>
 
                             {/* 设置按钮 */}
-                            <button className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                            <button
+                                onClick={() => router.push('/settings')}
+                                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+                            >
                                 <Image
                                     src="/images/profile/icon-settings.svg"
                                     alt="settings"
