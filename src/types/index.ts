@@ -1,5 +1,6 @@
 /**
- * 类型导出入口
+ * 类型定义导出
  */
 
+export * from './auth';
 export * from './game';

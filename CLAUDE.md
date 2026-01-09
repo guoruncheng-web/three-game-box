@@ -342,3 +342,6 @@ export const metadata: Metadata = {
 4. **路径别名:** 使用 `@/` 引用 `src/` 目录
 5. **代码提交:** 必须检查 TS/ESLint 错误并创建 PR
 6. **服务器私钥:** 不要在代码中暴露 `id_rsa` 内容
+
+# 部署项目的时候不要去改动其他域名的nginx配置文件
+

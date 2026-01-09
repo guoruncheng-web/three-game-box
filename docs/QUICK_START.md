@@ -1,0 +1,126 @@
+# 快速执行指南 - 创建数据库表
+
+## 方式 1: 使用 MCP 工具执行（推荐）
+
+### 步骤 1: 确保数据库已创建
+
+如果 `gameBox` 数据库还不存在，先创建它：
+
+1. 在 Cursor 中打开 MCP 工具面板
+2. 选择 `postgres-admin` 连接（连接到 postgres 数据库）
+3. 执行以下 SQL：
+```sql
+CREATE DATABASE "gameBox";
+```
+
+### 步骤 2: 创建表
+
+1. 在 MCP 工具中选择 `postgres` 连接（连接到 gameBox 数据库）
+2. 执行以下 SQL，或读取文件 `src/lib/db/migrations/EXECUTE_NOW.sql`：
+
+```sql
+-- 创建用户表
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  nickname VARCHAR(50),
+  avatar_url VARCHAR(255),
+  phone VARCHAR(20),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_login_at TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'active'
+);
+
+CREATE INDEX IF NOT EXISTS idx_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_status ON users(status);
+
+-- 创建用户会话表
+CREATE TABLE IF NOT EXISTS user_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  token_hash VARCHAR(255) NOT NULL,
+  device_info VARCHAR(255),
+  ip_address VARCHAR(45),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_token_hash ON user_sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires_at);
+
+-- 创建触发器函数
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- 创建触发器
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+```
+
+### 步骤 3: 验证结果
+
+执行以下查询验证表是否创建成功：
+
+```sql
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+  AND table_name IN ('users', 'user_sessions')
+ORDER BY table_name;
+```
+
+应该看到：
+- ✅ `users` 表
+- ✅ `user_sessions` 表
+
+## 方式 2: 使用命令行工具
+
+如果有 `psql` 命令行工具：
+
+```bash
+# 连接到数据库
+PGPASSWORD='ZzyxBhyjpvB/N2hBxA9kjhirUmMMzbaS' \
+psql -h 47.86.46.212 \
+     -p 5432 \
+     -U root \
+     -d gameBox \
+     -f src/lib/db/migrations/EXECUTE_NOW.sql
+```
+
+## 方式 3: 通过 SSH 连接到服务器执行
+
+```bash
+# 使用项目中的 id_rsa 私钥连接服务器
+ssh -i id_rsa -p 10022 root@47.86.46.212
+
+# 在服务器上执行 SQL
+export PGPASSWORD='ZzyxBhyjpvB/N2hBxA9kjhirUmMMzbaS'
+psql -h localhost -p 5432 -U root -d gameBox -f /path/to/EXECUTE_NOW.sql
+```
+
+## 文件位置
+
+- **SQL 文件**: `src/lib/db/migrations/EXECUTE_NOW.sql`
+- **完整指南**: `docs/EXECUTE_INSTRUCTIONS.md`
+- **MCP 工具说明**: `docs/MCP_TOOLS.md`
+
+## 注意事项
+
+- ✅ 所有 SQL 都使用了 `IF NOT EXISTS`，可以安全地重复执行
+- ✅ PostgreSQL 中，数据库名使用双引号保留大小写：`"gameBox"`
+- ✅ 确保连接的是正确的数据库，避免误操作
+
+执行完成后，告诉我结果，我会继续实现登录功能的其他部分！

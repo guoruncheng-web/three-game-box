@@ -1,271 +1,244 @@
+/**
+ * 游戏主页面
+ * 基于 Figma 设计实现
+ */
+
 'use client';
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import type { Game } from '@/types/game';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { TabBar } from '@/components/layout/TabBar';
+import {
+  SearchBar,
+  CategoryTabs,
+  HotGameBanner,
+  GameCard,
+  defaultCategories,
+} from '@/components/home';
+import type { TabItem } from '@/components/layout/TabBar';
+import type { GameCardData } from '@/components/home';
 
-// 格式化播放次数
-function formatPlayCount(count: number): string {
-  if (count >= 10000) {
-    return `${(count / 10000).toFixed(1)}万`;
-  }
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}k`;
-  }
-  return count.toString();
-}
+// TabBar 配置
+const tabs: TabItem[] = [
+  {
+    key: 'home',
+    label: '首页',
+    icon: '/images/tabbar/icon-home.svg',
+    activeIcon: '/images/tabbar/icon-home-active.svg',
+    path: '/',
+  },
+  {
+    key: 'mine',
+    label: '我的',
+    icon: '/images/tabbar/icon-profile.svg',
+    activeIcon: '/images/tabbar/icon-profile-active.svg',
+    path: '/mine',
+  },
+];
 
-// 游戏卡片组件
-function GameCard({ game }: { game: Game }) {
-  return (
-    <div className="
-      group relative
-      bg-white rounded-3xl overflow-hidden
-      shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-float)]
-      transition-all duration-300
-      hover:-translate-y-2
-      border-2 border-transparent
-      hover:border-[var(--candy-pink)]/30
-      active:scale-95
-    ">
-      {/* 游戏封面 */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[var(--game-primary)] to-[var(--game-secondary)]">
-        <Image 
-          src={game.thumbnail} 
-          alt={game.name}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
-          unoptimized
-        />
-        
-        {/* 分类标签 */}
-        <div className="absolute top-3 left-3">
-          <span className="
-            px-3 py-1 
-            bg-white/90 backdrop-blur-sm
-            rounded-full text-sm font-medium
-            text-[var(--game-primary)]
-            shadow-[var(--shadow-xs)]
-          ">
-            {game.category}
-          </span>
-        </div>
-        
-        {/* 热门/新品标签 */}
-        {game.isHot && (
-          <div className="absolute top-3 right-3">
-            <span className="
-              px-2 py-1
-              bg-gradient-to-r from-[var(--candy-red)] to-[var(--candy-orange)]
-              rounded-full text-xs font-bold text-white
-              animate-pulse
-            ">
-              🔥 热门
-            </span>
-          </div>
-        )}
-        {game.isNew && !game.isHot && (
-          <div className="absolute top-3 right-3">
-            <span className="
-              px-2 py-1
-              bg-gradient-to-r from-[var(--candy-green)] to-[var(--candy-teal)]
-              rounded-full text-xs font-bold text-white
-            ">
-              ✨ 新品
-            </span>
-          </div>
-        )}
-        
-        {/* 游戏图标 */}
-        <div className="
-          absolute -bottom-6 right-4
-          w-14 h-14 
-          bg-gradient-to-br from-[var(--candy-pink)] to-[var(--candy-orange)]
-          rounded-2xl shadow-[var(--shadow-card)]
-          flex items-center justify-center
-          text-2xl
-          group-hover:scale-110
-          transition-transform duration-300
-          border-4 border-white
-        ">
-          {game.icon}
-        </div>
-      </div>
-      
-      {/* 内容 */}
-      <div className="p-4 pt-6">
-        <h3 className="font-game text-lg text-[var(--text-primary)] mb-1 truncate">
-          {game.name}
-        </h3>
-        <p className="text-[var(--text-secondary)] text-sm line-clamp-2 min-h-[2.5rem]">
-          {game.description}
-        </p>
-        
-        {/* 底部信息 */}
-        <div className="flex items-center justify-between mt-3">
-          <div className="flex items-center gap-1">
-            <span className="text-[var(--candy-yellow)] text-base drop-shadow">⭐</span>
-            <span className="font-bold text-[var(--text-primary)]">{game.rating}</span>
-          </div>
-          <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs">
-            <span>🎮</span>
-            <span>{formatPlayCount(game.playCount)}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// 模拟游戏数据
+const gamesData: GameCardData[] = [
+  {
+    id: '1',
+    name: '消消乐',
+    category: '休闲益智',
+    icon: '🍬',
+    rating: 4.8,
+    playCount: '1.2万',
+    isHot: true,
+    gradientColor: 'pink',
+  },
+  {
+    id: '2',
+    name: '跑酷大冒险',
+    category: '动作跑酷',
+    icon: '🏃',
+    rating: 4.6,
+    playCount: '8.5千',
+    isHot: true,
+    gradientColor: 'blue',
+  },
+  {
+    id: '3',
+    name: '泡泡射击',
+    category: '休闲益智',
+    icon: '🎯',
+    rating: 4.5,
+    playCount: '5.3千',
+    gradientColor: 'purple',
+  },
+  {
+    id: '4',
+    name: '贪吃蛇',
+    category: '经典怀旧',
+    icon: '🐍',
+    rating: 4.7,
+    playCount: '9.1千',
+    isNew: true,
+    gradientColor: 'green',
+  },
+  {
+    id: '5',
+    name: '俄罗斯方块',
+    category: '经典怀旧',
+    icon: '🧱',
+    rating: 4.9,
+    playCount: '6.8千',
+    gradientColor: 'orange',
+  },
+  {
+    id: '6',
+    name: '记忆翻牌',
+    category: '益智训练',
+    icon: '🎴',
+    rating: 4.4,
+    playCount: '4.2千',
+    gradientColor: 'red',
+  },
+  {
+    id: '7',
+    name: '连连看',
+    category: '休闲益智',
+    icon: '🎲',
+    rating: 4.6,
+    playCount: '7.6千',
+    gradientColor: 'cyan',
+  },
+  {
+    id: '8',
+    name: '翻转方块',
+    category: '益智训练',
+    icon: '🔄',
+    rating: 4.3,
+    playCount: '3.5千',
+    isNew: true,
+    gradientColor: 'violet',
+  },
+];
 
-// 首页组件
 export default function HomePage() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const [searchValue, setSearchValue] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
 
-  useEffect(() => {
-    // 从 API 获取游戏数据
-    const fetchGames = async () => {
-      try {
-        const response = await fetch('/api/games?limit=8');
-        const result = await response.json();
-        if (result.code === 200) {
-          setGames(result.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch games:', error);
-      } finally {
-        setIsLoading(false);
+  // 过滤游戏
+  const filteredGames = gamesData.filter((game) => {
+    // 搜索过滤
+    if (searchValue && !game.name.toLowerCase().includes(searchValue.toLowerCase())) {
+      return false;
+    }
+    // 分类过滤
+    if (activeCategory !== 'all') {
+      const categoryMap: Record<string, string[]> = {
+        puzzle: ['休闲益智', '益智训练'],
+        action: ['动作跑酷'],
+        classic: ['经典怀旧'],
+      };
+      if (!categoryMap[activeCategory]?.includes(game.category)) {
+        return false;
       }
-    };
+    }
+    return true;
+  });
 
-    fetchGames();
-  }, []);
+  const handleGameClick = (gameId: string) => {
+    router.push(`/games/${gameId}`);
+  };
+
+  const handleHotGamePlay = () => {
+    router.push('/games/1'); // 消消乐大师
+  };
 
   return (
-    <main className="min-h-screen pb-20 safe-area-inset">
-      {/* 头部 */}
-      <header className="
-        sticky top-0 z-40
-        bg-white/80 backdrop-blur-lg
-        border-b border-[var(--border-light)]
-        px-4 py-4
-      ">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="font-game text-2xl bg-gradient-to-r from-[var(--game-primary)] to-[var(--game-secondary)] bg-clip-text text-transparent">
-            🎮 游戏盒子
-          </h1>
-          <button className="
-            w-10 h-10
-            bg-[var(--bg-secondary)]
-            rounded-xl
-            flex items-center justify-center
-            text-xl
-            active:scale-90
-            transition-transform
-          ">
-            🔍
-          </button>
-        </div>
-      </header>
-
-      {/* 分类导航 */}
-      <nav className="px-4 py-4 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 max-w-7xl mx-auto">
-          {['全部', '热门', '益智', '动作', '休闲', '竞速'].map((cat, i) => (
-            <button
-              key={cat}
-              className={`
-                px-4 py-2
-                rounded-full
-                font-medium text-sm
-                whitespace-nowrap
-                transition-all duration-200
-                active:scale-95
-                ${i === 0 
-                  ? 'bg-gradient-to-r from-[var(--game-primary)] to-[var(--game-secondary)] text-white shadow-[var(--shadow-button)]' 
-                  : 'bg-white text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
-                }
-              `}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </nav>
-
-      {/* 游戏列表 */}
-      <section className="px-4 py-4">
-        <div className="max-w-7xl mx-auto">
-          {isLoading ? (
-            // 骨架屏
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-3xl overflow-hidden shadow-[var(--shadow-card)] animate-pulse">
-                  <div className="aspect-[4/3] bg-gray-200" />
-                  <div className="p-4 pt-6">
-                    <div className="h-5 bg-gray-200 rounded-lg mb-2 w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded-lg mb-1 w-full" />
-                    <div className="h-4 bg-gray-200 rounded-lg w-2/3" />
-                    <div className="flex justify-between mt-3">
-                      <div className="h-4 bg-gray-200 rounded-lg w-12" />
-                      <div className="h-4 bg-gray-200 rounded-lg w-16" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+    <div
+      className="min-h-screen pb-24"
+      style={{
+        background: 'linear-gradient(to bottom, #f3e8ff, #ffedd4)',
+      }}
+    >
+      <div className="px-4 pt-4 flex flex-col gap-6">
+        {/* 头部区域 */}
+        <div className="flex flex-col gap-4">
+          {/* 欢迎语和游戏图标 */}
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <h1
+                className="text-[30px] font-black leading-9"
+                style={{
+                  background: 'linear-gradient(90deg, #9810fa 0%, #e60076 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                嗨！玩家 👋
+              </h1>
+              <p className="text-[16px] font-medium text-[#4a5565] leading-6">
+                今天想玩什么游戏呢？
+              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {games.map((game, i) => (
-                <div 
-                  key={game.id}
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                  className="animate-[slideUp_0.5s_ease-out_forwards] opacity-0"
-                >
-                  <GameCard game={game} />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* 底部导航 */}
-      <nav className="
-        fixed bottom-0 left-0 right-0
-        bg-white/90 backdrop-blur-lg
-        border-t border-[var(--border-light)]
-        px-4 py-2
-        pb-[max(0.5rem,env(safe-area-inset-bottom))]
-        z-50
-      ">
-        <div className="max-w-md mx-auto flex justify-around">
-          {[
-            { icon: '🏠', label: '首页', active: true },
-            { icon: '🎯', label: '分类', active: false },
-            { icon: '❤️', label: '收藏', active: false },
-            { icon: '👤', label: '我的', active: false },
-          ].map((item) => (
-            <button
-              key={item.label}
-              className={`
-                flex flex-col items-center gap-1
-                py-2 px-4
-                rounded-xl
-                transition-all duration-200
-                active:scale-90
-                ${item.active 
-                  ? 'text-[var(--game-primary)]' 
-                  : 'text-[var(--text-muted)]'
-                }
-              `}
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
+              style={{
+                backgroundImage: 'linear-gradient(135deg, #fdc700 0%, #ff6900 100%)',
+              }}
             >
-              <span className="text-2xl">{item.icon}</span>
-              <span className="text-xs font-medium">{item.label}</span>
-            </button>
-          ))}
+              <span className="text-[30px]">🎮</span>
+            </div>
+          </div>
+
+          {/* 搜索框 */}
+          <SearchBar
+            value={searchValue}
+            onChange={setSearchValue}
+          />
         </div>
-      </nav>
-    </main>
+
+        {/* 游戏分类 */}
+        <CategoryTabs
+          categories={defaultCategories}
+          activeCategory={activeCategory}
+          onCategoryChange={setActiveCategory}
+        />
+
+        {/* 热门游戏横幅 */}
+        <HotGameBanner
+          title="🍬 消消乐大师"
+          subtitle="本周最热"
+          playerCount="已有 12,000+ 玩家在线！"
+          onPlay={handleHotGamePlay}
+        />
+
+        {/* 精选游戏 */}
+        <div className="flex flex-col gap-4">
+          {/* 标题 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[18px] font-black text-[#1e2939] leading-7">
+                精选游戏
+              </h2>
+              <span className="text-[18px]">⭐</span>
+            </div>
+            <span className="text-[14px] font-medium text-[#6a7282]">
+              共 {filteredGames.length} 款
+            </span>
+          </div>
+
+          {/* 游戏网格 */}
+          <div className="grid grid-cols-2 gap-4">
+            {filteredGames.map((game) => (
+              <GameCard
+                key={game.id}
+                game={game}
+                onClick={handleGameClick}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 底部导航栏 */}
+      <TabBar tabs={tabs} />
+    </div>
   );
 }

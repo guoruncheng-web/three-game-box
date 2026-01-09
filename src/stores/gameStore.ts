@@ -188,13 +188,17 @@ export const {
   updateSettings,
 } = gameSlice.actions;
 
+import authReducer from './authStore';
+
 // 创建 store
 export const store = configureStore({
   reducer: {
     game: gameSlice.reducer,
+    auth: authReducer,
   },
 });
 
 // 类型定义
 export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 export type AppDispatch = typeof store.dispatch;

@@ -10,7 +10,7 @@ alwaysApply: true
 这是一个基于 Next.js + PWA + Three.js 的休闲游戏盒子项目，包含多个 3D,2D 移动端小游戏。
 状态管理采用react-redux
 ui组件库使用antd-mobile
-
+部署项目的时候不要去改动其他域名的nginx配置文件
 
 ## 代码风格规范
 
@@ -102,3 +102,7 @@ import type { Game } from '@/types/game';
 - 完成每一个功能需要调用相关的mcp工具过一遍测试,如果没有相关的mcp工具你就按照自己的逻辑走一遍测试
 - 不要轻易删除文件,要先备份再次进行
 - 完成功能后需要记录相关的思路以及功能要点
+- 总结的md文档记录到同一个md文件夹中,完成代码功能编写的时候才需要记录文档,其他时候不要,太消耗token
+- 编写记录文档的时候需要询问我是否要记录
+- 可以使用mcp配置文件中的@modelcontextprotocol/server-postgres mcp 管理 postgres 数据库
+- 使用 figma mcp 开发 ui 的时候要100%还原ui设计稿并且尽量去figma下载资源放在本地

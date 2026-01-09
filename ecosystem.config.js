@@ -7,7 +7,7 @@ module.exports = {
     {
       name: 'three-game',
       script: 'node_modules/.bin/next',
-      args: 'start -p 7006',
+      args: 'start --port 7006',
       cwd: '/var/www/three-game',
       instances: 1,
       exec_mode: 'fork',
