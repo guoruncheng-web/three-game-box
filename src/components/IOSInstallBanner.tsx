@@ -85,13 +85,12 @@ export function IOSInstallBanner() {
           <button
             onClick={handleClick}
             onTouchEnd={handleTouch}
-            onMouseDown={(e) => console.log('[Banner] MouseDown 事件')}
-            className="absolute top-2 right-2 w-12 h-12 bg-red-500/80 hover:bg-red-600 active:bg-red-700 rounded-full flex items-center justify-center transition-all cursor-pointer z-[100] shadow-lg"
+            className="absolute top-2 right-2 w-10 h-10 bg-white/20 hover:bg-white/40 active:bg-white/60 rounded-full flex items-center justify-center transition-all cursor-pointer z-[100] shadow-lg"
             aria-label="关闭"
             type="button"
             style={{ touchAction: 'manipulation' }}
           >
-            <X className="w-7 h-7 text-white stroke-[3]" />
+            <X className="w-6 h-6 text-white stroke-[2.5]" />
           </button>
 
           <div className="flex items-center gap-3 pr-6">

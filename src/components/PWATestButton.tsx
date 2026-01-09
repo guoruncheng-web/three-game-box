@@ -28,6 +28,15 @@ export function PWATestButton() {
     alert(JSON.stringify(info, null, 2));
   };
 
+  const showPWAPrompt = () => {
+    console.log('[Test] 手动触发 PWA 弹窗');
+    if ((window as any).showPWAPrompt) {
+      (window as any).showPWAPrompt();
+    } else {
+      alert('PWA 弹窗组件未加载');
+    }
+  };
+
   // 仅在开发环境显示
   if (process.env.NODE_ENV !== 'development') {
     return null;
@@ -51,6 +60,12 @@ export function PWATestButton() {
             🔧 PWA 测试工具
           </h3>
           <div className="space-y-2">
+            <button
+              onClick={showPWAPrompt}
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-3 rounded-lg text-sm font-bold transition-all active:scale-95"
+            >
+              🎯 显示 PWA 弹窗
+            </button>
             <button
               onClick={clearPWAData}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm font-bold transition-all active:scale-95"

@@ -19,6 +19,22 @@ export function PWAInstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
   const [isIOSChrome, setIsIOSChrome] = useState(false);
 
+  // 暴露到全局，用于手动触发
+  useEffect(() => {
+    (window as any).showPWAPrompt = () => {
+      console.log('[PWA] 手动触发弹窗');
+      setShowPrompt(true);
+    };
+    (window as any).hidePWAPrompt = () => {
+      console.log('[PWA] 手动关闭弹窗');
+      setShowPrompt(false);
+    };
+    return () => {
+      delete (window as any).showPWAPrompt;
+      delete (window as any).hidePWAPrompt;
+    };
+  }, []);
+
   useEffect(() => {
     // 检测是否为 iOS 设备
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -40,10 +56,10 @@ export function PWAInstallPrompt() {
     const threeDays = 3 * 24 * 60 * 60 * 1000; // 3天
 
     // 如果用户在3天内拒绝过，不显示提示
-    if (hasDeclined && (now - declineTime < threeDays)) {
-      console.log('[PWA] 用户在3天内拒绝过安装');
-      return;
-    }
+    // if (hasDeclined && (now - declineTime < threeDays)) {
+    //   console.log('[PWA] 用户在3天内拒绝过安装');
+    //   return;
+    // }
 
     // 检查是否已经安装
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -131,7 +147,7 @@ export function PWAInstallPrompt() {
     setShowPrompt(false);
   };
 
-  if (!showPrompt || !deferredPrompt) {
+  if (!showPrompt) {
     return null;
   }
 
