@@ -4,12 +4,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { TabBar } from '@/components/layout/TabBar';
 import { useAuth } from '@/stores/authHooks';
-import { CreateUserDialog } from '@/components/admin/CreateUserDialog';
 import type { TabItem } from '@/components/layout/TabBar';
 
 // TabBar 配置
@@ -168,12 +167,18 @@ const menuItems = [
 
 export default function MinePage() {
     const router = useRouter();
-    const { logout, user } = useAuth();
+    const { logout, user, isAuthenticated } = useAuth();
     const [activeTab, setActiveTab] = useState<'achievements' | 'tasks'>('achievements');
-    const [showCreateUser, setShowCreateUser] = useState(false);
 
     // 判断是否为超级管理员
     const isSuperAdmin = user?.role === 'super_admin';
+
+    // 未登录重定向到登录页
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push('/login');
+        }
+    }, [isAuthenticated, router]);
 
     const handleLogout = async () => {
         await logout();
@@ -490,7 +495,7 @@ export default function MinePage() {
                     {isSuperAdmin && (
                         <>
                             <button
-                                onClick={() => setShowCreateUser(true)}
+                                onClick={() => router.push('/admin/create-user')}
                                 className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
                             >
                                 <div className="flex items-center gap-3">
@@ -589,15 +594,6 @@ export default function MinePage() {
 
             {/* 底部导航栏 */}
             <TabBar tabs={tabs} />
-
-            {/* 创建用户弹窗 */}
-            <CreateUserDialog
-                visible={showCreateUser}
-                onClose={() => setShowCreateUser(false)}
-                onSuccess={() => {
-                    // 创建成功后可以刷新用户列表等
-                }}
-            />
         </div>
     );
 }

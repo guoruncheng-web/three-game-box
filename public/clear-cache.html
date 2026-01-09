@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>清除缓存并重新登录</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 24px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .button:active {
+            transform: translateY(0);
+        }
+        .button.secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .step {
+            text-align: left;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 更新管理员权限</h1>
+        <p>你的账号已升级为超级管理员！<br>需要重新登录才能生效</p>
+
+        <div class="info">
+            <strong>📋 当前状态：</strong><br>
+            <span id="status">检测中...</span>
+        </div>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>清除旧的用户数据</strong>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>跳转到登录页</strong>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>重新登录查看管理功能</strong>
+        </div>
+
+        <button class="button" onclick="clearAndRelogin()">
+            🔄 清除缓存并重新登录
+        </button>
+
+        <button class="button secondary" onclick="goHome()">
+            🏠 返回首页
+        </button>
+    </div>
+
+    <script>
+        // 检查当前状态
+        function checkStatus() {
+            const token = localStorage.getItem('token');
+            const userStr = localStorage.getItem('user');
+            const statusEl = document.getElementById('status');
+
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    statusEl.innerHTML = `
+                        ✅ 已登录<br>
+                        <code>用户: ${user.username || user.email}</code><br>
+                        <code>角色: ${user.role || '未设置'}</code>
+                    `;
+
+                    if (user.role === 'super_admin') {
+                        statusEl.parentElement.classList.add('success');
+                        statusEl.innerHTML += '<br><br>✨ 你已经是超级管理员！';
+                    } else {
+                        statusEl.innerHTML += '<br><br>⚠️ 需要重新登录更新权限';
+                    }
+                } catch (e) {
+                    statusEl.innerHTML = '⚠️ 用户数据格式错误';
+                }
+            } else {
+                statusEl.innerHTML = '❌ 未登录';
+            }
+        }
+
+        // 清除缓存并重新登录
+        function clearAndRelogin() {
+            // 清除所有认证相关数据
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('pwa-install-declined');
+            localStorage.removeItem('ios-install-banner-dismissed');
+
+            // 清除所有 Service Worker 缓存
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    cacheNames.forEach(function(cacheName) {
+                        caches.delete(cacheName);
+                    });
+                });
+            }
+
+            alert('✅ 缓存已清除！\n\n即将跳转到登录页面，\n请重新登录查看管理员功能。');
+
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 1000);
+        }
+
+        // 返回首页
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // 页面加载时检查状态
+        checkStatus();
+    </script>
+</body>
+</html>

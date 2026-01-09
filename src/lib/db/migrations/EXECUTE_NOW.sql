@@ -36,6 +36,3 @@ SELECT
 FROM information_schema.columns
 WHERE table_name = 'users'
   AND column_name = 'role';
-
--- 查看表结构
-\d users;
