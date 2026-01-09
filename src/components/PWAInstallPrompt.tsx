@@ -16,8 +16,23 @@ interface BeforeInstallPromptEvent extends Event {
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isIOSChrome, setIsIOSChrome] = useState(false);
 
   useEffect(() => {
+    // 检测是否为 iOS 设备
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isChromeIOS = isIOSDevice && /CriOS/.test(navigator.userAgent);
+    setIsIOS(isIOSDevice);
+    setIsIOSChrome(isChromeIOS);
+
+    console.log('[PWA] 浏览器信息:', {
+      userAgent: navigator.userAgent,
+      isIOS: isIOSDevice,
+      isIOSChrome: isChromeIOS,
+      standalone: window.matchMedia('(display-mode: standalone)').matches,
+    });
+
     // 检查用户是否已经拒绝过安装
     const hasDeclined = localStorage.getItem('pwa-install-declined');
     const declineTime = hasDeclined ? parseInt(hasDeclined) : 0;
@@ -40,9 +55,18 @@ export function PWAInstallPrompt() {
       return;
     }
 
+    // iOS Safari 不支持 beforeinstallprompt，显示手动安装提示
+    if (isIOSDevice) {
+      console.log('[PWA] 检测到 iOS 设备，显示手动安装提示');
+      setTimeout(() => {
+        setShowPrompt(true);
+      }, 3000);
+      return;
+    }
+
     console.log('[PWA] 等待 beforeinstallprompt 事件...');
 
-    // 监听 beforeinstallprompt 事件
+    // 监听 beforeinstallprompt 事件（仅 Chrome/Edge）
     const handler = (e: Event) => {
       console.log('[PWA] beforeinstallprompt 事件触发');
       e.preventDefault();
@@ -64,6 +88,13 @@ export function PWAInstallPrompt() {
   }, []);
 
   const handleInstall = async () => {
+    // iOS 设备：关闭提示，用户需要手动添加
+    if (isIOS) {
+      console.log('[PWA] iOS 设备，用户需手动添加到主屏幕');
+      setShowPrompt(false);
+      return;
+    }
+
     if (!deferredPrompt) return;
 
     try {
@@ -74,12 +105,12 @@ export function PWAInstallPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
 
       if (outcome === 'accepted') {
-        console.log('用户接受了安装提示');
+        console.log('[PWA] 用户接受了安装提示');
       } else {
-        console.log('用户拒绝了安装提示');
+        console.log('[PWA] 用户拒绝了安装提示');
       }
     } catch (error) {
-      console.error('PWA 安装出错:', error);
+      console.error('[PWA] 安装出错:', error);
     }
 
     // 清理
@@ -154,10 +185,28 @@ export function PWAInstallPrompt() {
 
             {/* 描述 */}
             <p className="text-center text-gray-600 mb-6 leading-relaxed">
-              把游戏盒子添加到主屏幕，
-              <br />
-              随时随地畅玩游戏！
-              <span className="inline-block ml-1 animate-bounce-gentle">🎉</span>
+              {isIOSChrome ? (
+                <>
+                  请在 <span className="font-bold text-blue-500">Safari 浏览器</span> 中打开
+                  <br />
+                  才能添加到主屏幕
+                  <span className="inline-block ml-1">📱</span>
+                </>
+              ) : isIOS ? (
+                <>
+                  点击底部 <span className="inline-block mx-1 text-blue-500">📤</span> 分享按钮
+                  <br />
+                  然后选择"添加到主屏幕"
+                  <span className="inline-block ml-1 animate-bounce-gentle">🎉</span>
+                </>
+              ) : (
+                <>
+                  把游戏盒子添加到主屏幕，
+                  <br />
+                  随时随地畅玩游戏！
+                  <span className="inline-block ml-1 animate-bounce-gentle">🎉</span>
+                </>
+              )}
             </p>
 
             {/* 优势列表 */}
@@ -195,25 +244,69 @@ export function PWAInstallPrompt() {
 
             {/* 按钮组 */}
             <div className="space-y-3">
-              <button
-                onClick={handleInstall}
-                className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
-                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  <Download className="w-5 h-5" />
-                  立即安装
-                  <span className="inline-block group-hover:animate-bounce-once">🚀</span>
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-              </button>
+              {isIOSChrome ? (
+                // iOS Chrome - 需要在 Safari 中打开
+                <>
+                  <button
+                    onClick={() => {
+                      // 复制网址到剪贴板
+                      navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('网址已复制！\n请在 Safari 中粘贴打开');
+                      });
+                    }}
+                    className="w-full bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      复制网址
+                      <span className="inline-block group-hover:animate-bounce-once">📋</span>
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                  >
+                    我知道了
+                  </button>
+                </>
+              ) : isIOS ? (
+                // iOS Safari - 手动安装提示
+                <button
+                  onClick={handleClose}
+                  className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                  style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    我知道了
+                    <span className="inline-block group-hover:animate-bounce-once">✅</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                </button>
+              ) : (
+                // Android/Chrome 自动安装
+                <>
+                  <button
+                    onClick={handleInstall}
+                    className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      <Download className="w-5 h-5" />
+                      立即安装
+                      <span className="inline-block group-hover:animate-bounce-once">🚀</span>
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                  </button>
 
-              <button
-                onClick={handleRemindLater}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"
-              >
-                稍后提醒
-              </button>
+                  <button
+                    onClick={handleRemindLater}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                  >
+                    稍后提醒
+                  </button>
+                </>
+              )}
             </div>
 
             {/* 底部提示 */}
