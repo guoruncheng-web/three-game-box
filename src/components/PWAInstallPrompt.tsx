@@ -198,7 +198,7 @@ export function PWAInstallPrompt() {
             </h2>
 
             {/* 描述 */}
-            <p className="text-center text-gray-600 mb-6 leading-relaxed">
+            <p className="text-center text-gray-600 mb-4 leading-relaxed">
               {isIOSChrome ? (
                 <>
                   请在 <span className="font-bold text-blue-500">Safari 浏览器</span> 中打开
@@ -208,9 +208,9 @@ export function PWAInstallPrompt() {
                 </>
               ) : isIOS ? (
                 <>
-                  点击底部 <span className="inline-block mx-1 text-blue-500">📤</span> 分享按钮
+                  把游戏盒子添加到主屏幕，
                   <br />
-                  然后选择"添加到主屏幕"
+                  随时随地畅玩游戏！
                   <span className="inline-block ml-1 animate-bounce-gentle">🎉</span>
                 </>
               ) : (
@@ -222,6 +222,33 @@ export function PWAInstallPrompt() {
                 </>
               )}
             </p>
+
+            {/* iOS 安装步骤 */}
+            {isIOS && !isIOSChrome && (
+              <div className="bg-blue-50 rounded-2xl p-4 mb-6">
+                <p className="text-sm font-bold text-blue-800 mb-3 text-center">📝 安装步骤</p>
+                <ol className="space-y-2.5 text-sm text-blue-900">
+                  <li className="flex items-start gap-2">
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                    <div>
+                      <div>点击 Safari 的 <span className="font-bold text-blue-600">分享按钮</span>（向上箭头 ⬆️）</div>
+                      <div className="text-xs text-blue-600 mt-1">
+                        • iPhone：底部工具栏中间<br/>
+                        • iPad：顶部地址栏右边
+                      </div>
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                    <span>向下滚动菜单，找到 <span className="font-bold text-blue-600">"添加到主屏幕"</span> 选项</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                    <span>点击右上角 <span className="font-bold text-blue-600">"添加"</span> 按钮完成 ✅</span>
+                  </li>
+                </ol>
+              </div>
+            )}
 
             {/* 优势列表 */}
             <div className="space-y-3 mb-6">
@@ -286,22 +313,17 @@ export function PWAInstallPrompt() {
                 </>
               ) : isIOS ? (
                 // iOS Safari - 手动安装提示
-                <div className="space-y-3">
-                  <button
-                    onClick={handleClose}
-                    className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      开始安装
-                      <span className="inline-block group-hover:animate-bounce-once">🚀</span>
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  </button>
-                  <p className="text-center text-xs text-gray-500">
-                    点击后，请按照上方说明操作
-                  </p>
-                </div>
+                <button
+                  onClick={handleClose}
+                  className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                  style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    知道了，去添加
+                    <span className="inline-block group-hover:animate-bounce-once">👆</span>
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                </button>
               ) : (
                 // Android/Chrome 自动安装
                 <>
