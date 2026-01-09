@@ -37,8 +37,9 @@ export interface PublicUser {
 /** 注册请求 */
 export interface RegisterRequest {
   username: string;
-  email: string;
+  contact: string; // 手机号或邮箱
   password: string;
+  code: string; // 验证码
   nickname?: string;
 }
 

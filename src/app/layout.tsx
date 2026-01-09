@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito, Quicksand } from "next/font/google";
+import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
+import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
 // 显示字体
@@ -59,7 +61,11 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} ${quicksand.variable} font-body antialiased bg-bg-primary text-text-primary`}
       >
-        <ReduxProvider>{children}</ReduxProvider>
+        <ClientInit>
+          <ReduxProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ReduxProvider>
+        </ClientInit>
       </body>
     </html>
   );

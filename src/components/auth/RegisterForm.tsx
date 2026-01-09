@@ -5,42 +5,79 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input, Form, Toast } from 'antd-mobile';
+import { Button, Input, Form } from 'antd-mobile';
 import { useAuth } from '@/stores/authHooks';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/toast';
 import type { RegisterRequest } from '@/types/auth';
 
 export function RegisterForm() {
   const router = useRouter();
   const { register, isLoading } = useAuth();
+  const { showToast } = useToast();
   const [form] = Form.useForm<RegisterRequest & { confirmPassword: string }>();
 
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (values: RegisterRequest & { confirmPassword: string }) => {
+  const handleSubmit = async (values: any) => {
+    // 详细验证各个字段
+    const missingFields: string[] = [];
+
+    if (!values.username) missingFields.push('用户名');
+    if (!values.email) missingFields.push('邮箱');
+    if (!values.password) missingFields.push('密码');
+    if (!values.confirmPassword) missingFields.push('确认密码');
+
+    if (missingFields.length > 0) {
+      showToast('warning', `请填写：${missingFields.join('、')}`, '📝');
+      return;
+    }
+
+    // 验证用户名长度
+    if (values.username.length < 3) {
+      showToast('warning', '用户名至少需要 3 个字符', '📏');
+      return;
+    }
+
+    // 验证邮箱格式
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(values.email)) {
+      showToast('warning', '请输入有效的邮箱地址', '📧');
+      return;
+    }
+
+    // 验证密码长度
+    if (values.password.length < 8) {
+      showToast('warning', '密码至少需要 8 个字符', '🔒');
+      return;
+    }
+
+    // 验证密码强度
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)/;
+    if (!passwordRegex.test(values.password)) {
+      showToast('warning', '密码必须包含字母和数字', '🔐');
+      return;
+    }
+
     // 验证密码确认
     if (values.password !== values.confirmPassword) {
-      Toast.show({
-        icon: 'fail',
-        content: '两次输入的密码不一致',
-      });
+      showToast('warning', '两次输入的密码不一致', '❌');
       return;
     }
 
     setSubmitting(true);
     try {
-      const { confirmPassword, ...registerData } = values;
-      await register(registerData);
-      Toast.show({
-        icon: 'success',
-        content: '注册成功',
-      });
+      const { confirmPassword, email, ...registerData } = values;
+      // 将 email 字段映射为 contact
+      const dataToSubmit: RegisterRequest = {
+        ...registerData,
+        contact: email,
+      };
+      await register(dataToSubmit);
+      showToast('success', '注册成功，欢迎加入！', '🎉');
       router.push('/');
     } catch (error) {
-      Toast.show({
-        icon: 'fail',
-        content: error instanceof Error ? error.message : '注册失败',
-      });
+      showToast('error', error instanceof Error ? error.message : '注册失败，请重试');
     } finally {
       setSubmitting(false);
     }

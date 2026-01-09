@@ -6,9 +6,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Toast, Checkbox } from 'antd-mobile';
+import { Button, Input, Checkbox } from 'antd-mobile';
 import { useAuth } from '@/stores/authHooks';
 import { useEffect } from 'react';
+import { useToast } from '@/components/toast';
 import type { LoginRequest } from '@/types/auth';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,6 +28,7 @@ const iconWeibo = "/images/login/icon-weibo.svg";
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState<LoginRequest>({
     username: '',
     password: '',
@@ -45,37 +47,31 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.username || !formData.password) {
-      Toast.show({
-        icon: 'fail',
-        content: '请填写完整信息',
-      });
+    // 详细验证各个字段
+    const missingFields: string[] = [];
+
+    if (!formData.username) missingFields.push('手机号/邮箱');
+    if (!formData.password) missingFields.push('密码');
+
+    if (missingFields.length > 0) {
+      showToast('warning', `请填写：${missingFields.join('、')}`, '📝');
       return;
     }
 
     setSubmitting(true);
     try {
       await login(formData);
-      Toast.show({
-        icon: 'success',
-        content: '登录成功',
-      });
+      showToast('success', '登录成功，欢迎回来！', '🎉');
       router.push('/');
     } catch (error) {
-      Toast.show({
-        icon: 'fail',
-        content: error instanceof Error ? error.message : '登录失败',
-      });
+      showToast('error', error instanceof Error ? error.message : '登录失败，请重试');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleSocialLogin = (type: 'wechat' | 'qq' | 'weibo') => {
-    Toast.show({
-      icon: 'fail',
-      content: `${type === 'wechat' ? '微信' : type === 'qq' ? 'QQ' : '微博'}登录功能开发中`,
-    });
+    showToast('info', `${type === 'wechat' ? '微信' : type === 'qq' ? 'QQ' : '微博'}登录功能开发中`, '🚧');
   };
 
   return (
@@ -211,7 +207,7 @@ export default function LoginPage() {
               </Checkbox>
               <button
                 type="button"
-                onClick={() => Toast.show({ icon: 'fail', content: '忘记密码功能开发中' })}
+                onClick={() => showToast('info', '忘记密码功能开发中', '🚧')}
                 className="text-sm font-bold text-[#9810fa] tracking-[-0.15px]"
               >
                 忘记密码？
@@ -302,7 +298,7 @@ export default function LoginPage() {
             登录即表示同意{' '}
             <button
               type="button"
-              onClick={() => Toast.show({ icon: 'fail', content: '用户协议功能开发中' })}
+              onClick={() => showToast('info', '用户协议功能开发中', '🚧')}
               className="text-xs font-bold text-white underline"
             >
               用户协议
@@ -310,7 +306,7 @@ export default function LoginPage() {
             {' '}和{' '}
             <button
               type="button"
-              onClick={() => Toast.show({ icon: 'fail', content: '隐私政策功能开发中' })}
+              onClick={() => showToast('info', '隐私政策功能开发中', '🚧')}
               className="text-xs font-bold text-white underline"
             >
               隐私政策

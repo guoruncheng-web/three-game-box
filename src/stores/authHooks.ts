@@ -78,8 +78,10 @@ export function useAuth() {
       if (result.code === 200 && result.data) {
         dispatch(loginSuccess(result.data));
       } else {
-        dispatch(loginFailure(result.message || '注册失败'));
-        throw new Error(result.message || '注册失败');
+        // 后端已经返回友好的错误消息，直接使用
+        const errorMessage = result.message || '注册失败';
+        dispatch(loginFailure(errorMessage));
+        throw new Error(errorMessage);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : '注册失败';

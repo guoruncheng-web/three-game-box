@@ -68,15 +68,22 @@ export async function getUserByIdentifier(identifier: string): Promise<UserWithP
  */
 export async function createUser(userData: {
   username: string;
-  email: string;
+  email?: string;
+  phone?: string;
   password_hash: string;
   nickname?: string;
 }): Promise<User> {
   const result = await query(
-    `INSERT INTO users (username, email, password_hash, nickname)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (username, email, phone, password_hash, nickname)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [userData.username, userData.email, userData.password_hash, userData.nickname ?? null]
+    [
+      userData.username,
+      userData.email ?? null,
+      userData.phone ?? null,
+      userData.password_hash,
+      userData.nickname ?? null
+    ]
   );
 
   return result.rows[0];
@@ -119,6 +126,34 @@ export async function emailExists(email: string): Promise<boolean> {
   );
 
   return result.rows.length > 0;
+}
+
+/**
+ * 检查手机号是否已存在
+ * @param phone - 手机号
+ * @returns 是否存在
+ */
+export async function phoneExists(phone: string): Promise<boolean> {
+  const result = await query(
+    'SELECT 1 FROM users WHERE phone = $1',
+    [phone]
+  );
+
+  return result.rows.length > 0;
+}
+
+/**
+ * 根据手机号获取用户
+ * @param phone - 手机号
+ * @returns 用户信息或 null
+ */
+export async function getUserByPhone(phone: string): Promise<User | null> {
+  const result = await query(
+    'SELECT * FROM users WHERE phone = $1 AND status = $2',
+    [phone, 'active']
+  );
+
+  return result.rows[0] || null;
 }
 
 /**

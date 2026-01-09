@@ -6,10 +6,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Toast, Checkbox } from 'antd-mobile';
+import { Button, Input, Checkbox } from 'antd-mobile';
 import { useAuth } from '@/stores/authHooks';
 import { useEffect } from 'react';
-import type { RegisterRequest } from '@/types/auth';
+import { useToast } from '@/components/toast';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -23,20 +23,26 @@ const iconQQ = "/images/register/icon-qq.svg";
 const iconWeibo = "/images/register/icon-weibo.svg";
 
 // 扩展 RegisterRequest，添加 confirmPassword 用于前端表单验证
-interface RegisterFormData extends RegisterRequest {
+interface RegisterFormData {
+  username: string;
+  contact: string;
+  password: string;
+  code: string;
   confirmPassword: string;
+  nickname?: string;
 }
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
-    email: '',
+    contact: '',
     password: '',
+    code: '',
     confirmPassword: '',
   });
-  const [verificationCode, setVerificationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -60,28 +66,19 @@ export default function RegisterPage() {
   }, [countdown]);
 
   const handleSendCode = async () => {
-    if (!formData.email) {
-      Toast.show({
-        icon: 'fail',
-        content: '请先输入手机号或邮箱',
-      });
+    if (!formData.contact) {
+      showToast('warning', '请先输入手机号或邮箱', '⚠️');
       return;
     }
 
     setSendingCode(true);
     try {
-      // 模拟发送验证码
+      // 模拟发送验证码（实际项目中应调用后端 API）
       await new Promise(resolve => setTimeout(resolve, 1000));
-      Toast.show({
-        icon: 'success',
-        content: '验证码已发送',
-      });
+      showToast('success', '验证码已发送（测试码：666666）', '📧');
       setCountdown(60);
     } catch {
-      Toast.show({
-        icon: 'fail',
-        content: '发送失败，请重试',
-      });
+      showToast('error', '发送失败，请重试');
     } finally {
       setSendingCode(false);
     }
@@ -90,58 +87,71 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
-      Toast.show({
-        icon: 'fail',
-        content: '请填写完整信息',
-      });
+    // 详细验证各个字段
+    const missingFields: string[] = [];
+
+    if (!formData.contact) missingFields.push('手机号/邮箱');
+    if (!formData.code) missingFields.push('验证码');
+    if (!formData.password) missingFields.push('密码');
+    if (!formData.confirmPassword) missingFields.push('确认密码');
+
+    if (missingFields.length > 0) {
+      showToast('warning', `请填写：${missingFields.join('、')}`, '📝');
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      showToast('warning', '密码至少需要 8 位字符', '🔒');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Toast.show({
-        icon: 'fail',
-        content: '两次密码不一致',
-      });
+      showToast('warning', '两次密码不一致', '🔐');
       return;
     }
 
     if (!agreeTerms) {
-      Toast.show({
-        icon: 'fail',
-        content: '请先同意用户协议和隐私政策',
-      });
+      showToast('warning', '请先同意用户协议和隐私政策', '📋');
       return;
     }
 
     setSubmitting(true);
     try {
-      // 不传递 confirmPassword 到 API
-      await register({
-        username: formData.email,
-        email: formData.email,
+      // 准备注册数据
+      const registerData = {
+        username: formData.username || formData.contact, // 如果没有填写用户名，使用联系方式作为用户名
+        contact: formData.contact,
         password: formData.password,
-      });
-      Toast.show({
-        icon: 'success',
-        content: '注册成功',
-      });
+        code: formData.code,
+        nickname: formData.nickname,
+      };
+
+      // 调试日志
+      console.log('=== 注册数据详情 ===');
+      console.log('username:', registerData.username);
+      console.log('contact:', registerData.contact);
+      console.log('password长度:', registerData.password?.length);
+      console.log('code:', registerData.code);
+      console.log('nickname:', registerData.nickname);
+      console.log('完整数据:', JSON.stringify(registerData, null, 2));
+
+      // 不传递 confirmPassword 到 API
+      await register(registerData);
+      console.log('✅ 注册成功');
+      showToast('success', '注册成功，欢迎加入！', '🎉');
       router.push('/');
     } catch (error) {
-      Toast.show({
-        icon: 'fail',
-        content: error instanceof Error ? error.message : '注册失败',
-      });
+      console.error('❌ 注册失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '注册失败，请重试';
+      console.log('显示错误 toast:', errorMessage);
+      showToast('error', errorMessage, '❌');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleSocialRegister = (type: 'wechat' | 'qq' | 'weibo') => {
-    Toast.show({
-      icon: 'fail',
-      content: `${type === 'wechat' ? '微信' : type === 'qq' ? 'QQ' : '微博'}注册功能开发中`,
-    });
+    showToast('info', `${type === 'wechat' ? '微信' : type === 'qq' ? 'QQ' : '微博'}注册功能开发中`, '🚧');
   };
 
   return (
@@ -267,8 +277,8 @@ export default function RegisterPage() {
                 <Input
                   type="text"
                   placeholder="输入手机号或邮箱 📱"
-                  value={formData.email}
-                  onChange={(val) => setFormData({ ...formData, email: val, username: val })}
+                  value={formData.contact}
+                  onChange={(val: string) => setFormData({ ...formData, contact: val, username: val })}
                   className="!h-[60px] !rounded-2xl !border-2 !border-[#e9d4ff] !px-5 !text-base"
                   style={{
                     background: 'linear-gradient(to right, #faf5ff, #fdf2f8)',
@@ -286,8 +296,8 @@ export default function RegisterPage() {
                   <Input
                     type="text"
                     placeholder="输入验证码"
-                    value={verificationCode}
-                    onChange={(val) => setVerificationCode(val)}
+                    value={formData.code}
+                    onChange={(val: string) => setFormData({ ...formData, code: val })}
                     className="!flex-1 !h-[60px] !rounded-2xl !border-2 !border-[#b9f8cf] !px-5 !text-base"
                     style={{
                       background: 'linear-gradient(to right, #f0fdf4, #ecfdf5)',
@@ -316,9 +326,9 @@ export default function RegisterPage() {
                 <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="设置你的密码 🔐"
+                    placeholder="至少 8 位字符 🔐"
                     value={formData.password}
-                    onChange={(val) => setFormData({ ...formData, password: val })}
+                    onChange={(val: string) => setFormData({ ...formData, password: val })}
                     className="!h-[60px] !rounded-2xl !border-2 !border-[#bedbff] !px-5 !pr-12 !text-base"
                     style={{
                       background: 'linear-gradient(to right, #eff6ff, #ecfeff)',
@@ -345,7 +355,7 @@ export default function RegisterPage() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="再次输入密码 ✅"
                     value={formData.confirmPassword}
-                    onChange={(val) => setFormData({ ...formData, confirmPassword: val })}
+                    onChange={(val: string) => setFormData({ ...formData, confirmPassword: val })}
                     className="!h-[60px] !rounded-2xl !border-2 !border-[#c6d2ff] !px-5 !pr-12 !text-base"
                     style={{
                       background: 'linear-gradient(to right, #eef2ff, #faf5ff)',
@@ -373,7 +383,7 @@ export default function RegisterPage() {
                 我已阅读并同意{' '}
                 <button
                   type="button"
-                  onClick={() => Toast.show({ icon: 'fail', content: '用户协议功能开发中' })}
+                  onClick={() => showToast('info', '用户协议功能开发中', '🚧')}
                   className="text-base font-bold text-[#9810fa] tracking-[-0.31px]"
                 >
                   用户协议
@@ -381,7 +391,7 @@ export default function RegisterPage() {
                 {' '}和{' '}
                 <button
                   type="button"
-                  onClick={() => Toast.show({ icon: 'fail', content: '隐私政策功能开发中' })}
+                  onClick={() => showToast('info', '隐私政策功能开发中', '🚧')}
                   className="text-base font-bold text-[#9810fa] tracking-[-0.31px]"
                 >
                   隐私政策

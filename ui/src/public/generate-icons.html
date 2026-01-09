@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成 PWA 图标</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .canvas-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .icon-item {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      margin-bottom: 10px;
+    }
+    .size-label {
+      font-size: 14px;
+      font-weight: bold;
+      opacity: 0.9;
+    }
+    button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .instructions {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(10px);
+    }
+    .instructions ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 PWA 图标生成器</h1>
+  
+  <div class="instructions">
+    <h3>使用说明：</h3>
+    <ol>
+      <li>点击每个图标下方的"下载"按钮</li>
+      <li>将下载的图标保存到 <code>/public</code> 目录</li>
+      <li>确保文件名与下方显示的一致</li>
+      <li>所有图标下载完成后，PWA 就可以正常使用了</li>
+    </ol>
+  </div>
+
+  <div class="canvas-container" id="canvas-container"></div>
+
+  <script>
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+    const container = document.getElementById('canvas-container');
+
+    sizes.forEach(size => {
+      // 创建容器
+      const item = document.createElement('div');
+      item.className = 'icon-item';
+
+      // 创建 canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // 绘制渐变背景
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#a855f7');
+      gradient.addColorStop(0.5, '#ec4899');
+      gradient.addColorStop(1, '#f97316');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // 绘制白色圆角矩形（内边距）
+      const padding = size * 0.15;
+      const innerSize = size - padding * 2;
+      const radius = size * 0.15;
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.beginPath();
+      ctx.roundRect(padding, padding, innerSize, innerSize, radius);
+      ctx.fill();
+
+      // 绘制游戏手柄 emoji
+      ctx.font = `${size * 0.5}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎮', size / 2, size / 2);
+
+      // 添加小星星装饰
+      ctx.font = `${size * 0.15}px Arial`;
+      ctx.fillText('✨', size * 0.2, size * 0.2);
+      ctx.fillText('⭐', size * 0.8, size * 0.25);
+      ctx.fillText('💫', size * 0.75, size * 0.75);
+
+      // 创建标签
+      const label = document.createElement('div');
+      label.className = 'size-label';
+      label.textContent = `${size}×${size}`;
+
+      // 创建下载按钮
+      const button = document.createElement('button');
+      button.textContent = '下载';
+      button.onclick = () => {
+        const link = document.createElement('a');
+        link.download = `icon-${size}x${size}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+
+      // 组装
+      item.appendChild(canvas);
+      item.appendChild(label);
+      item.appendChild(button);
+      container.appendChild(item);
+    });
+
+    // 添加批量下载按钮
+    const downloadAll = document.createElement('button');
+    downloadAll.textContent = '下载全部图标';
+    downloadAll.style.cssText = 'display: block; margin: 30px auto; padding: 15px 40px; font-size: 16px;';
+    downloadAll.onclick = () => {
+      sizes.forEach((size, index) => {
+        setTimeout(() => {
+          const canvas = document.querySelectorAll('canvas')[index];
+          const link = document.createElement('a');
+          link.download = `icon-${size}x${size}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }, index * 500); // 延迟下载，避免浏览器阻止
+      });
+    };
+    document.body.appendChild(downloadAll);
+  </script>
+</body>
+</html>
