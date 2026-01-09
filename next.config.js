@@ -1,5 +1,4 @@
-import type { NextConfig } from "next";
-
+/** @type {import('next').NextConfig} */
 const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
@@ -7,7 +6,7 @@ const withPWA = require("next-pwa")({
   disable: process.env.NODE_ENV === "development",
 });
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   reactStrictMode: true,
   // 使用 Turbopack 配置
   turbopack: {},
