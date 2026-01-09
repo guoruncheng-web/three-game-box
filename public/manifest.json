@@ -3,10 +3,13 @@
   "short_name": "GameBox",
   "description": "🎮 休闲游戏盒子 - 精选小游戏合集",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fef7ff",
   "theme_color": "#667eea",
   "orientation": "any",
+  "dir": "ltr",
+  "lang": "zh-CN",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

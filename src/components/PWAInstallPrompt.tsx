@@ -42,22 +42,18 @@ export function PWAInstallPrompt() {
     setIsIOS(isIOSDevice);
     setIsIOSChrome(isChromeIOS);
 
+    // 检测是否为移动设备
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
     console.log('[PWA] 浏览器信息:', {
       userAgent: navigator.userAgent,
       isIOS: isIOSDevice,
       isIOSChrome: isChromeIOS,
+      isMobile,
+      isAndroid,
       standalone: window.matchMedia('(display-mode: standalone)').matches,
     });
-
-    // 检查用户是否已经拒绝过安装（已注释，允许测试）
-    // const hasDeclined = localStorage.getItem('pwa-install-declined');
-    // const declineTime = hasDeclined ? parseInt(hasDeclined) : 0;
-    // const now = Date.now();
-    // const threeDays = 3 * 24 * 60 * 60 * 1000; // 3天
-    // if (hasDeclined && (now - declineTime < threeDays)) {
-    //   console.log('[PWA] 用户在3天内拒绝过安装');
-    //   return;
-    // }
 
     // 检查是否已经安装
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -69,25 +65,88 @@ export function PWAInstallPrompt() {
       return;
     }
 
+    // 检查用户是否已经拒绝过安装
+    const hasDeclined = localStorage.getItem('pwa-install-declined');
+    const declineTime = hasDeclined ? parseInt(hasDeclined) : 0;
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000; // 1天
+    if (hasDeclined && (now - declineTime < oneDay)) {
+      console.log('[PWA] 用户在1天内拒绝过安装');
+      return;
+    }
+
     // iOS Safari 不支持 beforeinstallprompt，显示手动安装提示
-    if (isIOSDevice) {
-      console.log('[PWA] 检测到 iOS 设备，显示手动安装提示');
+    if (isIOSDevice && !isChromeIOS) {
+      console.log('[PWA] 检测到 iOS Safari，显示手动安装提示');
       setTimeout(() => {
         setShowPrompt(true);
       }, 3000);
       return;
     }
 
-    console.log('[PWA] 等待 beforeinstallprompt 事件...');
+    // 移动端 Android Chrome：等待 beforeinstallprompt 或主动显示
+    if (isMobile && isAndroid) {
+      console.log('[PWA] 检测到 Android 设备，等待 beforeinstallprompt 事件...');
+      
+      let promptReceived = false;
+      
+      // 监听 beforeinstallprompt 事件
+      const handler = (e: Event) => {
+        console.log('[PWA] beforeinstallprompt 事件触发');
+        e.preventDefault();
+        promptReceived = true;
+        const promptEvent = e as BeforeInstallPromptEvent;
+        setDeferredPrompt(promptEvent);
 
-    // 监听 beforeinstallprompt 事件（仅 Chrome/Edge）
+        // 延迟3秒显示提示
+        setTimeout(() => {
+          console.log('[PWA] 显示安装提示');
+          setShowPrompt(true);
+        }, 3000);
+      };
+
+      window.addEventListener('beforeinstallprompt', handler);
+
+      // 如果 8 秒后还没有收到 beforeinstallprompt 事件，主动显示提示
+      // 这适用于某些情况下浏览器不触发该事件（如用户交互不足等）
+      const fallbackTimer = setTimeout(() => {
+        if (!promptReceived) {
+          console.log('[PWA] 未收到 beforeinstallprompt 事件，检查 PWA 条件后主动显示提示');
+          // 检查 Service Worker 是否已注册
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then((registration) => {
+              if (registration) {
+                console.log('[PWA] Service Worker 已注册，显示安装提示（手动安装模式）');
+                // Android 设备即使没有 beforeinstallprompt，也可以显示手动安装提示
+                setShowPrompt(true);
+              } else {
+                console.log('[PWA] Service Worker 未注册，无法安装');
+              }
+            }).catch((err) => {
+              console.error('[PWA] 检查 Service Worker 失败:', err);
+            });
+          } else {
+            console.log('[PWA] 浏览器不支持 Service Worker');
+          }
+        }
+      }, 8000);
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handler);
+        clearTimeout(fallbackTimer);
+      };
+    }
+
+    // 桌面端：等待 beforeinstallprompt 事件
+    console.log('[PWA] 桌面端，等待 beforeinstallprompt 事件...');
+    
     const handler = (e: Event) => {
       console.log('[PWA] beforeinstallprompt 事件触发');
       e.preventDefault();
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
 
-      // 延迟3秒显示提示，让用户先体验应用
+      // 延迟3秒显示提示
       setTimeout(() => {
         console.log('[PWA] 显示安装提示');
         setShowPrompt(true);
@@ -325,26 +384,56 @@ export function PWAInstallPrompt() {
                   <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
                 </button>
               ) : (
-                // Android/Chrome 自动安装
+                // Android/Chrome 自动安装或手动安装提示
                 <>
-                  <button
-                    onClick={handleInstall}
-                    className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
-                    style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      <Download className="w-5 h-5" />
-                      立即安装
-                      <span className="inline-block group-hover:animate-bounce-once">🚀</span>
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  </button>
+                  {deferredPrompt ? (
+                    // 有 beforeinstallprompt 事件，可以自动安装
+                    <>
+                      <button
+                        onClick={handleInstall}
+                        className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 relative overflow-hidden group"
+                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          <Download className="w-5 h-5" />
+                          立即安装
+                          <span className="inline-block group-hover:animate-bounce-once">🚀</span>
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                      </button>
 
+                      <button
+                        onClick={handleRemindLater}
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"
+                      >
+                        稍后提醒
+                      </button>
+                    </>
+                  ) : (
+                    // 没有 beforeinstallprompt 事件，显示手动安装提示
+                    <div className="bg-blue-50 rounded-2xl p-4 mb-4">
+                      <p className="text-sm font-bold text-blue-800 mb-3 text-center">📝 Android 安装步骤</p>
+                      <ol className="space-y-2.5 text-sm text-blue-900">
+                        <li className="flex items-start gap-2">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                          <span>点击浏览器菜单（右上角 <span className="font-bold text-blue-600">⋮</span> 或 <span className="font-bold text-blue-600">☰</span>）</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                          <span>找到 <span className="font-bold text-blue-600">"添加到主屏幕"</span> 或 <span className="font-bold text-blue-600">"安装应用"</span> 选项</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                          <span>点击 <span className="font-bold text-blue-600">"安装"</span> 或 <span className="font-bold text-blue-600">"添加"</span> 完成 ✅</span>
+                        </li>
+                      </ol>
+                    </div>
+                  )}
                   <button
-                    onClick={handleRemindLater}
+                    onClick={handleClose}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"
                   >
-                    稍后提醒
+                    {deferredPrompt ? '稍后提醒' : '我知道了'}
                   </button>
                 </>
               )}
