@@ -4,6 +4,8 @@ import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
 import { ToastProvider } from "@/components/toast";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { IOSInstallBanner } from "@/components/IOSInstallBanner";
+import { PWATestButton } from "@/components/PWATestButton";
 import "./globals.css";
 
 // 显示字体
@@ -65,8 +67,10 @@ export default function RootLayout({
         <ClientInit>
           <ReduxProvider>
             <ToastProvider>
+              <IOSInstallBanner />
               {children}
               <PWAInstallPrompt />
+              <PWATestButton />
             </ToastProvider>
           </ReduxProvider>
         </ClientInit>

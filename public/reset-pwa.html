@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重置 PWA 设置</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 24px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .button:active {
+            transform: translateY(0);
+        }
+        .button.secondary {
+            background: #f3f4f6;
+            color: #333;
+        }
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #1e40af;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 重置 PWA 设置</h1>
+        <p>清除PWA安装限制，重新显示安装提示</p>
+
+        <div class="info">
+            <strong>📋 当前状态：</strong><br>
+            <span id="status">检测中...</span>
+        </div>
+
+        <button class="button" onclick="resetPWA()">
+            🔄 清除限制
+        </button>
+
+        <button class="button secondary" onclick="goHome()">
+            🏠 返回首页
+        </button>
+    </div>
+
+    <script>
+        // 检查当前状态
+        function checkStatus() {
+            const declined = localStorage.getItem('pwa-install-declined');
+            const bannerDismissed = localStorage.getItem('ios-install-banner-dismissed');
+
+            const statusEl = document.getElementById('status');
+
+            if (declined || bannerDismissed) {
+                statusEl.innerHTML = '❌ PWA 提示已被限制<br>';
+                if (declined) {
+                    const time = new Date(parseInt(declined));
+                    statusEl.innerHTML += `<code>pwa-install-declined</code>: ${time.toLocaleString()}<br>`;
+                }
+                if (bannerDismissed) {
+                    const time = new Date(parseInt(bannerDismissed));
+                    statusEl.innerHTML += `<code>ios-install-banner-dismissed</code>: ${time.toLocaleString()}`;
+                }
+            } else {
+                statusEl.innerHTML = '✅ 没有限制，PWA 提示正常';
+                statusEl.parentElement.classList.add('success');
+            }
+        }
+
+        // 重置 PWA 设置
+        function resetPWA() {
+            localStorage.removeItem('pwa-install-declined');
+            localStorage.removeItem('ios-install-banner-dismissed');
+
+            alert('✅ PWA 设置已重置！\n\n即将返回首页，你将看到安装提示。');
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+
+        // 返回首页
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // 页面加载时检查状态
+        checkStatus();
+    </script>
+</body>
+</html>
