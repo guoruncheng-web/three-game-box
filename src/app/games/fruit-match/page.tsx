@@ -121,7 +121,7 @@ export default function FruitMatchPage() {
         grid[row] = [];
         for (let col = 0; col < GRID_SIZE; col++) {
           // 随机选择水果，但避免初始就有匹配
-          let fruit: FruitType;
+          let fruit: FruitType = FRUITS[0]; // 给初始值
           let valid = false;
           let tries = 0;
 
@@ -141,7 +141,7 @@ export default function FruitMatchPage() {
             tries++;
           }
 
-          grid[row][col] = fruit || FRUITS[0];
+          grid[row][col] = fruit;
         }
       }
 
