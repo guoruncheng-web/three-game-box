@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       username,
       email,
       password_hash,
-      nickname: nickname || null,
+      nickname: nickname || undefined,
     });
 
     // 生成 Token

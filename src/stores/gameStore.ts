@@ -201,4 +201,3 @@ export const store = configureStore({
 // 类型定义
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export type AppDispatch = typeof store.dispatch;

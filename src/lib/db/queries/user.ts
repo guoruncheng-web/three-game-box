@@ -3,7 +3,7 @@
  */
 
 import { query } from '@/lib/db';
-import type { User, PublicUser } from '@/types/auth';
+import type { User, PublicUser, UserWithPassword } from '@/types/auth';
 
 /**
  * 根据 ID 获取用户
@@ -48,11 +48,11 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 }
 
 /**
- * 根据用户名或邮箱获取用户
+ * 根据用户名或邮箱获取用户（包含密码哈希）
  * @param identifier - 用户名或邮箱
  * @returns 用户信息或 null
  */
-export async function getUserByIdentifier(identifier: string): Promise<User | null> {
+export async function getUserByIdentifier(identifier: string): Promise<UserWithPassword | null> {
   const result = await query(
     'SELECT * FROM users WHERE (username = $1 OR email = $1) AND status = $2',
     [identifier, 'active']
@@ -76,7 +76,7 @@ export async function createUser(userData: {
     `INSERT INTO users (username, email, password_hash, nickname)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [userData.username, userData.email, userData.password_hash, userData.nickname || null]
+    [userData.username, userData.email, userData.password_hash, userData.nickname ?? null]
   );
 
   return result.rows[0];
@@ -126,7 +126,8 @@ export async function emailExists(email: string): Promise<boolean> {
  * @param user - 用户信息
  * @returns 公开用户信息
  */
-export function toPublicUser(user: User): PublicUser {
-  const { password_hash, ...publicUser } = user as any;
-  return publicUser;
+export function toPublicUser(user: User | UserWithPassword): PublicUser {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password_hash, ...publicUser } = user as UserWithPassword;
+  return publicUser as PublicUser;
 }

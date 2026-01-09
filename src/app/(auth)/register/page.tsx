@@ -22,10 +22,15 @@ const iconWechat = "/images/register/icon-wechat.svg";
 const iconQQ = "/images/register/icon-qq.svg";
 const iconWeibo = "/images/register/icon-weibo.svg";
 
+// 扩展 RegisterRequest，添加 confirmPassword 用于前端表单验证
+interface RegisterFormData extends RegisterRequest {
+  confirmPassword: string;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading, isAuthenticated } = useAuth();
-  const [formData, setFormData] = useState<RegisterRequest>({
+  const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
     email: '',
     password: '',
@@ -111,11 +116,11 @@ export default function RegisterPage() {
 
     setSubmitting(true);
     try {
+      // 不传递 confirmPassword 到 API
       await register({
         username: formData.email,
         email: formData.email,
         password: formData.password,
-        confirmPassword: formData.confirmPassword,
       });
       Toast.show({
         icon: 'success',

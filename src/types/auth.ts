@@ -16,6 +16,11 @@ export interface User {
   last_login_at?: Date | string;
 }
 
+/** 数据库用户（包含密码哈希） */
+export interface UserWithPassword extends User {
+  password_hash: string;
+}
+
 /** 用户（不包含敏感信息） */
 export interface PublicUser {
   id: number;
