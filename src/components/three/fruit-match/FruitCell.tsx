@@ -9,7 +9,14 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
+// 普通水果类型
+type NormalFruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
+
+// 特殊水果类型
+type SpecialFruitType = '💣' | '🌈' | '🍈';
+
+// 所有水果类型
+type FruitType = NormalFruitType | SpecialFruitType;
 
 interface FruitCellProps {
   fruit: FruitType;
@@ -25,6 +32,7 @@ interface FruitCellProps {
 
 // 水果类型到图片路径的映射
 const fruitImages: Record<FruitType, string> = {
+  // 普通水果
   '🍇': '/images/generated/fruid/Grape.png',
   '🍋': '/images/generated/fruid/lemon.png',
   '🍉': '/images/generated/fruid/Watermelon.png',
@@ -32,6 +40,15 @@ const fruitImages: Record<FruitType, string> = {
   '🍎': '/images/generated/fruid/RainbowCandy.png',
   '🍒': '/images/generated/fruid/VerticalStriped.png',
   '🍓': '/images/generated/fruid/Strawberry.png',
+  // 特殊水果 - 暂时使用现有图片作为占位符
+  '💣': '/images/generated/fruid/Banana.png',         // 炸弹 - 使用香蕉图片（黄色爆炸效果）
+  '🌈': '/images/generated/fruid/RainbowCandy.png',   // 彩虹 - 使用彩虹糖果
+  '🍈': '/images/generated/fruid/Watermelon.png',     // 特殊西瓜
+};
+
+// 判断是否为特殊水果
+const isSpecialFruit = (fruit: FruitType): boolean => {
+  return fruit === '💣' || fruit === '🌈' || fruit === '🍈';
 };
 
 export function FruitCell({
@@ -267,6 +284,22 @@ export function FruitCell({
             side={THREE.DoubleSide}
             transparent
             opacity={0.6}
+          />
+        </mesh>
+      )}
+
+      {/* 特殊水果发光效果 */}
+      {isSpecialFruit(fruit) && !isMatched && (
+        <mesh geometry={bgGeometry} position={[0, 0, -0.01]}>
+          <meshBasicMaterial
+            color={
+              fruit === '💣' ? '#ff6b00' :   // 炸弹 - 橙色
+              fruit === '🌈' ? '#ff00ff' :   // 彩虹 - 品红色
+              '#00ff00'                       // 西瓜 - 绿色
+            }
+            side={THREE.DoubleSide}
+            transparent
+            opacity={0.4}
           />
         </mesh>
       )}

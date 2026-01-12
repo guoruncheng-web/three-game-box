@@ -9,7 +9,14 @@ import { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { GameScene } from './GameScene';
 
-type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
+// 普通水果类型
+type NormalFruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
+
+// 特殊水果类型
+type SpecialFruitType = '💣' | '🌈' | '🍈';
+
+// 所有水果类型
+type FruitType = NormalFruitType | SpecialFruitType;
 
 interface SwapAnimationState {
   cell1: { row: number; col: number };

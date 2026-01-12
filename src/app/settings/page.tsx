@@ -36,7 +36,7 @@ function Toggle({ checked, onChange }: ToggleProps) {
 
 export default function SettingsPage() {
     const router = useRouter();
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
 
     // 开关状态
     const [pushNotification, setPushNotification] = useState(true);
@@ -48,6 +48,10 @@ export default function SettingsPage() {
     const handleLogout = async () => {
         await logout();
         router.push('/login');
+    };
+
+    const handleEditProfile = () => {
+        router.push('/profile');
     };
 
     return (
@@ -92,17 +96,27 @@ export default function SettingsPage() {
                     </div>
                     <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
                         {/* 更换头像 */}
-                        <button className="w-full px-4 py-4 flex items-center justify-between">
+                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="relative">
-                                    <div
-                                        className="w-16 h-16 rounded-full shadow-lg flex items-center justify-center relative"
-                                        style={{
-                                            backgroundImage: 'linear-gradient(135deg, rgb(194, 122, 255) 0%, rgb(251, 100, 182) 100%)',
-                                        }}
-                                    >
-                                        <span className="text-3xl">🎮</span>
-                                    </div>
+                                    {user?.avatar_url ? (
+                                        <img
+                                            src={user.avatar_url}
+                                            alt="头像"
+                                            className="w-16 h-16 rounded-full shadow-lg object-cover"
+                                        />
+                                    ) : (
+                                        <div
+                                            className="w-16 h-16 rounded-full shadow-lg flex items-center justify-center relative"
+                                            style={{
+                                                backgroundImage: 'linear-gradient(135deg, rgb(194, 122, 255) 0%, rgb(251, 100, 182) 100%)',
+                                            }}
+                                        >
+                                            <span className="text-3xl">
+                                                {user?.nickname?.[0] || user?.username?.[0] || '🎮'}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#fdc700] shadow-lg flex items-center justify-center">
                                         <Image
                                             src="/images/settings/icon-camera.svg"
@@ -126,7 +140,7 @@ export default function SettingsPage() {
                         </button>
                         <div className="h-[1px] bg-[#f3f4f6]" />
                         {/* 修改昵称 */}
-                        <button className="w-full px-4 py-4 flex items-center justify-between">
+                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-[14px] flex items-center justify-center"
@@ -143,7 +157,9 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="flex flex-col items-start">
                                     <span className="text-base font-bold text-[#1e2939]">修改昵称</span>
-                                    <span className="text-xs font-normal text-[#6a7282]">快乐玩家</span>
+                                    <span className="text-xs font-normal text-[#6a7282]">
+                                        {user?.nickname || user?.username || '未设置'}
+                                    </span>
                                 </div>
                             </div>
                             <Image
@@ -154,8 +170,8 @@ export default function SettingsPage() {
                             />
                         </button>
                         <div className="h-[1px] bg-[#f3f4f6]" />
-                        {/* 个性签名 */}
-                        <button className="w-full px-4 py-4 flex items-center justify-between">
+                        {/* 用户名 */}
+                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-[14px] flex items-center justify-center"
@@ -171,8 +187,8 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <div className="flex flex-col items-start">
-                                    <span className="text-base font-bold text-[#1e2939]">个性签名</span>
-                                    <span className="text-xs font-normal text-[#6a7282]">游戏是快乐的源泉～</span>
+                                    <span className="text-base font-bold text-[#1e2939]">用户名</span>
+                                    <span className="text-xs font-normal text-[#6a7282]">@{user?.username || '未设置'}</span>
                                 </div>
                             </div>
                             <Image
@@ -227,7 +243,7 @@ export default function SettingsPage() {
                         </button>
                         <div className="h-[1px] bg-[#f3f4f6]" />
                         {/* 绑定手机 */}
-                        <button className="w-full px-4 py-4 flex items-center justify-between">
+                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-[14px] flex items-center justify-center"
@@ -243,14 +259,22 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <div className="flex flex-col items-start">
-                                    <span className="text-base font-bold text-[#1e2939]">绑定手机</span>
-                                    <span className="text-xs font-normal text-[#6a7282]">138****5678</span>
+                                    <span className="text-base font-bold text-[#1e2939]">
+                                        {user?.phone ? '绑定手机' : '绑定手机'}
+                                    </span>
+                                    <span className="text-xs font-normal text-[#6a7282]">
+                                        {user?.phone
+                                            ? `${user.phone.substring(0, 3)}****${user.phone.substring(7)}`
+                                            : '未绑定'}
+                                    </span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="px-2 py-1 bg-[#f0fdf4] rounded-full text-xs font-bold text-[#00a63e]">
-                                    已绑定
-                                </span>
+                                {user?.phone && (
+                                    <span className="px-2 py-1 bg-[#f0fdf4] rounded-full text-xs font-bold text-[#00a63e]">
+                                        已绑定
+                                    </span>
+                                )}
                                 <Image
                                     src="/images/settings/icon-edit.svg"
                                     alt="arrow"
@@ -261,7 +285,7 @@ export default function SettingsPage() {
                         </button>
                         <div className="h-[1px] bg-[#f3f4f6]" />
                         {/* 绑定邮箱 */}
-                        <button className="w-full px-4 py-4 flex items-center justify-between">
+                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-10 h-10 rounded-[14px] flex items-center justify-center"
@@ -278,13 +302,17 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="flex flex-col items-start">
                                     <span className="text-base font-bold text-[#1e2939]">绑定邮箱</span>
-                                    <span className="text-xs font-normal text-[#6a7282]">user@example.com</span>
+                                    <span className="text-xs font-normal text-[#6a7282]">
+                                        {user?.email || '未绑定'}
+                                    </span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="px-2 py-1 bg-[#f0fdf4] rounded-full text-xs font-bold text-[#00a63e]">
-                                    已绑定
-                                </span>
+                                {user?.email && (
+                                    <span className="px-2 py-1 bg-[#f0fdf4] rounded-full text-xs font-bold text-[#00a63e]">
+                                        已绑定
+                                    </span>
+                                )}
                                 <Image
                                     src="/images/settings/icon-edit.svg"
                                     alt="arrow"

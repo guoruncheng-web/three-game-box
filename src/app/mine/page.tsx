@@ -341,11 +341,28 @@ export default function MinePage() {
                             <div className="flex items-center gap-4">
                                 {/* 头像 */}
                                 <div className="relative">
-                                    <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center animate-bounce-gentle">
-                                        <span className="text-4xl">🎮</span>
-                                    </div>
+                                    {user?.avatar_url ? (
+                                        <img
+                                            src={user.avatar_url}
+                                            alt="头像"
+                                            className="w-20 h-20 rounded-full bg-white shadow-xl object-cover animate-bounce-gentle"
+                                        />
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-full bg-white shadow-xl flex items-center justify-center animate-bounce-gentle">
+                                            {user ? (
+                                                <span className="text-4xl font-black text-purple-600">
+                                                    {user.nickname?.[0] || user.username?.[0] || '🎮'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-4xl">🎮</span>
+                                            )}
+                                        </div>
+                                    )}
                                     {/* 编辑按钮 */}
-                                    <button className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#fdc700] shadow-lg flex items-center justify-center">
+                                    <button
+                                        onClick={() => router.push('/profile')}
+                                        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#fdc700] shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
+                                    >
                                         <Image
                                             src="/images/profile/icon-camera.svg"
                                             alt="edit"
@@ -359,14 +376,16 @@ export default function MinePage() {
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-2xl font-black text-white">
-                                            {userData?.username || '游客玩家'}
+                                            {user?.nickname || user?.username || userData?.username || '游客玩家'}
                                         </span>
-                                        <Image
-                                            src="/images/profile/icon-verified.svg"
-                                            alt="verified"
-                                            width={20}
-                                            height={20}
-                                        />
+                                        {user && (
+                                            <Image
+                                                src="/images/profile/icon-verified.svg"
+                                                alt="verified"
+                                                width={20}
+                                                height={20}
+                                            />
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
                                         <Image

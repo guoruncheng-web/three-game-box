@@ -147,23 +147,27 @@
         function generateBackgroundMusic(duration = 60, volume = 0.5) {
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const sampleRate = audioContext.sampleRate;
-            const length = sampleRate * duration;
+            const length = Math.floor(sampleRate * duration);
             const buffer = audioContext.createBuffer(2, length, sampleRate); // 立体声
             const leftChannel = buffer.getChannelData(0);
             const rightChannel = buffer.getChannelData(1);
 
-            // 创建轻松愉快的旋律
-            // 使用 C 大调音阶
-            const scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C4-C5
+            // 创建轻松愉快的旋律 - 优化版本
+            // 使用 C 大调音阶，扩展到两个八度
+            const scale = [
+                261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, // C4-C5
+                587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50 // C5-C6
+            ];
+            
+            // 更和谐的和弦进行：I-V-vi-IV (卡农进行，更轻松愉快)
             const chordProgression = [
-                [0, 2, 4], // C major
-                [2, 4, 6], // D minor
-                [4, 6, 1], // E minor
-                [0, 3, 5], // F major
+                [0, 4, 7],   // C major (I)
+                [7, 11, 2],  // G major (V) - 使用高八度
+                [9, 0, 4],   // A minor (vi) - 使用高八度
+                [5, 9, 0],   // F major (IV) - 使用高八度
             ];
 
-            let time = 0;
-            const beatDuration = 0.5; // 每拍 0.5 秒
+            const beatDuration = 0.6; // 稍微慢一点的节奏，更轻松
             const beatsPerMeasure = 4;
             const measures = Math.ceil(duration / (beatDuration * beatsPerMeasure));
 
@@ -177,31 +181,32 @@
                     const beatStartSample = Math.floor(beatStart * sampleRate);
                     const beatLength = Math.floor(beatDuration * sampleRate);
 
-                    // 为每个和弦音创建音符
+                    // 主旋律：使用和弦的分解形式，更流畅
                     chord.forEach((noteIndex, chordTone) => {
-                        const freq = scale[noteIndex];
-                        const noteStartDelay = chordTone * 0.05; // 和弦音稍微错开
+                        const freq = scale[Math.min(noteIndex, scale.length - 1)];
+                        const noteStartDelay = chordTone * 0.08; // 更明显的分解
                         const noteStart = beatStartSample + Math.floor(noteStartDelay * sampleRate);
-                        const noteLength = beatLength - Math.floor(noteStartDelay * sampleRate);
+                        const noteLength = Math.floor(beatLength * 0.8); // 音符稍短，留出空间
 
                         for (let i = 0; i < noteLength && noteStart + i < length; i++) {
                             const t = (noteStart + i) / sampleRate;
                             const noteTime = t - beatStart - noteStartDelay;
                             
-                            // 使用包络：快速起音，缓慢衰减
+                            // 更平滑的包络：快速起音，缓慢衰减
                             let envelope = 1;
-                            if (noteTime < 0.05) {
-                                envelope = noteTime / 0.05; // 起音
+                            if (noteTime < 0.1) {
+                                envelope = noteTime / 0.1; // 起音
                             } else {
-                                envelope = Math.exp(-(noteTime - 0.05) * 3); // 衰减
+                                envelope = Math.exp(-(noteTime - 0.1) * 2); // 更慢的衰减
                             }
 
-                            // 添加轻微的颤音效果
-                            const vibrato = 1 + Math.sin(t * 5) * 0.01;
-                            const sample = Math.sin(2 * Math.PI * freq * vibrato * t) * envelope * volume * 0.3;
+                            // 使用更柔和的波形（正弦波 + 轻微泛音）
+                            const fundamental = Math.sin(2 * Math.PI * freq * t);
+                            const harmonic = Math.sin(2 * Math.PI * freq * 2 * t) * 0.1; // 轻微泛音
+                            const sample = (fundamental + harmonic) * envelope * volume * 0.25;
 
-                            // 立体声：左右声道稍微不同
-                            const pan = Math.sin(t * 0.5) * 0.1; // 轻微的左右摆动
+                            // 立体声：轻微的空间感
+                            const pan = Math.sin(t * 0.3) * 0.05; // 更轻微的摆动
                             leftChannel[noteStart + i] += sample * (1 - pan);
                             rightChannel[noteStart + i] += sample * (1 + pan);
                         }
@@ -209,11 +214,35 @@
                 }
             }
 
-            // 添加低音线（简单的根音）
+            // 添加中音和弦层（更丰富）
+            for (let measure = 0; measure < measures; measure++) {
+                const chordIndex = measure % chordProgression.length;
+                const chord = chordProgression[chordIndex];
+
+                const measureStart = measure * beatsPerMeasure * beatDuration;
+                const measureStartSample = Math.floor(measureStart * sampleRate);
+                const measureLength = Math.floor(beatsPerMeasure * beatDuration * sampleRate);
+
+                // 中音和弦：同时播放，更饱满
+                chord.forEach((noteIndex) => {
+                    const freq = scale[Math.min(noteIndex + 3, scale.length - 1)]; // 中音区
+                    
+                    for (let i = 0; i < measureLength && measureStartSample + i < length; i++) {
+                        const t = (measureStartSample + i) / sampleRate;
+                        const envelope = 0.3 + 0.2 * Math.sin(t * 1.5); // 轻微的动态
+                        const sample = Math.sin(2 * Math.PI * freq * t) * envelope * volume * 0.12;
+                        
+                        leftChannel[measureStartSample + i] += sample;
+                        rightChannel[measureStartSample + i] += sample;
+                    }
+                });
+            }
+
+            // 添加低音线（根音）- 更柔和
             for (let measure = 0; measure < measures; measure++) {
                 const chordIndex = measure % chordProgression.length;
                 const rootNote = chordProgression[chordIndex][0];
-                const rootFreq = scale[rootNote] / 2; // 低八度
+                const rootFreq = scale[Math.max(0, rootNote - 4)] || scale[0] / 2; // 低音区
 
                 const measureStart = measure * beatsPerMeasure * beatDuration;
                 const measureStartSample = Math.floor(measureStart * sampleRate);
@@ -221,8 +250,9 @@
 
                 for (let i = 0; i < measureLength && measureStartSample + i < length; i++) {
                     const t = (measureStartSample + i) / sampleRate;
-                    const envelope = 0.5 + 0.5 * Math.sin(t * 2); // 简单的包络
-                    const sample = Math.sin(2 * Math.PI * rootFreq * t) * envelope * volume * 0.15;
+                    // 低音使用更平滑的包络
+                    const envelope = 0.4 + 0.3 * Math.sin(t * 1); // 缓慢变化
+                    const sample = Math.sin(2 * Math.PI * rootFreq * t) * envelope * volume * 0.1;
 
                     leftChannel[measureStartSample + i] += sample;
                     rightChannel[measureStartSample + i] += sample;
@@ -241,25 +271,50 @@
             const max = Math.max(maxLeft, maxRight);
             
             if (max > 0) {
-                const normalizeFactor = 0.9 / max;
+                const normalizeFactor = 0.85 / max; // 稍微降低音量，避免过响
                 for (let i = 0; i < length; i++) {
                     leftChannel[i] *= normalizeFactor;
                     rightChannel[i] *= normalizeFactor;
                 }
             }
 
-            // 添加淡入淡出
-            const fadeLength = sampleRate * 2; // 2秒淡入淡出
-            for (let i = 0; i < fadeLength && i < length; i++) {
-                const fade = i / fadeLength;
+            // 添加更平滑的淡入淡出
+            const fadeInLength = sampleRate * 3; // 3秒淡入，更平滑
+            const fadeOutLength = sampleRate * 3; // 3秒淡出
+            
+            // 淡入
+            for (let i = 0; i < fadeInLength && i < length; i++) {
+                const fade = Math.pow(i / fadeInLength, 0.5); // 平方根曲线，更自然
                 leftChannel[i] *= fade;
                 rightChannel[i] *= fade;
             }
-            for (let i = 0; i < fadeLength && length - 1 - i >= 0; i++) {
-                const fade = i / fadeLength;
+            
+            // 淡出
+            for (let i = 0; i < fadeOutLength && length - 1 - i >= 0; i++) {
+                const fade = Math.pow(i / fadeOutLength, 0.5); // 平方根曲线
                 const index = length - 1 - i;
                 leftChannel[index] *= fade;
                 rightChannel[index] *= fade;
+            }
+            
+            // 添加轻微的压缩效果（防止峰值过高）
+            const threshold = 0.8;
+            const ratio = 0.5;
+            for (let i = 0; i < length; i++) {
+                const absLeft = Math.abs(leftChannel[i]);
+                const absRight = Math.abs(rightChannel[i]);
+                
+                if (absLeft > threshold) {
+                    const excess = absLeft - threshold;
+                    const compressed = threshold + excess * ratio;
+                    leftChannel[i] = leftChannel[i] > 0 ? compressed : -compressed;
+                }
+                
+                if (absRight > threshold) {
+                    const excess = absRight - threshold;
+                    const compressed = threshold + excess * ratio;
+                    rightChannel[i] = rightChannel[i] > 0 ? compressed : -compressed;
+                }
             }
 
             return buffer;

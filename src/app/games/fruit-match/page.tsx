@@ -33,10 +33,23 @@ const iconScore = '/images/fruit-match/icon-score.svg';
 const iconTarget = '/images/fruit-match/icon-target.svg';
 const iconMoves = '/images/fruit-match/icon-moves.svg';
 
-// 水果类型
-type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
+// 普通水果类型
+type NormalFruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
-const FRUITS: FruitType[] = ['🍇', '🍋', '🍉', '🍊', '🍎', '🍒', '🍓'];
+// 特殊水果类型
+type SpecialFruitType = '💣' | '🌈' | '🎃';
+
+// 所有水果类型
+type FruitType = NormalFruitType | SpecialFruitType;
+
+const FRUITS: NormalFruitType[] = ['🍇', '🍋', '🍉', '🍊', '🍎', '🍒', '🍓'];
+
+// 特殊水果配置
+const SPECIAL_FRUITS = {
+  BOMB: '💣' as SpecialFruitType,      // 炸弹：消除周围3x3区域
+  RAINBOW: '🌈' as SpecialFruitType,   // 彩虹：消除所有同色水果
+  PUMPKIN: '🎃' as SpecialFruitType,   // 南瓜：十字消除（横竖一排）
+};
 
 // 游戏配置
 const GRID_SIZE = 8;
@@ -69,6 +82,15 @@ interface Achievement {
 interface SwapAnimationState {
   cell1: { row: number; col: number };
   cell2: { row: number; col: number };
+}
+
+// 匹配结果类型
+interface MatchResult {
+  cells: Set<string>;                    // 匹配的单元格
+  specialFruit?: {                       // 要生成的特殊水果
+    type: SpecialFruitType;
+    position: { row: number; col: number };
+  };
 }
 
 export default function FruitMatchPage() {
@@ -105,22 +127,23 @@ export default function FruitMatchPage() {
     playLoseSound,
   } = useGameSounds({ enabled: gameState.isSoundOn });
 
-  // 背景音乐系统
+  // 背景音乐系统（暂时禁用）
   const { play: playMusic, pause: pauseMusic, stop: stopMusic } = useBackgroundMusic({
-    enabled: gameState.isSoundOn && !gameState.isPaused && !gameState.gameOver && !gameState.gameWon,
+    enabled: false, // 暂时禁用背景音乐
     volume: 0.5,
     loop: true,
   });
 
-  // 检查是否有匹配（3个或更多相同水果）
-  const findMatches = useCallback((grid: (FruitType | null)[][]): Set<string> => {
+  // 检查是否有匹配（3个或更多相同水果）- 增强版，支持特殊水果生成
+  const findMatches = useCallback((grid: (FruitType | null)[][]): MatchResult => {
     const matches = new Set<string>();
+    let specialFruit: MatchResult['specialFruit'] = undefined;
 
     // 检查水平匹配
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE - 2; col++) {
         const fruit = grid[row][col];
-        if (fruit === null) continue;
+        if (fruit === null || Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) continue;
 
         // 检查是否有3个或更多相同的水果
         let matchCount = 1;
@@ -133,8 +156,28 @@ export default function FruitMatchPage() {
         }
 
         if (matchCount >= 3) {
+          const matchCells: string[] = [];
           for (let c = col; c < col + matchCount; c++) {
-            matches.add(`${row}-${c}`);
+            const cellKey = `${row}-${c}`;
+            matches.add(cellKey);
+            matchCells.push(cellKey);
+          }
+
+          // 生成特殊水果
+          if (matchCount >= 5 && !specialFruit) {
+            // 5连消或以上 → 彩虹水果（中间位置）
+            const centerCol = col + Math.floor(matchCount / 2);
+            specialFruit = {
+              type: SPECIAL_FRUITS.RAINBOW,
+              position: { row, col: centerCol },
+            };
+          } else if (matchCount === 4 && !specialFruit) {
+            // 4连消 → 炸弹（中间位置）
+            const centerCol = col + Math.floor(matchCount / 2);
+            specialFruit = {
+              type: SPECIAL_FRUITS.BOMB,
+              position: { row, col: centerCol },
+            };
           }
         }
       }
@@ -144,7 +187,7 @@ export default function FruitMatchPage() {
     for (let col = 0; col < GRID_SIZE; col++) {
       for (let row = 0; row < GRID_SIZE - 2; row++) {
         const fruit = grid[row][col];
-        if (fruit === null) continue;
+        if (fruit === null || Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) continue;
 
         // 检查是否有3个或更多相同的水果
         let matchCount = 1;
@@ -157,14 +200,34 @@ export default function FruitMatchPage() {
         }
 
         if (matchCount >= 3) {
+          const matchCells: string[] = [];
           for (let r = row; r < row + matchCount; r++) {
-            matches.add(`${r}-${col}`);
+            const cellKey = `${r}-${col}`;
+            matches.add(cellKey);
+            matchCells.push(cellKey);
+          }
+
+          // 生成特殊水果
+          if (matchCount >= 5 && !specialFruit) {
+            // 5连消或以上 → 彩虹水果（中间位置）
+            const centerRow = row + Math.floor(matchCount / 2);
+            specialFruit = {
+              type: SPECIAL_FRUITS.RAINBOW,
+              position: { row: centerRow, col },
+            };
+          } else if (matchCount === 4 && !specialFruit) {
+            // 4连消 → 炸弹（中间位置）
+            const centerRow = row + Math.floor(matchCount / 2);
+            specialFruit = {
+              type: SPECIAL_FRUITS.BOMB,
+              position: { row: centerRow, col },
+            };
           }
         }
       }
     }
 
-    return matches;
+    return { cells: matches, specialFruit };
   }, []);
 
   // 初始化游戏网格
@@ -208,8 +271,8 @@ export default function FruitMatchPage() {
       }
 
       // 检查整个网格是否有匹配
-      const matches = findMatches(grid);
-      if (matches.size === 0) {
+      const matchResult = findMatches(grid);
+      if (matchResult.cells.size === 0) {
         break;
       }
 
@@ -267,7 +330,27 @@ export default function FruitMatchPage() {
     setMaxCombo(0);
     setTotalMatches(0);
     setCurrentCombo(0);
+
+    console.log('🎮 游戏初始化完成');
+    console.log('特殊水果定义:', SPECIAL_FRUITS);
   }, [initializeGrid]);
+
+  // 调试：监听网格变化
+  useEffect(() => {
+    // 检查网格中是否有特殊水果
+    const specialFruitsInGrid: Array<{ fruit: string; position: [number, number] }> = [];
+    gameState.grid.forEach((row, rowIndex) => {
+      row.forEach((fruit, colIndex) => {
+        if (fruit && Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) {
+          specialFruitsInGrid.push({ fruit, position: [rowIndex, colIndex] });
+        }
+      });
+    });
+
+    if (specialFruitsInGrid.length > 0) {
+      console.log('🌟 网格中的特殊水果:', specialFruitsInGrid);
+    }
+  }, [gameState.grid]);
 
   // 提交游戏记录到后端
   const submitGameRecord = useCallback(async () => {
@@ -386,16 +469,126 @@ export default function FruitMatchPage() {
       } else {
         playLoseSound();
       }
-      stopMusic(); // 游戏结束时停止背景音乐
+      // 背景音乐已禁用
 
       // 提交游戏记录
       submitGameRecord();
     }
-  }, [gameState.gameWon, gameState.gameOver, playWinSound, playLoseSound, submitGameRecord, stopMusic]);
+  }, [gameState.gameWon, gameState.gameOver, playWinSound, playLoseSound, submitGameRecord]);
+
+  // 处理特殊水果消除效果
+  const activateSpecialFruit = useCallback((
+    grid: (FruitType | null)[][],
+    row: number,
+    col: number,
+    fruitType: SpecialFruitType,
+    specifiedTargetFruit?: NormalFruitType  // 可选：指定要消除的目标水果（用于彩虹）
+  ): Set<string> => {
+    const cellsToRemove = new Set<string>();
+
+    console.log(`🎆 激活特殊水果: ${fruitType} 在位置 [${row}, ${col}]`, specifiedTargetFruit ? `目标水果: ${specifiedTargetFruit}` : '');
+
+    if (fruitType === SPECIAL_FRUITS.BOMB) {
+      // 炸弹：消除周围3x3区域
+      console.log('💣 炸弹效果：消除3x3区域');
+      for (let r = Math.max(0, row - 1); r <= Math.min(GRID_SIZE - 1, row + 1); r++) {
+        for (let c = Math.max(0, col - 1); c <= Math.min(GRID_SIZE - 1, col + 1); c++) {
+          cellsToRemove.add(`${r}-${c}`);
+        }
+      }
+      console.log(`💣 炸弹将消除 ${cellsToRemove.size} 个单元格`);
+    } else if (fruitType === SPECIAL_FRUITS.RAINBOW) {
+      // 彩虹：消除所有同色水果
+      let targetFruit: NormalFruitType | null = specifiedTargetFruit || null;
+
+      // 如果没有指定目标水果，查找周围的普通水果
+      if (!targetFruit) {
+        console.log('🌈 彩虹效果：查找周围的普通水果');
+        console.log('🔍 周围3x3区域的水果:');
+        for (let r = Math.max(0, row - 1); r <= Math.min(GRID_SIZE - 1, row + 1); r++) {
+          for (let c = Math.max(0, col - 1); c <= Math.min(GRID_SIZE - 1, col + 1); c++) {
+            const fruit = grid[r][c];
+            console.log(`  [${r},${c}]: ${fruit}`);
+            if (fruit && FRUITS.includes(fruit as NormalFruitType)) {
+              targetFruit = fruit as NormalFruitType;
+              console.log(`✅ 找到目标水果: ${targetFruit} 在 [${r}, ${c}]`);
+              break;
+            }
+          }
+          if (targetFruit) break;
+        }
+      } else {
+        console.log(`🌈 彩虹效果：使用指定的目标水果 ${targetFruit}`);
+      }
+
+      if (targetFruit) {
+        console.log(`🎯 彩虹将消除所有 ${targetFruit}`);
+        // 消除所有该颜色的水果
+        for (let r = 0; r < GRID_SIZE; r++) {
+          for (let c = 0; c < GRID_SIZE; c++) {
+            if (grid[r][c] === targetFruit) {
+              cellsToRemove.add(`${r}-${c}`);
+            }
+          }
+        }
+        console.log(`🌈 彩虹将消除 ${cellsToRemove.size} 个 ${targetFruit}`);
+      } else {
+        console.warn('⚠️ 彩虹周围没有找到普通水果！');
+      }
+      cellsToRemove.add(`${row}-${col}`); // 也消除彩虹本身
+    } else if (fruitType === SPECIAL_FRUITS.PUMPKIN) {
+      // 南瓜：十字消除（横竖一排）
+      console.log('🎃 南瓜效果：十字消除（整行+整列）');
+      // 消除整行
+      for (let c = 0; c < GRID_SIZE; c++) {
+        cellsToRemove.add(`${row}-${c}`);
+      }
+      // 消除整列
+      for (let r = 0; r < GRID_SIZE; r++) {
+        cellsToRemove.add(`${r}-${col}`);
+      }
+      console.log(`🎃 南瓜将消除 ${cellsToRemove.size} 个单元格（整行+整列）`);
+    }
+
+    console.log(`✅ 特殊水果激活完成，共标记 ${cellsToRemove.size} 个单元格待消除`);
+    return cellsToRemove;
+  }, []);
 
   // 消除匹配的水果
   const removeMatches = useCallback((grid: (FruitType | null)[][], matches: Set<string>): number => {
     let removedCount = 0;
+    const specialFruitsToActivate: Array<{ row: number; col: number; type: SpecialFruitType }> = [];
+
+    // 先检查匹配中是否有普通水果（用于彩虹激活）
+    let normalFruitInMatch: NormalFruitType | null = null;
+    matches.forEach((key) => {
+      const [row, col] = key.split('-').map(Number);
+      const fruit = grid[row][col];
+      if (fruit && FRUITS.includes(fruit as NormalFruitType)) {
+        normalFruitInMatch = fruit as NormalFruitType;
+      }
+    });
+
+    // 检查是否有特殊水果需要激活
+    matches.forEach((key) => {
+      const [row, col] = key.split('-').map(Number);
+      const fruit = grid[row][col];
+      if (fruit && Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) {
+        specialFruitsToActivate.push({ row, col, type: fruit as SpecialFruitType });
+      }
+    });
+
+    // 激活特殊水果
+    specialFruitsToActivate.forEach(({ row, col, type }) => {
+      // 如果是彩虹且匹配中有普通水果，传入该普通水果作为目标
+      const targetFruit = (type === SPECIAL_FRUITS.RAINBOW && normalFruitInMatch)
+        ? normalFruitInMatch
+        : undefined;
+      const extraCells = activateSpecialFruit(grid, row, col, type, targetFruit);
+      extraCells.forEach((cell) => matches.add(cell));
+    });
+
+    // 移除所有匹配的水果
     matches.forEach((key) => {
       const [row, col] = key.split('-').map(Number);
       if (grid[row][col] !== null) {
@@ -410,7 +603,7 @@ export default function FruitMatchPage() {
     }
 
     return removedCount;
-  }, [playMatchSound]);
+  }, [playMatchSound, activateSpecialFruit]);
 
   // 让水果下落
   const dropFruits = useCallback((grid: (FruitType | null)[][]): void => {
@@ -441,17 +634,35 @@ export default function FruitMatchPage() {
     let comboCount = 0;
 
     while (hasMatches) {
-      const matches = findMatches(grid);
-      if (matches.size === 0) {
+      const matchResult = findMatches(grid);
+      if (matchResult.cells.size === 0) {
         hasMatches = false;
         setMatchedCells(new Set()); // 清除匹配高亮
 
         // 重置连击
         setCurrentCombo(0);
       } else {
-        setMatchedCells(matches); // 设置匹配高亮
-        const removedCount = removeMatches(grid, matches);
+        setMatchedCells(matchResult.cells); // 设置匹配高亮
+
+        // 如果要生成特殊水果，先标记位置
+        let specialFruitPosition: { row: number; col: number } | null = null;
+        let specialFruitType: SpecialFruitType | null = null;
+
+        if (matchResult.specialFruit) {
+          specialFruitPosition = matchResult.specialFruit.position;
+          specialFruitType = matchResult.specialFruit.type;
+          // 从匹配列表中移除特殊水果生成位置（保留一个水果用于生成特殊水果）
+          matchResult.cells.delete(`${specialFruitPosition.row}-${specialFruitPosition.col}`);
+        }
+
+        const removedCount = removeMatches(grid, matchResult.cells);
         totalScore += removedCount * 10; // 每个水果10分
+
+        // 生成特殊水果
+        if (specialFruitPosition && specialFruitType) {
+          grid[specialFruitPosition.row][specialFruitPosition.col] = specialFruitType;
+          console.log(`🎉 生成特殊水果: ${specialFruitType} 在 [${specialFruitPosition.row}, ${specialFruitPosition.col}]`);
+        }
 
         // 更新连击和消除次数
         comboCount++;
@@ -474,6 +685,31 @@ export default function FruitMatchPage() {
   // 检查是否可以交换（交换后是否有匹配）
   const canSwap = useCallback(
     (grid: (FruitType | null)[][], row1: number, col1: number, row2: number, col2: number): boolean => {
+      const fruit1 = grid[row1][col1];
+      const fruit2 = grid[row2][col2];
+
+      console.log('🔍 检查交换:', {
+        fruit1,
+        fruit2,
+        position1: [row1, col1],
+        position2: [row2, col2],
+        specialFruits: Object.values(SPECIAL_FRUITS),
+      });
+
+      // 如果其中一个是特殊水果，允许交换
+      const fruit1IsSpecial = fruit1 && Object.values(SPECIAL_FRUITS).includes(fruit1 as SpecialFruitType);
+      const fruit2IsSpecial = fruit2 && Object.values(SPECIAL_FRUITS).includes(fruit2 as SpecialFruitType);
+
+      console.log('🎯 特殊水果检查:', {
+        fruit1IsSpecial,
+        fruit2IsSpecial,
+      });
+
+      if (fruit1IsSpecial || fruit2IsSpecial) {
+        console.log('✅ 允许交换（包含特殊水果）');
+        return true;
+      }
+
       // 创建临时网格
       const tempGrid = grid.map((row) => [...row]);
 
@@ -483,8 +719,10 @@ export default function FruitMatchPage() {
       tempGrid[row2][col2] = temp;
 
       // 检查是否有匹配
-      const matches = findMatches(tempGrid);
-      return matches.size > 0;
+      const matchResult = findMatches(tempGrid);
+      const canSwapResult = matchResult.cells.size > 0;
+      console.log('🔄 普通交换检查:', canSwapResult, '匹配数量:', matchResult.cells.size);
+      return canSwapResult;
     },
     [findMatches]
   );
@@ -505,6 +743,10 @@ export default function FruitMatchPage() {
           cell2: { row: row2, col: col2 },
         });
 
+        // 获取交换前的水果类型
+        const fruit1 = newGrid[row1][col1];
+        const fruit2 = newGrid[row2][col2];
+
         // 交换网格数据
         const temp = newGrid[row1][col1];
         newGrid[row1][col1] = newGrid[row2][col2];
@@ -515,8 +757,65 @@ export default function FruitMatchPage() {
           // 清除交换动画状态
           setSwapAnimation(null);
 
-          // 处理匹配
-          const scoreGain = processMatches(newGrid);
+          let scoreGain = 0;
+
+          // 检查是否有特殊水果被交换
+          const fruit1IsSpecial = fruit1 && Object.values(SPECIAL_FRUITS).includes(fruit1 as SpecialFruitType);
+          const fruit2IsSpecial = fruit2 && Object.values(SPECIAL_FRUITS).includes(fruit2 as SpecialFruitType);
+
+          console.log('🔍 特殊水果交换检查:', {
+            fruit1,
+            fruit1IsSpecial,
+            fruit1Position: [row1, col1],
+            fruit1NewPosition: [row2, col2],
+            fruit2,
+            fruit2IsSpecial,
+            fruit2Position: [row2, col2],
+            fruit2NewPosition: [row1, col1],
+          });
+
+          if (fruit1IsSpecial || fruit2IsSpecial) {
+            console.log('✨ 检测到特殊水果交换！开始激活效果...');
+            // 如果有特殊水果，立即激活其效果
+            const cellsToRemove = new Set<string>();
+
+            if (fruit1IsSpecial) {
+              console.log(`🎯 准备激活 fruit1: ${fruit1} (交换后在 [${row2}, ${col2}])`);
+              // 如果 fruit1 是彩虹且 fruit2 是普通水果，传入 fruit2 作为目标
+              const targetFruit = (fruit1 === SPECIAL_FRUITS.RAINBOW && fruit2 && FRUITS.includes(fruit2 as NormalFruitType))
+                ? fruit2 as NormalFruitType
+                : undefined;
+              const extraCells = activateSpecialFruit(newGrid, row2, col2, fruit1 as SpecialFruitType, targetFruit);
+              console.log(`📊 fruit1 激活返回了 ${extraCells.size} 个待消除单元格`);
+              extraCells.forEach((cell) => cellsToRemove.add(cell));
+            }
+
+            if (fruit2IsSpecial) {
+              console.log(`🎯 准备激活 fruit2: ${fruit2} (交换后在 [${row1}, ${col1}])`);
+              // 如果 fruit2 是彩虹且 fruit1 是普通水果，传入 fruit1 作为目标
+              const targetFruit = (fruit2 === SPECIAL_FRUITS.RAINBOW && fruit1 && FRUITS.includes(fruit1 as NormalFruitType))
+                ? fruit1 as NormalFruitType
+                : undefined;
+              const extraCells = activateSpecialFruit(newGrid, row1, col1, fruit2 as SpecialFruitType, targetFruit);
+              console.log(`📊 fruit2 激活返回了 ${extraCells.size} 个待消除单元格`);
+              extraCells.forEach((cell) => cellsToRemove.add(cell));
+            }
+
+            console.log(`💥 总共收集了 ${cellsToRemove.size} 个待消除单元格:`, Array.from(cellsToRemove));
+
+            // 移除激活的单元格
+            console.log('🗑️ 调用 removeMatches...');
+            const removedCount = removeMatches(newGrid, cellsToRemove);
+            console.log(`✅ 实际移除了 ${removedCount} 个水果`);
+            scoreGain += removedCount * 10;
+
+            // 下落并继续处理匹配
+            dropFruits(newGrid);
+            scoreGain += processMatches(newGrid);
+          } else {
+            // 普通匹配处理
+            scoreGain = processMatches(newGrid);
+          }
 
           // 更新状态
           setGameState((prev) => {
@@ -544,7 +843,7 @@ export default function FruitMatchPage() {
         }));
       }
     },
-    [gameState.grid, canSwap, processMatches, playSwapSound]
+    [gameState.grid, canSwap, processMatches, playSwapSound, activateSpecialFruit, removeMatches, dropFruits]
   );
 
   // 处理单元格点击
@@ -647,19 +946,11 @@ export default function FruitMatchPage() {
 
   // 处理声音开关
   const handleSoundToggle = () => {
-    setGameState((prev) => {
-      const newSoundOn = !prev.isSoundOn;
-      // 根据新的声音状态控制背景音乐
-      if (newSoundOn && !prev.isPaused && !prev.gameOver && !prev.gameWon) {
-        playMusic();
-      } else {
-        pauseMusic();
-      }
-      return {
-        ...prev,
-        isSoundOn: newSoundOn,
-      };
-    });
+    setGameState((prev) => ({
+      ...prev,
+      isSoundOn: !prev.isSoundOn,
+    }));
+    // 背景音乐已禁用
   };
 
   return (
@@ -862,10 +1153,7 @@ export default function FruitMatchPage() {
                       setCurrentCombo(0);
                       setUnlockedAchievements([]);
                       setShowAchievementModal(false);
-                      // 重新开始游戏时，如果声音开启则播放背景音乐
-                      if (gameState.isSoundOn) {
-                        playMusic();
-                      }
+                      // 背景音乐已禁用
                     }}
                     className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-2xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
                   >

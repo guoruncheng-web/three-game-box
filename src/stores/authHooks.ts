@@ -206,6 +206,57 @@ export function useAuth() {
     }
   };
 
+  /**
+   * 更新用户信息
+   */
+  const updateProfile = async (profileData: {
+    nickname?: string;
+    email?: string;
+    phone?: string;
+    avatar_url?: string;
+  }): Promise<PublicUser> => {
+    if (!auth.token) {
+      throw new Error('未登录');
+    }
+
+    dispatch(setLoading(true));
+    dispatch(setError(null));
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      const result: ApiResponse<PublicUser> = await response.json();
+
+      if (result.code === 200 && result.data) {
+        dispatch(setUser(result.data));
+
+        // 更新 localStorage 中的用户信息
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(result.data));
+        }
+
+        return result.data;
+      } else {
+        const errorMessage = result.message || '更新失败';
+        dispatch(setError(errorMessage));
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '更新失败';
+      dispatch(setError(message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
   return {
     ...auth,
     login,
@@ -214,5 +265,6 @@ export function useAuth() {
     fetchCurrentUser,
     restore,
     initialize,
+    updateProfile,
   };
 }
