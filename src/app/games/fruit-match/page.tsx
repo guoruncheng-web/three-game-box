@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { useGameSounds } from '@/hooks/useGameSounds';
 
 // 动态导入 Canvas 包装组件以避免 SSR 问题
 const FruitMatchCanvas = dynamic(
@@ -53,6 +54,12 @@ interface GameState {
   gameWon: boolean;
 }
 
+// 交换动画状态
+interface SwapAnimationState {
+  cell1: { row: number; col: number };
+  cell2: { row: number; col: number };
+}
+
 export default function FruitMatchPage() {
   const router = useRouter();
   const [gameState, setGameState] = useState<GameState>({
@@ -66,6 +73,17 @@ export default function FruitMatchPage() {
     gameWon: false,
   });
   const [matchedCells, setMatchedCells] = useState<Set<string>>(new Set());
+  const [swapAnimation, setSwapAnimation] = useState<SwapAnimationState | null>(null);
+
+  // 音效系统
+  const {
+    playClickSound,
+    playSwapSound,
+    playMatchSound,
+    playScoreSound,
+    playWinSound,
+    playLoseSound,
+  } = useGameSounds({ enabled: gameState.isSoundOn });
 
   // 检查是否有匹配（3个或更多相同水果）
   const findMatches = useCallback((grid: (FruitType | null)[][]): Set<string> => {
@@ -183,6 +201,15 @@ export default function FruitMatchPage() {
     }));
   }, [initializeGrid]);
 
+  // 监听游戏胜利/失败，播放相应音效
+  useEffect(() => {
+    if (gameState.gameWon) {
+      playWinSound();
+    } else if (gameState.gameOver) {
+      playLoseSound();
+    }
+  }, [gameState.gameWon, gameState.gameOver, playWinSound, playLoseSound]);
+
   // 消除匹配的水果
   const removeMatches = useCallback((grid: (FruitType | null)[][], matches: Set<string>): number => {
     let removedCount = 0;
@@ -193,8 +220,14 @@ export default function FruitMatchPage() {
         removedCount++;
       }
     });
+
+    // 播放匹配音效
+    if (removedCount > 0) {
+      playMatchSound();
+    }
+
     return removedCount;
-  }, []);
+  }, [playMatchSound]);
 
   // 让水果下落
   const dropFruits = useCallback((grid: (FruitType | null)[][]): void => {
@@ -232,12 +265,18 @@ export default function FruitMatchPage() {
         setMatchedCells(matches); // 设置匹配高亮
         const removedCount = removeMatches(grid, matches);
         totalScore += removedCount * 10; // 每个水果10分
+
+        // 播放得分音效
+        if (removedCount > 0) {
+          playScoreSound(removedCount);
+        }
+
         dropFruits(grid);
       }
     }
 
     return totalScore;
-  }, [findMatches, removeMatches, dropFruits]);
+  }, [findMatches, removeMatches, dropFruits, playScoreSound]);
 
   // 检查是否可以交换（交换后是否有匹配）
   const canSwap = useCallback(
@@ -257,12 +296,73 @@ export default function FruitMatchPage() {
     [findMatches]
   );
 
+  // 执行带动画的交换
+  const performSwap = useCallback(
+    (row1: number, col1: number, row2: number, col2: number) => {
+      // 检查是否可以交换
+      const newGrid = gameState.grid.map((r) => [...r]);
+
+      if (canSwap(newGrid, row1, col1, row2, col2)) {
+        // 播放交换音效
+        playSwapSound();
+
+        // 设置交换动画状态
+        setSwapAnimation({
+          cell1: { row: row1, col: col1 },
+          cell2: { row: row2, col: col2 },
+        });
+
+        // 交换网格数据
+        const temp = newGrid[row1][col1];
+        newGrid[row1][col1] = newGrid[row2][col2];
+        newGrid[row2][col2] = temp;
+
+        // 延迟处理匹配，等待动画完成
+        setTimeout(() => {
+          // 清除交换动画状态
+          setSwapAnimation(null);
+
+          // 处理匹配
+          const scoreGain = processMatches(newGrid);
+
+          // 更新状态
+          setGameState((prev) => {
+            const newScore = prev.score + scoreGain;
+            const newMoves = prev.moves - 1;
+            const won = newScore >= TARGET_SCORE;
+            const lost = newMoves <= 0 && newScore < TARGET_SCORE;
+
+            return {
+              ...prev,
+              grid: newGrid,
+              score: newScore,
+              moves: newMoves,
+              selectedCell: null,
+              gameWon: won,
+              gameOver: lost,
+            };
+          });
+        }, 300); // 动画持续时间
+      } else {
+        // 不能交换，取消选择
+        setGameState((prev) => ({
+          ...prev,
+          selectedCell: null,
+        }));
+      }
+    },
+    [gameState.grid, canSwap, processMatches, playSwapSound]
+  );
+
   // 处理单元格点击
   const handleCellClick = useCallback(
     (row: number, col: number) => {
       console.log('点击了水果:', row, col, gameState.grid[row][col]);
       if (gameState.gameOver || gameState.gameWon || gameState.isPaused) return;
       if (gameState.grid[row][col] === null) return;
+
+      // 播放点击音效
+      playClickSound();
 
       if (gameState.selectedCell === null) {
         // 选择第一个单元格
@@ -279,42 +379,8 @@ export default function FruitMatchPage() {
           (Math.abs(col - selectedCol) === 1 && row === selectedRow);
 
         if (isAdjacent) {
-          // 检查是否可以交换
-          const newGrid = gameState.grid.map((r) => [...r]);
-
-          if (canSwap(newGrid, selectedRow, selectedCol, row, col)) {
-            // 交换
-            const temp = newGrid[selectedRow][selectedCol];
-            newGrid[selectedRow][selectedCol] = newGrid[row][col];
-            newGrid[row][col] = temp;
-
-            // 处理匹配
-            const scoreGain = processMatches(newGrid);
-
-            // 更新状态
-            setGameState((prev) => {
-              const newScore = prev.score + scoreGain;
-              const newMoves = prev.moves - 1;
-              const won = newScore >= TARGET_SCORE;
-              const lost = newMoves <= 0 && newScore < TARGET_SCORE;
-
-              return {
-                ...prev,
-                grid: newGrid,
-                score: newScore,
-                moves: newMoves,
-                selectedCell: null,
-                gameWon: won,
-                gameOver: lost,
-              };
-            });
-          } else {
-            // 不能交换，取消选择
-            setGameState((prev) => ({
-              ...prev,
-              selectedCell: null,
-            }));
-          }
+          // 执行带动画的交换
+          performSwap(selectedRow, selectedCol, row, col);
         } else {
           // 不是相邻单元格，重新选择
           setGameState((prev) => ({
@@ -324,7 +390,53 @@ export default function FruitMatchPage() {
         }
       }
     },
-    [gameState, canSwap, processMatches]
+    [gameState, performSwap, playClickSound]
+  );
+
+  // 处理单元格滑动
+  const handleCellSwipe = useCallback(
+    (row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => {
+      console.log('滑动水果:', row, col, direction);
+      if (gameState.gameOver || gameState.gameWon || gameState.isPaused) return;
+      if (gameState.grid[row][col] === null) return;
+
+      // 根据滑动方向计算目标单元格
+      let targetRow = row;
+      let targetCol = col;
+
+      switch (direction) {
+        case 'up':
+          targetRow = row - 1;
+          break;
+        case 'down':
+          targetRow = row + 1;
+          break;
+        case 'left':
+          targetCol = col - 1;
+          break;
+        case 'right':
+          targetCol = col + 1;
+          break;
+      }
+
+      // 检查目标单元格是否有效
+      if (
+        targetRow < 0 ||
+        targetRow >= GRID_SIZE ||
+        targetCol < 0 ||
+        targetCol >= GRID_SIZE
+      ) {
+        return;
+      }
+
+      if (gameState.grid[targetRow][targetCol] === null) {
+        return;
+      }
+
+      // 执行带动画的交换
+      performSwap(row, col, targetRow, targetCol);
+    },
+    [gameState, performSwap]
   );
 
   // 处理返回
@@ -440,7 +552,9 @@ export default function FruitMatchPage() {
                 grid={gameState.grid}
                 selectedCell={gameState.selectedCell}
                 matchedCells={matchedCells}
+                swapAnimation={swapAnimation}
                 onCellClick={handleCellClick}
+                onCellSwipe={handleCellSwipe}
               />
             </div>
           </div>

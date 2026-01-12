@@ -10,18 +10,27 @@ import { FruitGrid } from './FruitGrid';
 
 type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
+interface SwapAnimationState {
+  cell1: { row: number; col: number };
+  cell2: { row: number; col: number };
+}
+
 interface GameSceneProps {
   grid: (FruitType | null)[][];
   selectedCell: { row: number; col: number } | null;
   matchedCells: Set<string>;
+  swapAnimation: SwapAnimationState | null;
   onCellClick: (row: number, col: number) => void;
+  onCellSwipe?: (row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export function GameScene({
   grid,
   selectedCell,
   matchedCells,
+  swapAnimation,
   onCellClick,
+  onCellSwipe,
 }: GameSceneProps) {
   return (
     <Suspense fallback={null}>
@@ -30,7 +39,9 @@ export function GameScene({
         grid={grid}
         selectedCell={selectedCell}
         matchedCells={matchedCells}
+        swapAnimation={swapAnimation}
         onCellClick={onCellClick}
+        onCellSwipe={onCellSwipe}
       />
     </Suspense>
   );

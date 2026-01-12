@@ -11,18 +11,27 @@ import { GameScene } from './GameScene';
 
 type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
+interface SwapAnimationState {
+  cell1: { row: number; col: number };
+  cell2: { row: number; col: number };
+}
+
 interface FruitMatchCanvasProps {
   grid: (FruitType | null)[][];
   selectedCell: { row: number; col: number } | null;
   matchedCells: Set<string>;
+  swapAnimation: SwapAnimationState | null;
   onCellClick: (row: number, col: number) => void;
+  onCellSwipe?: (row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
 export function FruitMatchCanvas({
   grid,
   selectedCell,
   matchedCells,
+  swapAnimation,
   onCellClick,
+  onCellSwipe,
 }: FruitMatchCanvasProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -70,7 +79,9 @@ export function FruitMatchCanvas({
         grid={grid}
         selectedCell={selectedCell}
         matchedCells={matchedCells}
+        swapAnimation={swapAnimation}
         onCellClick={onCellClick}
+        onCellSwipe={onCellSwipe}
       />
     </Canvas>
   );

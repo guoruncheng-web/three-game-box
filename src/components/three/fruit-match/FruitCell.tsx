@@ -19,6 +19,7 @@ interface FruitCellProps {
   isSelected: boolean;
   isMatched: boolean;
   onClick: () => void;
+  onSwipe?: (direction: 'up' | 'down' | 'left' | 'right') => void;
   scale?: number;
 }
 
@@ -41,11 +42,33 @@ export function FruitCell({
   isSelected,
   isMatched,
   onClick,
+  onSwipe,
   scale = 1,
 }: FruitCellProps) {
   const groupRef = useRef<THREE.Group>(null);
   const bgRef = useRef<THREE.Mesh>(null);
   const [fruitTexture, setFruitTexture] = useState<THREE.Texture | null>(null);
+  
+  // 滑动检测状态
+  const swipeStateRef = useRef<{
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+    startTime: number;
+    startPoint: THREE.Vector3 | null;
+    hasMoved: boolean;
+  }>({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    startPoint: null,
+    hasMoved: false,
+  });
+
+  const MIN_SWIPE_DISTANCE = 0.15; // 最小滑动距离（3D空间单位，降低阈值以提高灵敏度）
+  const MAX_SWIPE_TIME = 800; // 最大滑动时间（毫秒，增加时间窗口）
+  const MIN_MOVE_DISTANCE = 0.05; // 判断是否移动的最小距离
 
   // 掉落动画状态 - 基于行列计算延迟
   const dropDelay = useMemo(() => row * 0.05 + col * 0.02, [row, col]);
@@ -54,8 +77,14 @@ export function FruitCell({
     hasStarted: false,
     startTime: 0
   });
+
+  // 位置动画状态
+  const isInitialMount = useRef(true);
   const currentPositionRef = useRef(new THREE.Vector3(position[0], position[1] + 12, position[2]));
   const targetPositionRef = useRef(new THREE.Vector3(...position));
+  const isSwapping = useRef(false); // 是否正在交换动画中
+  const swapStartTime = useRef(0); // 交换动画开始时间
+  const swapStartPosition = useRef(new THREE.Vector3()); // 交换动画起始位置
 
   // 加载水果图片纹理
   useEffect(() => {
@@ -89,10 +118,36 @@ export function FruitCell({
     }
   }, []);
 
-  // 当位置改变时，更新目标位置
+  // 当位置改变时，更新目标位置并触发交换动画
   useEffect(() => {
-    targetPositionRef.current.set(...position);
-  }, [position]);
+    const newTargetPosition = new THREE.Vector3(...position);
+
+    // 如果不是初始挂载，并且位置发生了实际变化
+    if (!isInitialMount.current) {
+      const hasPositionChanged = !targetPositionRef.current.equals(newTargetPosition);
+
+      if (hasPositionChanged) {
+        // 检查是否是水平或垂直移动（交换动画）
+        const isHorizontalMove = Math.abs(newTargetPosition.x - targetPositionRef.current.x) > 0.1;
+        const isVerticalMove = Math.abs(newTargetPosition.y - targetPositionRef.current.y) > 0.1;
+
+        if ((isHorizontalMove || isVerticalMove) && dropAnimationRef.current.hasStarted) {
+          // 这是一个交换动画
+          isSwapping.current = true;
+          swapStartTime.current = performance.now();
+          swapStartPosition.current.copy(currentPositionRef.current);
+          console.log(`水果 ${fruit} 开始交换动画:`, {
+            from: currentPositionRef.current.toArray(),
+            to: newTargetPosition.toArray()
+          });
+        }
+      }
+    } else {
+      isInitialMount.current = false;
+    }
+
+    targetPositionRef.current.copy(newTargetPosition);
+  }, [position, fruit]);
 
   // 创建圆形平面几何体
   const geometry = useMemo(() => new THREE.CircleGeometry(0.45, 32), []);
@@ -132,14 +187,57 @@ export function FruitCell({
         }
       }
 
+      // 交换动画（在掉落动画完成后）
+      if (isSwapping.current && dropAnimationRef.current.hasStarted && !dropAnimationRef.current.isDropping) {
+        const swapDuration = 300; // 交换动画持续时间（毫秒）
+        const elapsed = performance.now() - swapStartTime.current;
+        const progress = Math.min(elapsed / swapDuration, 1);
+
+        // 使用 easeOutBack 缓动函数，产生轻微的回弹效果
+        const easeOutBack = (t: number): number => {
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+        };
+
+        const easedProgress = easeOutBack(progress);
+
+        // 根据缓动进度插值位置
+        currentPositionRef.current.lerpVectors(
+          swapStartPosition.current,
+          targetPositionRef.current,
+          easedProgress
+        );
+        groupRef.current.position.copy(currentPositionRef.current);
+
+        // 动画完成
+        if (progress >= 1) {
+          isSwapping.current = false;
+          groupRef.current.position.copy(targetPositionRef.current);
+          currentPositionRef.current.copy(targetPositionRef.current);
+          console.log(`水果 ${fruit} 交换动画完成`);
+        }
+      }
+
       // 选中时的动画效果
-      if (isSelected && !dropAnimationRef.current.isDropping) {
+      if (isSelected && !dropAnimationRef.current.isDropping && !isSwapping.current) {
         // 轻微缩放动画
         const scaleValue = 1 + Math.sin(state.clock.elapsedTime * 5) * 0.08;
         groupRef.current.scale.setScalar(scaleValue * scale);
-      } else if (!isMatched && !dropAnimationRef.current.isDropping) {
+      } else if (!isMatched && !dropAnimationRef.current.isDropping && !isSwapping.current) {
         // 恢复原始大小
         groupRef.current.scale.lerp(new THREE.Vector3(scale, scale, scale), 0.2);
+      }
+
+      // 交换时添加轻微的弹性缩放效果
+      if (isSwapping.current) {
+        const swapDuration = 300;
+        const elapsed = performance.now() - swapStartTime.current;
+        const progress = Math.min(elapsed / swapDuration, 1);
+
+        // 在交换过程中先放大后缩小，产生弹跳效果
+        const scaleValue = 1 + Math.sin(progress * Math.PI) * 0.2;
+        groupRef.current.scale.setScalar(scaleValue * scale);
       }
 
       // 匹配时消失动画
@@ -178,13 +276,98 @@ export function FruitCell({
         geometry={geometry}
         onPointerDown={(e) => {
           e.stopPropagation();
-          console.log('水果被点击:', row, col, fruit);
-          onClick();
+          const point = e.point.clone();
+          swipeStateRef.current = {
+            isDragging: true,
+            startX: point.x,
+            startY: point.y,
+            startTime: Date.now(),
+            startPoint: point,
+            hasMoved: false,
+          };
+          // 阻止默认行为，避免页面滚动
+          if (e.nativeEvent && 'preventDefault' in e.nativeEvent) {
+            e.nativeEvent.preventDefault();
+          }
         }}
-        onClick={(e) => {
+        onPointerMove={(e) => {
+          if (!swipeStateRef.current.isDragging) return;
           e.stopPropagation();
-          console.log('水果 onClick 事件:', row, col, fruit);
-          onClick();
+
+          // 检测是否有移动
+          const point = e.point;
+          const { startX, startY } = swipeStateRef.current;
+          const deltaX = point.x - startX;
+          const deltaY = point.y - startY;
+          const moveDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+          if (moveDistance > MIN_MOVE_DISTANCE) {
+            swipeStateRef.current.hasMoved = true;
+          }
+        }}
+        onPointerUp={(e) => {
+          e.stopPropagation();
+
+          const wasDragging = swipeStateRef.current.isDragging;
+
+          if (!wasDragging) {
+            return;
+          }
+
+          const point = e.point;
+          const { startX, startY, startTime, hasMoved } = swipeStateRef.current;
+
+          const deltaX = point.x - startX;
+          const deltaY = point.y - startY;
+          const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+          const time = Date.now() - startTime;
+
+          console.log('滑动结束:', { deltaX, deltaY, distance, time, hasMoved });
+
+          // 重置拖动状态
+          swipeStateRef.current.isDragging = false;
+          swipeStateRef.current.startPoint = null;
+          swipeStateRef.current.hasMoved = false;
+
+          // 检查是否是有效的滑动
+          if (distance >= MIN_SWIPE_DISTANCE && time <= MAX_SWIPE_TIME && onSwipe) {
+            // 确定滑动方向
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+
+            if (absX > absY) {
+              // 水平滑动
+              if (deltaX > 0) {
+                console.log('向右滑动');
+                onSwipe('right');
+              } else {
+                console.log('向左滑动');
+                onSwipe('left');
+              }
+            } else {
+              // 垂直滑动
+              if (deltaY > 0) {
+                console.log('向上滑动');
+                onSwipe('up');
+              } else {
+                console.log('向下滑动');
+                onSwipe('down');
+              }
+            }
+          } else if (!hasMoved) {
+            // 如果没有移动过，视为点击
+            console.log('视为点击');
+            onClick();
+          } else {
+            // 有移动但距离不够，不触发任何操作
+            console.log('移动距离不够，忽略');
+          }
+        }}
+        onPointerCancel={(e) => {
+          e.stopPropagation();
+          swipeStateRef.current.isDragging = false;
+          swipeStateRef.current.startPoint = null;
+          swipeStateRef.current.hasMoved = false;
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -192,6 +375,9 @@ export function FruitCell({
         }}
         onPointerOut={() => {
           document.body.style.cursor = 'default';
+          swipeStateRef.current.isDragging = false;
+          swipeStateRef.current.startPoint = null;
+          swipeStateRef.current.hasMoved = false;
         }}
       >
         <meshBasicMaterial
