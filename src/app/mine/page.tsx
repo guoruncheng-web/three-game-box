@@ -165,13 +165,136 @@ const menuItems = [
     },
 ];
 
+// 用户信息类型
+interface UserData {
+    id: string;
+    username: string | null;
+    level: number;
+    totalScore: number;
+    gamesPlayed: number;
+    highestScore: number;
+    totalPlayTime: number;
+}
+
+// 游戏统计类型
+interface GameStats {
+    overview: {
+        gamesPlayed: number;
+        totalScore: number;
+        highestScore: number;
+        totalPlayTime: number;
+        level: number;
+        winRate: number;
+    };
+    records: {
+        maxScore: number;
+        maxCombo: number;
+        totalGames: number;
+    };
+}
+
+// 游戏记录类型
+interface GameRecord {
+    id: string;
+    score: number;
+    isWon: boolean;
+    createdAt: string;
+}
+
+// 成就类型
+interface Achievement {
+    id: string;
+    code: string;
+    name: string;
+    description: string;
+    icon: string;
+    category: string;
+    reward: number;
+    progress: number;
+    isUnlocked: boolean;
+    unlockedAt: string | null;
+}
+
 export default function MinePage() {
     const router = useRouter();
     const { logout, user, isAuthenticated, isInitialized } = useAuth();
     const [activeTab, setActiveTab] = useState<'achievements' | 'tasks'>('achievements');
+    const [userId, setUserId] = useState<string | null>(null);
+    const [userData, setUserData] = useState<UserData | null>(null);
+    const [gameStats, setGameStats] = useState<GameStats | null>(null);
+    const [recentGamesData, setRecentGamesData] = useState<GameRecord[]>([]);
+    const [achievementsData, setAchievementsData] = useState<Achievement[]>([]);
+    const [loading, setLoading] = useState(true);
 
     // 判断是否为超级管理员
     const isSuperAdmin = user?.role === 'super_admin';
+
+    // 初始化用户数据
+    useEffect(() => {
+        const initUserData = async () => {
+            try {
+                // 从 localStorage 获取 userId
+                let storedUserId = localStorage.getItem('userId');
+
+                if (!storedUserId) {
+                    // 创建新的游客用户
+                    const response = await fetch('/api/users/guest', {
+                        method: 'POST',
+                    });
+
+                    if (response.ok) {
+                        const { data } = await response.json();
+                        storedUserId = data.userId;
+                        localStorage.setItem('userId', data.userId);
+                        localStorage.setItem('guestToken', data.guestToken);
+                    }
+                }
+
+                setUserId(storedUserId);
+
+                if (storedUserId) {
+                    // 并行请求所有数据
+                    const [userRes, statsRes, recordsRes, achievementsRes] = await Promise.all([
+                        fetch(`/api/users/${storedUserId}`),
+                        fetch(`/api/game-records/stats?userId=${storedUserId}`),
+                        fetch(`/api/game-records?userId=${storedUserId}&limit=3`),
+                        fetch(`/api/achievements/user/${storedUserId}`),
+                    ]);
+
+                    // 用户信息
+                    if (userRes.ok) {
+                        const { data } = await userRes.json();
+                        setUserData(data);
+                    }
+
+                    // 游戏统计
+                    if (statsRes.ok) {
+                        const { data } = await statsRes.json();
+                        setGameStats(data);
+                    }
+
+                    // 最近游戏
+                    if (recordsRes.ok) {
+                        const { data } = await recordsRes.json();
+                        setRecentGamesData(data.records);
+                    }
+
+                    // 成就列表
+                    if (achievementsRes.ok) {
+                        const { data } = await achievementsRes.json();
+                        setAchievementsData(data.achievements);
+                    }
+                }
+
+                setLoading(false);
+            } catch (error) {
+                console.error('数据加载失败:', error);
+                setLoading(false);
+            }
+        };
+
+        initUserData();
+    }, []);
 
     // 未登录重定向到登录页（等待认证初始化完成后再检查）
     useEffect(() => {
@@ -235,7 +358,9 @@ export default function MinePage() {
                                 {/* 用户名和等级 */}
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-white">快乐玩家</span>
+                                        <span className="text-2xl font-black text-white">
+                                            {userData?.username || '游客玩家'}
+                                        </span>
                                         <Image
                                             src="/images/profile/icon-verified.svg"
                                             alt="verified"
@@ -250,7 +375,9 @@ export default function MinePage() {
                                             width={16}
                                             height={16}
                                         />
-                                        <span className="text-sm font-bold text-white">LV.15</span>
+                                        <span className="text-sm font-bold text-white">
+                                            LV.{userData?.level || 1}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -275,37 +402,37 @@ export default function MinePage() {
                                 <div
                                     className="h-full rounded-full"
                                     style={{
-                                        width: '78%',
+                                        width: `${((userData?.totalScore || 0) % 1000) / 10}%`,
                                         backgroundImage: 'linear-gradient(to right, #ffdf20, #ffb86a)',
                                     }}
                                 />
                                 <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-black text-white drop-shadow-lg">
-                                    2350 / 3000 EXP
+                                    {(userData?.totalScore || 0) % 1000} / 1000 EXP
                                 </span>
                             </div>
                         </div>
 
-                        {/* 金币和钻石 */}
+                        {/* 游戏统计 */}
                         <div className="flex gap-3">
-                            {/* 金币 */}
+                            {/* 总得分 */}
                             <div className="flex-1 bg-white/20 rounded-2xl p-3 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[#fdc700] shadow-lg flex items-center justify-center">
-                                    <span className="text-xl">💰</span>
+                                    <span className="text-xl">🎯</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-xs text-white/80">金币</span>
-                                    <span className="text-lg font-black text-white">1280</span>
+                                    <span className="text-xs text-white/80">总分</span>
+                                    <span className="text-lg font-black text-white">{userData?.totalScore || 0}</span>
                                 </div>
                             </div>
 
-                            {/* 钻石 */}
+                            {/* 游戏局数 */}
                             <div className="flex-1 bg-white/20 rounded-2xl p-3 flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[#51a2ff] shadow-lg flex items-center justify-center">
-                                    <span className="text-xl">💎</span>
+                                    <span className="text-xl">🎮</span>
                                 </div>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-xs text-white/80">钻石</span>
-                                    <span className="text-lg font-black text-white">45</span>
+                                    <span className="text-xs text-white/80">游戏局数</span>
+                                    <span className="text-lg font-black text-white">{userData?.gamesPlayed || 0}</span>
                                 </div>
                             </div>
                         </div>
@@ -356,38 +483,55 @@ export default function MinePage() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        {recentGames.map((game) => (
-                            <div
-                                key={game.id}
-                                className="bg-white rounded-2xl shadow-md px-4 py-4 flex items-center justify-between hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="relative">
-                                        <div
-                                            className="w-14 h-14 rounded-2xl shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
-                                            style={{
-                                                backgroundImage: 'linear-gradient(135deg, rgb(233, 212, 255) 0%, rgb(252, 206, 232) 100%)',
-                                            }}
-                                        >
-                                            <span className="text-3xl">{game.emoji}</span>
-                                        </div>
-                                        {game.hot && (
-                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#fb2c36] rounded-full flex items-center justify-center">
-                                                <span className="text-xs">🔥</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-base font-black text-[#1e2939]">{game.name}</span>
-                                        <span className="text-xs font-medium text-[#6a7282]">{game.time}</span>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-sm font-black text-[#9810fa]">{game.score}</span>
-                                    <span className="text-xs font-medium text-[#99a1af]">最高分</span>
-                                </div>
+                        {loading ? (
+                            <div className="text-center py-8">
+                                <div className="animate-spin text-4xl">🎮</div>
+                                <p className="text-sm text-gray-500 mt-2">加载中...</p>
                             </div>
-                        ))}
+                        ) : recentGamesData.length > 0 ? (
+                            recentGamesData.map((game, index) => {
+                                const timeAgo = new Date(game.createdAt).toLocaleString('zh-CN');
+                                return (
+                                    <div
+                                        key={game.id}
+                                        className="bg-white rounded-2xl shadow-md px-4 py-4 flex items-center justify-between hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer group"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative">
+                                                <div
+                                                    className="w-14 h-14 rounded-2xl shadow-md flex items-center justify-center group-hover:scale-110 transition-transform duration-300"
+                                                    style={{
+                                                        backgroundImage: game.isWon
+                                                            ? 'linear-gradient(135deg, rgb(233, 212, 255) 0%, rgb(252, 206, 232) 100%)'
+                                                            : 'linear-gradient(135deg, rgb(220, 220, 220) 0%, rgb(200, 200, 200) 100%)',
+                                                    }}
+                                                >
+                                                    <span className="text-3xl">{game.isWon ? '🍓' : '😢'}</span>
+                                                </div>
+                                                {index === 0 && (
+                                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#fb2c36] rounded-full flex items-center justify-center">
+                                                        <span className="text-xs">🔥</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-base font-black text-[#1e2939]">水果消消乐</span>
+                                                <span className="text-xs font-medium text-[#6a7282]">{timeAgo}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-sm font-black text-[#9810fa]">{game.score}</span>
+                                            <span className="text-xs font-medium text-[#99a1af]">{game.isWon ? '胜利' : '失败'}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+                                <span className="text-4xl">🎮</span>
+                                <p className="mt-2 text-sm text-gray-600">还没有游戏记录</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -433,61 +577,91 @@ export default function MinePage() {
                 {/* 成就列表 */}
                 {activeTab === 'achievements' && (
                     <div className="mt-3 flex flex-col gap-3 animate-fade-in">
-                        {achievements.map((achievement) => (
-                            <div
-                                key={achievement.id}
-                                className={`bg-white rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] ${
-                                    achievement.unlocked
-                                        ? 'border border-[#fdc700] shadow-[0px_0px_16px_0px_rgba(250,204,21,0.73)] animate-glow'
-                                        : 'shadow-md hover:shadow-xl'
-                                }`}
-                            >
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <span className={`text-3xl ${!achievement.unlocked ? 'opacity-50' : ''}`}>
-                                            {achievement.emoji}
-                                        </span>
-                                        <div className="flex flex-col">
-                                            <span className="text-base font-black text-[#1e2939]">
-                                                {achievement.name}
-                                            </span>
-                                            <span className="text-xs font-medium text-[#6a7282]">
-                                                {achievement.description}
-                                            </span>
-                                            {achievement.unlocked && (
-                                                <div className="flex items-center gap-1">
-                                                    <Image
-                                                        src="/images/profile/icon-check.svg"
-                                                        alt="check"
-                                                        width={12}
-                                                        height={12}
-                                                    />
-                                                    <span className="text-xs font-bold text-[#d08700]">已解锁</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <span
-                                        className={`text-sm font-black ${
-                                            achievement.unlocked ? 'text-[#d08700]' : 'text-[#9810fa]'
-                                        }`}
-                                    >
-                                        {achievement.progress}%
-                                    </span>
-                                </div>
-                                <div className="h-2 bg-[#f3f4f6] rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full"
-                                        style={{
-                                            width: `${achievement.progress}%`,
-                                            backgroundImage: achievement.unlocked
-                                                ? 'linear-gradient(to right, #fdc700, #ff8904)'
-                                                : 'linear-gradient(to right, #c27aff, #fb64b6)',
-                                        }}
-                                    />
-                                </div>
+                        {loading ? (
+                            <div className="text-center py-8">
+                                <div className="animate-spin text-4xl">🏆</div>
+                                <p className="text-sm text-gray-500 mt-2">加载中...</p>
                             </div>
-                        ))}
+                        ) : achievementsData.length > 0 ? (
+                            achievementsData.map((achievement) => (
+                                <div
+                                    key={achievement.id}
+                                    className={`bg-white rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] ${
+                                        achievement.isUnlocked
+                                            ? 'border border-[#fdc700] shadow-[0px_0px_16px_0px_rgba(250,204,21,0.73)] animate-glow'
+                                            : 'shadow-md hover:shadow-xl'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            {/* 成就图标 */}
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${!achievement.isUnlocked ? 'opacity-50 grayscale' : ''}`}
+                                                 style={{
+                                                     backgroundImage: achievement.isUnlocked
+                                                         ? 'linear-gradient(135deg, #fdc700 0%, #ff8904 100%)'
+                                                         : 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)',
+                                                 }}>
+                                                {achievement.icon?.startsWith('/images/') ? (
+                                                    <span className="text-2xl">
+                                                        {achievement.category === 'SCORE' ? '🎯' :
+                                                         achievement.category === 'COMBO' ? '⚡' :
+                                                         achievement.category === 'GAMES' ? '🎮' :
+                                                         achievement.category === 'TIME' ? '⏰' :
+                                                         achievement.category === 'SPECIAL' ? '⭐' : '🏆'}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-2xl">{achievement.icon || '🏆'}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-base font-black text-[#1e2939]">
+                                                    {achievement.name}
+                                                </span>
+                                                <span className="text-xs font-medium text-[#6a7282]">
+                                                    {achievement.description}
+                                                </span>
+                                                {achievement.isUnlocked && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Image
+                                                            src="/images/profile/icon-check.svg"
+                                                            alt="check"
+                                                            width={12}
+                                                            height={12}
+                                                        />
+                                                        <span className="text-xs font-bold text-[#d08700]">
+                                                            已解锁 · +{achievement.reward}积分
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <span
+                                            className={`text-sm font-black ${
+                                                achievement.isUnlocked ? 'text-[#d08700]' : 'text-[#9810fa]'
+                                            }`}
+                                        >
+                                            {achievement.progress}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-[#f3f4f6] rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full rounded-full"
+                                            style={{
+                                                width: `${achievement.progress}%`,
+                                                backgroundImage: achievement.isUnlocked
+                                                    ? 'linear-gradient(to right, #fdc700, #ff8904)'
+                                                    : 'linear-gradient(to right, #c27aff, #fb64b6)',
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+                                <span className="text-4xl">🏆</span>
+                                <p className="mt-2 text-sm text-gray-600">还没有成就记录</p>
+                            </div>
+                        )}
                     </div>
                 )}
 

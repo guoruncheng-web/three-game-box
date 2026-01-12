@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TabBar } from '@/components/layout/TabBar';
 import {
@@ -116,10 +116,60 @@ const gamesData: GameCardData[] = [
   },
 ];
 
+// 用户信息类型
+interface UserInfo {
+  id: string;
+  username: string | null;
+  level: number;
+  totalScore: number;
+  gamesPlayed: number;
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // 初始化用户
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        // 从 localStorage 获取 userId
+        let storedUserId = localStorage.getItem('userId');
+
+        if (!storedUserId) {
+          // 创建新的游客用户
+          const response = await fetch('/api/users/guest', {
+            method: 'POST',
+          });
+
+          if (response.ok) {
+            const { data } = await response.json();
+            storedUserId = data.userId;
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('guestToken', data.guestToken);
+          }
+        }
+
+        setUserId(storedUserId);
+
+        // 获取用户信息
+        if (storedUserId) {
+          const userResponse = await fetch(`/api/users/${storedUserId}`);
+          if (userResponse.ok) {
+            const { data } = await userResponse.json();
+            setUserInfo(data);
+          }
+        }
+      } catch (error) {
+        console.error('用户初始化失败:', error);
+      }
+    };
+
+    initUser();
+  }, []);
 
   // 过滤游戏
   const filteredGames = gamesData.filter((game) => {
@@ -171,10 +221,10 @@ export default function HomePage() {
                   backgroundClip: 'text',
                 }}
               >
-                嗨！玩家 👋
+                嗨！{userInfo?.username || '玩家'} 👋
               </h1>
               <p className="text-[16px] font-medium text-[#4a5565] leading-6">
-                今天想玩什么游戏呢？
+                {userInfo ? `等级 ${userInfo.level} · 总分 ${userInfo.totalScore}` : '今天想玩什么游戏呢？'}
               </p>
             </div>
             <div

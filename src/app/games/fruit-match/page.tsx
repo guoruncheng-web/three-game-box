@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameSounds } from '@/hooks/useGameSounds';
 
 // 动态导入 Canvas 包装组件以避免 SSR 问题
@@ -54,6 +55,16 @@ interface GameState {
   gameWon: boolean;
 }
 
+// 成就数据类型
+interface Achievement {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  icon: string;
+  reward: number;
+}
+
 // 交换动画状态
 interface SwapAnimationState {
   cell1: { row: number; col: number };
@@ -75,6 +86,15 @@ export default function FruitMatchPage() {
   const [matchedCells, setMatchedCells] = useState<Set<string>>(new Set());
   const [swapAnimation, setSwapAnimation] = useState<SwapAnimationState | null>(null);
 
+  // 用户和游戏统计
+  const [userId, setUserId] = useState<string | null>(null);
+  const [gameStartTime, setGameStartTime] = useState<number>(0);
+  const [currentCombo, setCurrentCombo] = useState<number>(0);
+  const [maxCombo, setMaxCombo] = useState<number>(0);
+  const [totalMatches, setTotalMatches] = useState<number>(0);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
+  const [showAchievementModal, setShowAchievementModal] = useState<boolean>(false);
+
   // 音效系统
   const {
     playClickSound,
@@ -84,6 +104,13 @@ export default function FruitMatchPage() {
     playWinSound,
     playLoseSound,
   } = useGameSounds({ enabled: gameState.isSoundOn });
+
+  // 背景音乐系统
+  const { play: playMusic, pause: pauseMusic, stop: stopMusic } = useBackgroundMusic({
+    enabled: gameState.isSoundOn && !gameState.isPaused && !gameState.gameOver && !gameState.gameWon,
+    volume: 0.5,
+    loop: true,
+  });
 
   // 检查是否有匹配（3个或更多相同水果）
   const findMatches = useCallback((grid: (FruitType | null)[][]): Set<string> => {
@@ -192,6 +219,41 @@ export default function FruitMatchPage() {
     return grid;
   }, [findMatches]);
 
+  // 初始化用户
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        // 从 localStorage 获取 userId
+        let storedUserId = localStorage.getItem('userId');
+
+        if (!storedUserId) {
+          // 创建新的游客用户
+          const response = await fetch('/api/users/guest', {
+            method: 'POST',
+          });
+
+          if (response.ok) {
+            const { data } = await response.json();
+            storedUserId = data.userId;
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('guestToken', data.guestToken);
+            console.log('✓ 创建新用户:', data.userId);
+          } else {
+            console.error('创建用户失败');
+          }
+        } else {
+          console.log('✓ 使用已存在的用户:', storedUserId);
+        }
+
+        setUserId(storedUserId);
+      } catch (error) {
+        console.error('用户初始化失败:', error);
+      }
+    };
+
+    initUser();
+  }, []);
+
   // 初始化游戏
   useEffect(() => {
     const initialGrid = initializeGrid();
@@ -199,16 +261,137 @@ export default function FruitMatchPage() {
       ...prev,
       grid: initialGrid,
     }));
+
+    // 记录游戏开始时间
+    setGameStartTime(Date.now());
+    setMaxCombo(0);
+    setTotalMatches(0);
+    setCurrentCombo(0);
   }, [initializeGrid]);
 
-  // 监听游戏胜利/失败，播放相应音效
-  useEffect(() => {
-    if (gameState.gameWon) {
-      playWinSound();
-    } else if (gameState.gameOver) {
-      playLoseSound();
+  // 提交游戏记录到后端
+  const submitGameRecord = useCallback(async () => {
+    if (!userId) {
+      console.error('用户 ID 不存在，无法提交记录');
+      return;
     }
-  }, [gameState.gameWon, gameState.gameOver, playWinSound, playLoseSound]);
+
+    try {
+      const playTime = Math.floor((Date.now() - gameStartTime) / 1000); // 转换为秒
+
+      console.log('📤 提交游戏记录:', {
+        userId,
+        score: gameState.score,
+        moves: gameState.moves,
+        targetScore: TARGET_SCORE,
+        isWon: gameState.gameWon,
+        playTime,
+        maxCombo,
+        totalMatches,
+      });
+
+      const response = await fetch('/api/game-records', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          score: gameState.score,
+          moves: gameState.moves,
+          targetScore: TARGET_SCORE,
+          isWon: gameState.gameWon,
+          playTime,
+          maxCombo,
+          totalMatches,
+          gameData: {
+            gridSize: GRID_SIZE,
+            fruitsUsed: FRUITS,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✓ 游戏记录已提交:', result.data);
+
+        // 检查成就
+        checkAchievements();
+      } else {
+        console.error('提交游戏记录失败:', response.statusText);
+      }
+    } catch (error) {
+      console.error('提交游戏记录出错:', error);
+    }
+  }, [userId, gameState.score, gameState.moves, gameState.gameWon, gameStartTime, maxCombo, totalMatches]);
+
+  // 检查并解锁成就
+  const checkAchievements = useCallback(async () => {
+    if (!userId) {
+      return;
+    }
+
+    try {
+      console.log('🏆 检查成就...');
+
+      const response = await fetch('/api/achievements/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          gameData: {
+            score: gameState.score,
+            maxCombo,
+            moves: gameState.moves,
+            isWon: gameState.gameWon,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✓ 成就检查完成:', result.data);
+
+        if (result.data.unlockedCount > 0) {
+          // 提取成就信息
+          const achievements = result.data.unlockedAchievements.map((ua: any) => ({
+            id: ua.achievement.id,
+            code: ua.achievement.code,
+            name: ua.achievement.name,
+            description: ua.achievement.description,
+            icon: ua.achievement.icon,
+            reward: ua.achievement.reward,
+          }));
+
+          setUnlockedAchievements(achievements);
+          setShowAchievementModal(true);
+
+          console.log(`🎉 解锁了 ${result.data.unlockedCount} 个成就!`, achievements);
+        }
+      } else {
+        console.error('检查成就失败:', response.statusText);
+      }
+    } catch (error) {
+      console.error('检查成就出错:', error);
+    }
+  }, [userId, gameState.score, maxCombo, gameState.moves, gameState.gameWon]);
+
+  // 监听游戏胜利/失败，播放相应音效并提交记录
+  useEffect(() => {
+    if (gameState.gameWon || gameState.gameOver) {
+      if (gameState.gameWon) {
+        playWinSound();
+      } else {
+        playLoseSound();
+      }
+      stopMusic(); // 游戏结束时停止背景音乐
+
+      // 提交游戏记录
+      submitGameRecord();
+    }
+  }, [gameState.gameWon, gameState.gameOver, playWinSound, playLoseSound, submitGameRecord, stopMusic]);
 
   // 消除匹配的水果
   const removeMatches = useCallback((grid: (FruitType | null)[][], matches: Set<string>): number => {
@@ -255,16 +438,26 @@ export default function FruitMatchPage() {
   const processMatches = useCallback((grid: (FruitType | null)[][]): number => {
     let totalScore = 0;
     let hasMatches = true;
+    let comboCount = 0;
 
     while (hasMatches) {
       const matches = findMatches(grid);
       if (matches.size === 0) {
         hasMatches = false;
         setMatchedCells(new Set()); // 清除匹配高亮
+
+        // 重置连击
+        setCurrentCombo(0);
       } else {
         setMatchedCells(matches); // 设置匹配高亮
         const removedCount = removeMatches(grid, matches);
         totalScore += removedCount * 10; // 每个水果10分
+
+        // 更新连击和消除次数
+        comboCount++;
+        setCurrentCombo(comboCount);
+        setMaxCombo((prev) => Math.max(prev, comboCount));
+        setTotalMatches((prev) => prev + 1);
 
         // 播放得分音效
         if (removedCount > 0) {
@@ -454,10 +647,19 @@ export default function FruitMatchPage() {
 
   // 处理声音开关
   const handleSoundToggle = () => {
-    setGameState((prev) => ({
-      ...prev,
-      isSoundOn: !prev.isSoundOn,
-    }));
+    setGameState((prev) => {
+      const newSoundOn = !prev.isSoundOn;
+      // 根据新的声音状态控制背景音乐
+      if (newSoundOn && !prev.isPaused && !prev.gameOver && !prev.gameWon) {
+        playMusic();
+      } else {
+        pauseMusic();
+      }
+      return {
+        ...prev,
+        isSoundOn: newSoundOn,
+      };
+    });
   };
 
   return (
@@ -587,8 +789,47 @@ export default function FruitMatchPage() {
           </div>
         </div>
 
+        {/* 成就解锁弹窗 */}
+        {showAchievementModal && unlockedAchievements.length > 0 && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎉</div>
+                <h2 className="text-2xl font-black mb-4 bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  解锁新成就！
+                </h2>
+                <div className="space-y-3 mb-6">
+                  {unlockedAchievements.map((achievement) => (
+                    <div
+                      key={achievement.id}
+                      className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">{achievement.icon || '🏆'}</div>
+                        <div className="flex-1 text-left">
+                          <h3 className="font-black text-gray-800">{achievement.name}</h3>
+                          <p className="text-xs text-gray-600">{achievement.description}</p>
+                          <p className="text-xs font-bold text-purple-600 mt-1">
+                            +{achievement.reward} 积分
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setShowAchievementModal(false)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-2xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
+                >
+                  太棒了！
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 游戏结束/胜利弹窗 */}
-        {(gameState.gameOver || gameState.gameWon) && (
+        {(gameState.gameOver || gameState.gameWon) && !showAchievementModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
             <div className="bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full">
               <div className="text-center">
@@ -614,6 +855,17 @@ export default function FruitMatchPage() {
                         gameOver: false,
                         gameWon: false,
                       });
+                      // 重置游戏统计
+                      setGameStartTime(Date.now());
+                      setMaxCombo(0);
+                      setTotalMatches(0);
+                      setCurrentCombo(0);
+                      setUnlockedAchievements([]);
+                      setShowAchievementModal(false);
+                      // 重新开始游戏时，如果声音开启则播放背景音乐
+                      if (gameState.isSoundOn) {
+                        playMusic();
+                      }
                     }}
                     className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-2xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
                   >

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水果消消乐音效生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .sound-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        .sound-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+        .sound-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .sound-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+        .sound-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .sound-controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-play {
+            background: #667eea;
+            color: white;
+        }
+        .btn-play:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-generate {
+            background: #28a745;
+            color: white;
+        }
+        .btn-generate:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        .btn-generate-all {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .btn-generate-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status.pending {
+            background: #ffc107;
+            color: #333;
+        }
+        .status.success {
+            background: #28a745;
+            color: white;
+        }
+        .progress {
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍓 水果消消乐音效生成器</h1>
+        <p class="subtitle">生成游戏所需的所有音效文件</p>
+
+        <div id="sounds-container"></div>
+
+        <button class="btn-generate-all" onclick="generateAllSounds()">
+            🎵 一键生成所有音效
+        </button>
+    </div>
+
+    <script>
+        // 音效配置
+        const soundConfigs = [
+            {
+                id: 'click',
+                name: '点击音效',
+                desc: '点击水果时的短促清脆音调',
+                generate: () => generateClickSound()
+            },
+            {
+                id: 'swap',
+                name: '交换音效',
+                desc: '滑动交换水果时的滑动音效',
+                generate: () => generateSwapSound()
+            },
+            {
+                id: 'match',
+                name: '匹配音效',
+                desc: '匹配成功时的上升音调和弦',
+                generate: () => generateMatchSound()
+            },
+            {
+                id: 'score',
+                name: '得分音效',
+                desc: '得分时的愉悦上升音阶',
+                generate: () => generateScoreSound()
+            },
+            {
+                id: 'win',
+                name: '胜利音效',
+                desc: '游戏胜利时的欢快音阶',
+                generate: () => generateWinSound()
+            },
+            {
+                id: 'lose',
+                name: '失败音效',
+                desc: '游戏失败时的下降音调',
+                generate: () => generateLoseSound()
+            }
+        ];
+
+        // 初始化界面
+        function initUI() {
+            const container = document.getElementById('sounds-container');
+            soundConfigs.forEach((config, index) => {
+                const soundItem = document.createElement('div');
+                soundItem.className = 'sound-item';
+                soundItem.innerHTML = `
+                    <div class="sound-header">
+                        <div>
+                            <span class="sound-name">${config.name}</span>
+                            <span class="status pending" id="status-${config.id}">待生成</span>
+                        </div>
+                    </div>
+                    <div class="sound-desc">${config.desc}</div>
+                    <div class="sound-controls">
+                        <button class="btn-play" onclick="playSound('${config.id}')">▶ 试听</button>
+                        <button class="btn-generate" onclick="generateSound('${config.id}')">📥 生成并下载</button>
+                    </div>
+                    <div class="progress" id="progress-${config.id}" style="display: none;">
+                        <div class="progress-bar" id="progress-bar-${config.id}"></div>
+                    </div>
+                `;
+                container.appendChild(soundItem);
+            });
+        }
+
+        // 播放音效
+        function playSound(id) {
+            const config = soundConfigs.find(c => c.id === id);
+            if (!config) return;
+
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const audioBuffer = config.generate();
+            
+            if (audioBuffer) {
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start();
+            }
+        }
+
+        // 生成并下载音效
+        async function generateSound(id) {
+            const config = soundConfigs.find(c => c.id === id);
+            if (!config) return;
+
+            const statusEl = document.getElementById(`status-${id}`);
+            const progressEl = document.getElementById(`progress-${id}`);
+            const progressBarEl = document.getElementById(`progress-bar-${id}`);
+
+            try {
+                statusEl.textContent = '生成中...';
+                statusEl.className = 'status pending';
+                progressEl.style.display = 'block';
+                progressBarEl.style.width = '50%';
+
+                const audioBuffer = config.generate();
+                if (!audioBuffer) {
+                    throw new Error('生成音频失败');
+                }
+
+                progressBarEl.style.width = '80%';
+
+                // 转换为 WAV 并下载
+                const wav = audioBufferToWav(audioBuffer);
+                const blob = new Blob([wav], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fruit-match-${id}.wav`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                progressBarEl.style.width = '100%';
+                setTimeout(() => {
+                    statusEl.textContent = '已生成';
+                    statusEl.className = 'status success';
+                    progressEl.style.display = 'none';
+                }, 500);
+
+            } catch (error) {
+                console.error('生成音效失败:', error);
+                statusEl.textContent = '生成失败';
+                statusEl.className = 'status pending';
+                progressEl.style.display = 'none';
+                alert('生成音效失败: ' + error.message);
+            }
+        }
+
+        // 一键生成所有音效
+        async function generateAllSounds() {
+            for (let i = 0; i < soundConfigs.length; i++) {
+                await generateSound(soundConfigs[i].id);
+                // 延迟一下，避免浏览器阻塞
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // 生成点击音效
+        function generateClickSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.1;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const frequency = 800;
+            for (let i = 0; i < length; i++) {
+                const t = i / sampleRate;
+                const gain = Math.exp(-t * 20); // 指数衰减
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * gain * 0.15;
+            }
+
+            return buffer;
+        }
+
+        // 生成交换音效
+        function generateSwapSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.15;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const startFreq = 600;
+            const endFreq = 400;
+            for (let i = 0; i < length; i++) {
+                const t = i / sampleRate;
+                const progress = t / duration;
+                const frequency = startFreq + (endFreq - startFreq) * progress;
+                const gain = Math.exp(-t * 15) * 0.1;
+                data[i] = Math.sin(2 * Math.PI * frequency * t) * gain;
+            }
+
+            return buffer;
+        }
+
+        // 生成匹配音效
+        function generateMatchSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.4;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5 和弦
+
+            frequencies.forEach((freq, index) => {
+                const startTime = index * 0.05;
+                const noteDuration = 0.3;
+                const noteLength = sampleRate * noteDuration;
+                const startSample = Math.floor(startTime * sampleRate);
+
+                for (let i = 0; i < noteLength && startSample + i < length; i++) {
+                    const t = i / sampleRate;
+                    const gain = Math.exp(-t * 10) * 0.08;
+                    data[startSample + i] += Math.sin(2 * Math.PI * freq * t) * gain;
+                }
+            });
+
+            // 归一化
+            const max = Math.max(...data.map(Math.abs));
+            if (max > 0) {
+                for (let i = 0; i < length; i++) {
+                    data[i] /= max * 1.2;
+                }
+            }
+
+            return buffer;
+        }
+
+        // 生成得分音效
+        function generateScoreSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.6;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const baseFreq = 440; // A4
+            const noteCount = 5;
+
+            for (let note = 0; note < noteCount; note++) {
+                const startTime = note * 0.08;
+                const noteDuration = 0.2;
+                const noteLength = sampleRate * noteDuration;
+                const startSample = Math.floor(startTime * sampleRate);
+                const freq = baseFreq * Math.pow(2, note / 12);
+
+                for (let i = 0; i < noteLength && startSample + i < length; i++) {
+                    const t = i / sampleRate;
+                    const gain = Math.exp(-t * 15) * 0.1;
+                    data[startSample + i] += Math.sin(2 * Math.PI * freq * t) * gain;
+                }
+            }
+
+            // 归一化
+            const max = Math.max(...data.map(Math.abs));
+            if (max > 0) {
+                for (let i = 0; i < length; i++) {
+                    data[i] /= max * 1.2;
+                }
+            }
+
+            return buffer;
+        }
+
+        // 生成胜利音效
+        function generateWinSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.75;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const melody = [
+                { freq: 523.25, duration: 0.15 }, // C5
+                { freq: 659.25, duration: 0.15 }, // E5
+                { freq: 783.99, duration: 0.15 }, // G5
+                { freq: 1046.50, duration: 0.3 }, // C6
+            ];
+
+            melody.forEach(({ freq, duration: noteDuration }, index) => {
+                const startTime = index * 0.15;
+                const noteLength = sampleRate * noteDuration;
+                const startSample = Math.floor(startTime * sampleRate);
+
+                for (let i = 0; i < noteLength && startSample + i < length; i++) {
+                    const t = i / sampleRate;
+                    const gain = Math.exp(-t * 8) * 0.15;
+                    data[startSample + i] += Math.sin(2 * Math.PI * freq * t) * gain;
+                }
+            });
+
+            // 归一化
+            const max = Math.max(...data.map(Math.abs));
+            if (max > 0) {
+                for (let i = 0; i < length; i++) {
+                    data[i] /= max * 1.2;
+                }
+            }
+
+            return buffer;
+        }
+
+        // 生成失败音效
+        function generateLoseSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const duration = 0.8;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(1, length, sampleRate);
+            const data = buffer.getChannelData(0);
+
+            const frequencies = [440, 392, 349.23]; // A4, G4, F4
+
+            frequencies.forEach((freq, index) => {
+                const startTime = index * 0.2;
+                const noteDuration = 0.4;
+                const noteLength = sampleRate * noteDuration;
+                const startSample = Math.floor(startTime * sampleRate);
+
+                for (let i = 0; i < noteLength && startSample + i < length; i++) {
+                    const t = i / sampleRate;
+                    const gain = Math.exp(-t * 5) * 0.12;
+                    data[startSample + i] += Math.sin(2 * Math.PI * freq * t) * gain;
+                }
+            });
+
+            // 归一化
+            const max = Math.max(...data.map(Math.abs));
+            if (max > 0) {
+                for (let i = 0; i < length; i++) {
+                    data[i] /= max * 1.2;
+                }
+            }
+
+            return buffer;
+        }
+
+        // 将 AudioBuffer 转换为 WAV
+        function audioBufferToWav(buffer) {
+            const length = buffer.length;
+            const numberOfChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const bytesPerSample = 2;
+            const blockAlign = numberOfChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = length * blockAlign;
+            const bufferSize = 44 + dataSize;
+            const arrayBuffer = new ArrayBuffer(bufferSize);
+            const view = new DataView(arrayBuffer);
+
+            // WAV 文件头
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, bufferSize - 8, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true); // fmt chunk size
+            view.setUint16(20, 1, true); // audio format (1 = PCM)
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true); // bits per sample
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            // 写入音频数据
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+
+            return arrayBuffer;
+        }
+
+        // 初始化
+        initUI();
+    </script>
+</body>
+</html>

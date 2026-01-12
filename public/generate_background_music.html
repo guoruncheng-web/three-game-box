@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0">
+    <title>水果消消乐背景音乐生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .control-group {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .value-display {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info p {
+            margin: 5px 0;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 水果消消乐背景音乐生成器</h1>
+        <p class="subtitle">生成轻松愉快的游戏背景音乐</p>
+
+        <div class="info">
+            <p><strong>音乐特点：</strong></p>
+            <p>• 轻松愉快的旋律，适合休闲游戏</p>
+            <p>• 循环播放，无缝衔接</p>
+            <p>• 时长约 30-60 秒，适合作为背景音乐</p>
+            <p>• 音量适中，不会干扰游戏音效</p>
+        </div>
+
+        <div class="control-group">
+            <label>音乐时长（秒）</label>
+            <input type="range" id="duration" min="30" max="90" value="60" step="5">
+            <div class="value-display" id="duration-value">60 秒</div>
+        </div>
+
+        <div class="control-group">
+            <label>音量（0-1）</label>
+            <input type="range" id="volume" min="0.1" max="1" value="0.5" step="0.1">
+            <div class="value-display" id="volume-value">0.5</div>
+        </div>
+
+        <button onclick="generateMusic()">🎵 生成并下载背景音乐</button>
+        <button onclick="previewMusic()">▶ 试听音乐</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let previewAudio = null;
+
+        // 更新显示值
+        document.getElementById('duration').addEventListener('input', (e) => {
+            document.getElementById('duration-value').textContent = e.target.value + ' 秒';
+        });
+
+        document.getElementById('volume').addEventListener('input', (e) => {
+            document.getElementById('volume-value').textContent = e.target.value;
+        });
+
+        // 生成背景音乐
+        function generateBackgroundMusic(duration = 60, volume = 0.5) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            const length = sampleRate * duration;
+            const buffer = audioContext.createBuffer(2, length, sampleRate); // 立体声
+            const leftChannel = buffer.getChannelData(0);
+            const rightChannel = buffer.getChannelData(1);
+
+            // 创建轻松愉快的旋律
+            // 使用 C 大调音阶
+            const scale = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C4-C5
+            const chordProgression = [
+                [0, 2, 4], // C major
+                [2, 4, 6], // D minor
+                [4, 6, 1], // E minor
+                [0, 3, 5], // F major
+            ];
+
+            let time = 0;
+            const beatDuration = 0.5; // 每拍 0.5 秒
+            const beatsPerMeasure = 4;
+            const measures = Math.ceil(duration / (beatDuration * beatsPerMeasure));
+
+            for (let measure = 0; measure < measures; measure++) {
+                const chordIndex = measure % chordProgression.length;
+                const chord = chordProgression[chordIndex];
+
+                // 每个小节播放和弦
+                for (let beat = 0; beat < beatsPerMeasure; beat++) {
+                    const beatStart = measure * beatsPerMeasure * beatDuration + beat * beatDuration;
+                    const beatStartSample = Math.floor(beatStart * sampleRate);
+                    const beatLength = Math.floor(beatDuration * sampleRate);
+
+                    // 为每个和弦音创建音符
+                    chord.forEach((noteIndex, chordTone) => {
+                        const freq = scale[noteIndex];
+                        const noteStartDelay = chordTone * 0.05; // 和弦音稍微错开
+                        const noteStart = beatStartSample + Math.floor(noteStartDelay * sampleRate);
+                        const noteLength = beatLength - Math.floor(noteStartDelay * sampleRate);
+
+                        for (let i = 0; i < noteLength && noteStart + i < length; i++) {
+                            const t = (noteStart + i) / sampleRate;
+                            const noteTime = t - beatStart - noteStartDelay;
+                            
+                            // 使用包络：快速起音，缓慢衰减
+                            let envelope = 1;
+                            if (noteTime < 0.05) {
+                                envelope = noteTime / 0.05; // 起音
+                            } else {
+                                envelope = Math.exp(-(noteTime - 0.05) * 3); // 衰减
+                            }
+
+                            // 添加轻微的颤音效果
+                            const vibrato = 1 + Math.sin(t * 5) * 0.01;
+                            const sample = Math.sin(2 * Math.PI * freq * vibrato * t) * envelope * volume * 0.3;
+
+                            // 立体声：左右声道稍微不同
+                            const pan = Math.sin(t * 0.5) * 0.1; // 轻微的左右摆动
+                            leftChannel[noteStart + i] += sample * (1 - pan);
+                            rightChannel[noteStart + i] += sample * (1 + pan);
+                        }
+                    });
+                }
+            }
+
+            // 添加低音线（简单的根音）
+            for (let measure = 0; measure < measures; measure++) {
+                const chordIndex = measure % chordProgression.length;
+                const rootNote = chordProgression[chordIndex][0];
+                const rootFreq = scale[rootNote] / 2; // 低八度
+
+                const measureStart = measure * beatsPerMeasure * beatDuration;
+                const measureStartSample = Math.floor(measureStart * sampleRate);
+                const measureLength = Math.floor(beatsPerMeasure * beatDuration * sampleRate);
+
+                for (let i = 0; i < measureLength && measureStartSample + i < length; i++) {
+                    const t = (measureStartSample + i) / sampleRate;
+                    const envelope = 0.5 + 0.5 * Math.sin(t * 2); // 简单的包络
+                    const sample = Math.sin(2 * Math.PI * rootFreq * t) * envelope * volume * 0.15;
+
+                    leftChannel[measureStartSample + i] += sample;
+                    rightChannel[measureStartSample + i] += sample;
+                }
+            }
+
+            // 归一化 - 使用循环避免堆栈溢出
+            let maxLeft = 0;
+            let maxRight = 0;
+            for (let i = 0; i < length; i++) {
+                const absLeft = Math.abs(leftChannel[i]);
+                const absRight = Math.abs(rightChannel[i]);
+                if (absLeft > maxLeft) maxLeft = absLeft;
+                if (absRight > maxRight) maxRight = absRight;
+            }
+            const max = Math.max(maxLeft, maxRight);
+            
+            if (max > 0) {
+                const normalizeFactor = 0.9 / max;
+                for (let i = 0; i < length; i++) {
+                    leftChannel[i] *= normalizeFactor;
+                    rightChannel[i] *= normalizeFactor;
+                }
+            }
+
+            // 添加淡入淡出
+            const fadeLength = sampleRate * 2; // 2秒淡入淡出
+            for (let i = 0; i < fadeLength && i < length; i++) {
+                const fade = i / fadeLength;
+                leftChannel[i] *= fade;
+                rightChannel[i] *= fade;
+            }
+            for (let i = 0; i < fadeLength && length - 1 - i >= 0; i++) {
+                const fade = i / fadeLength;
+                const index = length - 1 - i;
+                leftChannel[index] *= fade;
+                rightChannel[index] *= fade;
+            }
+
+            return buffer;
+        }
+
+        // 将 AudioBuffer 转换为 WAV
+        function audioBufferToWav(buffer) {
+            const length = buffer.length;
+            const numberOfChannels = buffer.numberOfChannels;
+            const sampleRate = buffer.sampleRate;
+            const bytesPerSample = 2;
+            const blockAlign = numberOfChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = length * blockAlign;
+            const bufferSize = 44 + dataSize;
+            const arrayBuffer = new ArrayBuffer(bufferSize);
+            const view = new DataView(arrayBuffer);
+
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(0, 'RIFF');
+            view.setUint32(4, bufferSize - 8, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numberOfChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                for (let channel = 0; channel < numberOfChannels; channel++) {
+                    const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]));
+                    view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                    offset += 2;
+                }
+            }
+
+            return arrayBuffer;
+        }
+
+        // 生成并下载
+        function generateMusic() {
+            const duration = parseFloat(document.getElementById('duration').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const statusEl = document.getElementById('status');
+
+            try {
+                statusEl.textContent = '正在生成音乐（这可能需要几秒钟）...';
+                statusEl.className = 'status';
+
+                // 使用 setTimeout 让 UI 更新
+                setTimeout(() => {
+                    try {
+                        const buffer = generateBackgroundMusic(duration, volume);
+                        statusEl.textContent = '正在转换为 WAV 格式...';
+                        
+                        setTimeout(() => {
+                            try {
+                                const wav = audioBufferToWav(buffer);
+                                const blob = new Blob([wav], { type: 'audio/wav' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `fruit-match-bg-music.wav`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+
+                                statusEl.textContent = '✅ 音乐生成成功！已下载到本地';
+                                statusEl.className = 'status success';
+                            } catch (error) {
+                                console.error('转换 WAV 失败:', error);
+                                statusEl.textContent = '❌ 转换失败: ' + error.message;
+                                statusEl.className = 'status';
+                            }
+                        }, 100);
+                    } catch (error) {
+                        console.error('生成音乐失败:', error);
+                        statusEl.textContent = '❌ 生成失败: ' + error.message;
+                        statusEl.className = 'status';
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('生成音乐失败:', error);
+                statusEl.textContent = '❌ 生成失败: ' + error.message;
+                statusEl.className = 'status';
+            }
+        }
+
+        // 试听音乐
+        function previewMusic() {
+            const duration = parseFloat(document.getElementById('duration').value);
+            const volume = parseFloat(document.getElementById('volume').value);
+            const statusEl = document.getElementById('status');
+
+            try {
+                if (previewAudio) {
+                    previewAudio.pause();
+                    previewAudio = null;
+                }
+
+                statusEl.textContent = '正在生成试听（这可能需要几秒钟）...';
+                statusEl.className = 'status';
+
+                // 使用 setTimeout 让 UI 更新
+                setTimeout(() => {
+                    try {
+                        const buffer = generateBackgroundMusic(duration, volume);
+                        statusEl.textContent = '正在转换为 WAV 格式...';
+                        
+                        setTimeout(() => {
+                            try {
+                                const wav = audioBufferToWav(buffer);
+                                const blob = new Blob([wav], { type: 'audio/wav' });
+                                const url = URL.createObjectURL(blob);
+
+                                previewAudio = new Audio(url);
+                                previewAudio.loop = true;
+                                previewAudio.volume = volume;
+                                previewAudio.play();
+
+                                statusEl.textContent = '▶ 正在播放试听（循环）';
+                                statusEl.className = 'status success';
+
+                                previewAudio.addEventListener('ended', () => {
+                                    URL.revokeObjectURL(url);
+                                });
+                            } catch (error) {
+                                console.error('转换 WAV 失败:', error);
+                                statusEl.textContent = '❌ 转换失败: ' + error.message;
+                                statusEl.className = 'status';
+                            }
+                        }, 100);
+                    } catch (error) {
+                        console.error('试听失败:', error);
+                        statusEl.textContent = '❌ 试听失败: ' + error.message;
+                        statusEl.className = 'status';
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('试听失败:', error);
+                statusEl.textContent = '❌ 试听失败: ' + error.message;
+                statusEl.className = 'status';
+            }
+        }
+    </script>
+</body>
+</html>
