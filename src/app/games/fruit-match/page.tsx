@@ -8,8 +8,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { TabBar } from '@/components/layout/TabBar';
 import type { TabItem } from '@/components/layout/TabBar';
+
+// 动态导入 Canvas 包装组件以避免 SSR 问题
+const FruitMatchCanvas = dynamic(
+  () => import('@/components/three/fruit-match/FruitMatchCanvas').then((mod) => mod.FruitMatchCanvas),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-gray-400">加载中...</div>
+      </div>
+    ),
+  }
+);
 
 // 图标路径
 const iconBack = '/images/fruit-match/icon-back.svg';
@@ -53,6 +67,7 @@ export default function FruitMatchPage() {
     gameOver: false,
     gameWon: false,
   });
+  const [matchedCells, setMatchedCells] = useState<Set<string>>(new Set());
 
   // 检查是否有匹配（3个或更多相同水果）
   const findMatches = useCallback((grid: (FruitType | null)[][]): Set<string> => {
@@ -121,21 +136,25 @@ export default function FruitMatchPage() {
         grid[row] = [];
         for (let col = 0; col < GRID_SIZE; col++) {
           // 随机选择水果，但避免初始就有匹配
-          let fruit: FruitType = FRUITS[0]; // 给初始值
+          let fruit: FruitType = FRUITS[0]; // 默认值
           let valid = false;
           let tries = 0;
 
           while (!valid && tries < 50) {
-            fruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
+            const candidateFruit = FRUITS[Math.floor(Math.random() * FRUITS.length)];
             valid = true;
 
             // 检查水平匹配（左侧两个）
-            if (col >= 2 && grid[row][col - 1] === fruit && grid[row][col - 2] === fruit) {
+            if (col >= 2 && grid[row][col - 1] === candidateFruit && grid[row][col - 2] === candidateFruit) {
               valid = false;
             }
             // 检查垂直匹配（上方两个）
-            if (row >= 2 && grid[row - 1]?.[col] === fruit && grid[row - 2]?.[col] === fruit) {
+            if (row >= 2 && grid[row - 1]?.[col] === candidateFruit && grid[row - 2]?.[col] === candidateFruit) {
               valid = false;
+            }
+
+            if (valid) {
+              fruit = candidateFruit;
             }
 
             tries++;
@@ -210,7 +229,9 @@ export default function FruitMatchPage() {
       const matches = findMatches(grid);
       if (matches.size === 0) {
         hasMatches = false;
+        setMatchedCells(new Set()); // 清除匹配高亮
       } else {
+        setMatchedCells(matches); // 设置匹配高亮
         const removedCount = removeMatches(grid, matches);
         totalScore += removedCount * 10; // 每个水果10分
         dropFruits(grid);
@@ -421,41 +442,15 @@ export default function FruitMatchPage() {
           </div>
         </div>
 
-        {/* 游戏网格 */}
+        {/* 3D 游戏网格 */}
         <div className="px-4 mb-4">
-          <div className="bg-white/80 rounded-3xl shadow-2xl p-4">
-            <div className="grid grid-cols-8 gap-1">
-              {gameState.grid.map((row, rowIndex) =>
-                row.map((fruit, colIndex) => {
-                  const isSelected =
-                    gameState.selectedCell?.row === rowIndex &&
-                    gameState.selectedCell?.col === colIndex;
-                  const isEmpty = fruit === null;
-
-                  return (
-                    <button
-                      key={`${rowIndex}-${colIndex}`}
-                      onClick={() => handleCellClick(rowIndex, colIndex)}
-                      disabled={isEmpty || gameState.gameOver || gameState.gameWon || gameState.isPaused}
-                      className={`
-                        aspect-square rounded-2xl flex items-center justify-center
-                        text-3xl transition-all duration-200
-                        ${isEmpty ? 'bg-transparent' : 'bg-gradient-to-br from-[#f3e8ff] to-[#fce7f3] shadow-md'}
-                        ${isSelected ? 'ring-4 ring-[#fdc700] scale-110' : 'hover:scale-105 active:scale-95'}
-                        ${isEmpty ? 'cursor-default' : 'cursor-pointer'}
-                      `}
-                      style={{
-                        background: isEmpty
-                          ? 'transparent'
-                          : 'linear-gradient(135deg, rgb(243, 232, 255) 0%, rgb(252, 231, 243) 100%)',
-                      }}
-                    >
-                      {fruit}
-                    </button>
-                  );
-                })
-              )}
-            </div>
+          <div className="bg-white/80 rounded-3xl shadow-2xl p-4" style={{ height: '400px' }}>
+            <FruitMatchCanvas
+              grid={gameState.grid}
+              selectedCell={gameState.selectedCell}
+              matchedCells={matchedCells}
+              onCellClick={handleCellClick}
+            />
           </div>
         </div>
 

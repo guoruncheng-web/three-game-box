@@ -10,11 +10,12 @@ interface AuthState {
   // 用户信息
   user: PublicUser | null;
   token: string | null;
-  
+
   // 加载状态
   isLoading: boolean;
   isAuthenticated: boolean;
-  
+  isInitialized: boolean; // 认证状态是否已初始化
+
   // 错误信息
   error: string | null;
 }
@@ -24,6 +25,7 @@ const initialState: AuthState = {
   token: null,
   isLoading: false,
   isAuthenticated: false,
+  isInitialized: false,
   error: null,
 };
 
@@ -94,7 +96,7 @@ const authSlice = createSlice({
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('token');
         const userStr = localStorage.getItem('user');
-        
+
         if (token && userStr) {
           try {
             state.token = token;
@@ -107,6 +109,11 @@ const authSlice = createSlice({
           }
         }
       }
+    },
+
+    // 设置初始化状态
+    setInitialized: (state, action: PayloadAction<boolean>) => {
+      state.isInitialized = action.payload;
     },
   },
 });
@@ -121,6 +128,7 @@ export const {
   setToken,
   setError,
   restoreAuth,
+  setInitialized,
 } = authSlice.actions;
 
 // 导出 reducer

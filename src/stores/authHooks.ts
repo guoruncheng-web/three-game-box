@@ -13,6 +13,7 @@ import {
   setToken,
   setError,
   restoreAuth,
+  setInitialized,
 } from './authStore';
 import type { LoginRequest, RegisterRequest, PublicUser } from '@/types/auth';
 import type { ApiResponse, LoginResponse } from '@/types/auth';
@@ -182,6 +183,29 @@ export function useAuth() {
     dispatch(restoreAuth());
   };
 
+  /**
+   * 初始化认证状态
+   */
+  const initialize = async (): Promise<void> => {
+    try {
+      // 从 localStorage 恢复状态
+      restore();
+
+      // 读取 localStorage 中的 token
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      // 如果有 token，验证并获取用户信息
+      if (storedToken) {
+        await fetchCurrentUser();
+      }
+    } catch (error) {
+      console.error('Failed to initialize auth:', error);
+    } finally {
+      // 无论成功或失败，都标记为已初始化
+      dispatch(setInitialized(true));
+    }
+  };
+
   return {
     ...auth,
     login,
@@ -189,5 +213,6 @@ export function useAuth() {
     logout,
     fetchCurrentUser,
     restore,
+    initialize,
   };
 }

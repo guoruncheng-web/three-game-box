@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水果消消乐背景生成器</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        select, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .canvas-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .download-btn {
+            margin-top: 15px;
+            background: #27ae60;
+        }
+        .download-btn:hover {
+            background: #229954;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍎 水果消消乐背景生成器</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="style">选择风格:</label>
+                <select id="style">
+                    <option value="fresh">清新绿色系 (Fresh)</option>
+                    <option value="sweet">甜美粉色系 (Sweet)</option>
+                    <option value="vibrant">活力彩虹系 (Vibrant)</option>
+                </select>
+            </div>
+            <button onclick="generateBackground()">🎨 生成背景</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="bgCanvas" width="800" height="1200"></canvas>
+            <br>
+            <button class="download-btn" onclick="downloadImage()">📥 下载图片</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 颜色配置
+        const colorSchemes = {
+            fresh: {
+                gradient: ['#a8e6cf', '#dcedc1'],
+                accents: ['#ffaaa5', '#ffd3b6', '#a8e6cf', '#dcedc1']
+            },
+            sweet: {
+                gradient: ['#ffd6e8', '#ffe4e1'],
+                accents: ['#ffd6e8', '#ffb3d9', '#c9a0dc', '#ffdfd3']
+            },
+            vibrant: {
+                gradient: ['#ffeaa7', '#fab1a0'],
+                accents: ['#ffeaa7', '#fab1a0', '#ff6b6b', '#74b9ff']
+            }
+        };
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function drawGradient(colors) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, colors[0]);
+            gradient.addColorStop(1, colors[1]);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawDecorativeDots(colors) {
+            // 使用固定种子生成一致的随机位置
+            const dots = [
+                {x: 120, y: 150, r: 60, alpha: 0.3},
+                {x: 650, y: 200, r: 80, alpha: 0.25},
+                {x: 200, y: 400, r: 70, alpha: 0.35},
+                {x: 600, y: 500, r: 50, alpha: 0.3},
+                {x: 100, y: 700, r: 65, alpha: 0.28},
+                {x: 700, y: 750, r: 75, alpha: 0.32},
+                {x: 300, y: 900, r: 55, alpha: 0.3},
+                {x: 500, y: 1000, r: 70, alpha: 0.27},
+                {x: 150, y: 300, r: 45, alpha: 0.25},
+                {x: 680, y: 420, r: 60, alpha: 0.3},
+                {x: 250, y: 600, r: 50, alpha: 0.28},
+                {x: 550, y: 850, r: 65, alpha: 0.32},
+                {x: 400, y: 100, r: 55, alpha: 0.3},
+                {x: 180, y: 1050, r: 70, alpha: 0.26},
+                {x: 720, y: 950, r: 48, alpha: 0.29}
+            ];
+
+            dots.forEach((dot, i) => {
+                const color = colors[i % colors.length];
+                ctx.fillStyle = color + Math.floor(dot.alpha * 255).toString(16).padStart(2, '0');
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawGlowEffect(colors) {
+            const glows = [
+                {x: 400, y: 300, r: 180, color: colors[0]},
+                {x: 200, y: 600, r: 150, color: colors[1]},
+                {x: 600, y: 800, r: 160, color: colors[2]},
+                {x: 350, y: 1000, r: 140, color: colors[3]}
+            ];
+
+            glows.forEach(glow => {
+                const gradient = ctx.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, glow.r);
+                gradient.addColorStop(0, glow.color + '20');
+                gradient.addColorStop(0.5, glow.color + '10');
+                gradient.addColorStop(1, glow.color + '00');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(glow.x, glow.y, glow.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function addSubtleTexture() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = (Math.random() - 0.5) * 10;
+                data[i] += noise;     // R
+                data[i + 1] += noise; // G
+                data[i + 2] += noise; // B
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function generateBackground() {
+            const style = document.getElementById('style').value;
+            const scheme = colorSchemes[style];
+
+            // 1. 绘制渐变背景
+            drawGradient(scheme.gradient);
+
+            // 2. 添加装饰性圆点
+            drawDecorativeDots(scheme.accents);
+
+            // 3. 添加光晕效果
+            drawGlowEffect(scheme.accents);
+
+            // 4. 添加微妙的纹理
+            addSubtleTexture();
+
+            console.log('✓ 背景生成完成！');
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            const style = document.getElementById('style').value;
+            link.download = `fruit-match-bg-${style}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            console.log('✓ 下载完成！');
+        }
+
+        // 初始化时生成一个默认背景
+        window.onload = () => {
+            generateBackground();
+        };
+    </script>
+</body>
+</html>

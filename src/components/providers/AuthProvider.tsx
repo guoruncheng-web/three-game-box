@@ -8,21 +8,12 @@ import { useEffect } from 'react';
 import { useAuth } from '@/stores/authHooks';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { restore, fetchCurrentUser, token } = useAuth();
+  const { initialize } = useAuth();
 
   useEffect(() => {
-    // 从 localStorage 恢复认证状态
-    restore();
+    // 初始化认证状态
+    initialize();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // 如果有 token，验证并获取用户信息
-    if (token) {
-      fetchCurrentUser().catch((error) => {
-        console.error('Failed to fetch current user:', error);
-      });
-    }
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <>{children}</>;
 }
