@@ -9,13 +9,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { TabBar } from '@/components/layout/TabBar';
-import type { TabItem } from '@/components/layout/TabBar';
 
 // 动态导入 Canvas 包装组件以避免 SSR 问题
 const FruitMatchCanvas = dynamic(
   () => import('@/components/three/fruit-match/FruitMatchCanvas').then((mod) => mod.FruitMatchCanvas),
-  { 
+  {
     ssr: false,
     loading: () => (
       <div className="w-full h-full flex items-center justify-center">
@@ -26,9 +24,9 @@ const FruitMatchCanvas = dynamic(
 );
 
 // 图标路径
-const iconBack = '/images/fruit-match/icon-back.svg';
-const iconSound = '/images/fruit-match/icon-sound.svg';
-const iconPause = '/images/fruit-match/icon-pause.svg';
+const iconBack = '/images/back.png';
+const iconSound = '/images/voice.png';
+const iconPause = '/images/restore.png';
 const iconScore = '/images/fruit-match/icon-score.svg';
 const iconTarget = '/images/fruit-match/icon-target.svg';
 const iconMoves = '/images/fruit-match/icon-moves.svg';
@@ -212,7 +210,7 @@ export default function FruitMatchPage() {
           writeIndex--;
         }
       }
-      
+
       // 填充顶部空位
       for (let row = writeIndex; row >= 0; row--) {
         grid[row][col] = FRUITS[Math.floor(Math.random() * FRUITS.length)];
@@ -246,7 +244,7 @@ export default function FruitMatchPage() {
     (grid: (FruitType | null)[][], row1: number, col1: number, row2: number, col2: number): boolean => {
       // 创建临时网格
       const tempGrid = grid.map((row) => [...row]);
-      
+
       // 交换
       const temp = tempGrid[row1][col1];
       tempGrid[row1][col1] = tempGrid[row2][col2];
@@ -262,6 +260,7 @@ export default function FruitMatchPage() {
   // 处理单元格点击
   const handleCellClick = useCallback(
     (row: number, col: number) => {
+      console.log('点击了水果:', row, col, gameState.grid[row][col]);
       if (gameState.gameOver || gameState.gameWon || gameState.isPaused) return;
       if (gameState.grid[row][col] === null) return;
 
@@ -282,7 +281,7 @@ export default function FruitMatchPage() {
         if (isAdjacent) {
           // 检查是否可以交换
           const newGrid = gameState.grid.map((r) => [...r]);
-          
+
           if (canSwap(newGrid, selectedRow, selectedCol, row, col)) {
             // 交换
             const temp = newGrid[selectedRow][selectedCol];
@@ -349,27 +348,9 @@ export default function FruitMatchPage() {
     }));
   };
 
-  // TabBar 配置
-  const tabs: TabItem[] = [
-    {
-      key: 'home',
-      label: '首页',
-      icon: '/images/tabbar/icon-home.svg',
-      activeIcon: '/images/tabbar/icon-home-active.svg',
-      path: '/',
-    },
-    {
-      key: 'mine',
-      label: '我的',
-      icon: '/images/tabbar/icon-profile.svg',
-      activeIcon: '/images/tabbar/icon-profile-active.svg',
-      path: '/mine',
-    },
-  ];
-
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen"
       style={{
         background: 'linear-gradient(to bottom, #f3e8ff, #ffedd4)',
       }}
@@ -377,12 +358,12 @@ export default function FruitMatchPage() {
       <div className="max-w-md mx-auto">
         {/* 顶部导航栏 */}
         <div className="flex items-center justify-between px-4 pt-4 pb-4">
-          <button
+          <div
             onClick={handleBack}
-            className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+            className="w-12 h-12 flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative overflow-hidden"
           >
-            <Image src={iconBack} alt="返回" width={24} height={24} />
-          </button>
+            <Image src={iconBack} alt="返回" fill className="object-contain p-2" />
+          </div>
 
           <h1
             className="text-2xl font-black"
@@ -399,15 +380,15 @@ export default function FruitMatchPage() {
           <div className="flex gap-2">
             <button
               onClick={handleSoundToggle}
-              className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+              className="w-12 h-12 flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative overflow-hidden"
             >
-              <Image src={iconSound} alt="声音" width={20} height={20} />
+              <Image src={iconSound} alt="声音" fill className="object-contain p-2" />
             </button>
             <button
               onClick={handlePause}
-              className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+              className="w-12 h-12 flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative overflow-hidden"
             >
-              <Image src={iconPause} alt="暂停" width={20} height={20} />
+              <Image src={iconPause} alt="暂停" fill className="object-contain p-2" />
             </button>
           </div>
         </div>
@@ -444,13 +425,24 @@ export default function FruitMatchPage() {
 
         {/* 3D 游戏网格 */}
         <div className="px-4 mb-4">
-          <div className="bg-white/80 rounded-3xl shadow-2xl p-4" style={{ height: '400px' }}>
-            <FruitMatchCanvas
-              grid={gameState.grid}
-              selectedCell={gameState.selectedCell}
-              matchedCells={matchedCells}
-              onCellClick={handleCellClick}
-            />
+          <div
+            className="rounded-3xl shadow-2xl p-4"
+            style={{
+              height: '400px',
+              backgroundImage: 'url(/images/board.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.2)',
+            }}
+          >
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <FruitMatchCanvas
+                grid={gameState.grid}
+                selectedCell={gameState.selectedCell}
+                matchedCells={matchedCells}
+                onCellClick={handleCellClick}
+              />
+            </div>
           </div>
         </div>
 
@@ -542,9 +534,6 @@ export default function FruitMatchPage() {
             </div>
           </div>
         )}
-
-        {/* 底部导航栏 */}
-        <TabBar tabs={tabs} />
       </div>
     </div>
   );

@@ -7,7 +7,6 @@
 
 import { Suspense } from 'react';
 import { FruitGrid } from './FruitGrid';
-import { FruitBackground } from './FruitBackground';
 
 type FruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
@@ -26,12 +25,6 @@ export function GameScene({
 }: GameSceneProps) {
   return (
     <Suspense fallback={null}>
-      {/* 背景面板 */}
-      <FruitBackground />
-
-      {/* 简单环境光 - 2D 不需要复杂光照 */}
-      <ambientLight intensity={1} />
-
       {/* 水果网格 */}
       <FruitGrid
         grid={grid}

@@ -35,17 +35,6 @@ export function FruitGrid({
 
   return (
     <group>
-      {/* 网格背景板 */}
-      <mesh position={[0, 0, -0.5]}>
-        <planeGeometry args={[gridSize * CELL_SPACING + 0.5, gridSize * CELL_SPACING + 0.5]} />
-        <meshBasicMaterial
-          color="#f8f9fa"
-          side={THREE.DoubleSide}
-          transparent
-          opacity={0.8}
-        />
-      </mesh>
-
       {/* 渲染水果单元格 */}
       {grid.map((row, rowIndex) =>
         row.map((fruit, colIndex) => {
@@ -65,6 +54,8 @@ export function FruitGrid({
               key={`${rowIndex}-${colIndex}-${fruit}`}
               fruit={fruit}
               position={[x, y, z]}
+              row={rowIndex}
+              col={colIndex}
               isSelected={isSelected}
               isMatched={isMatched}
               onClick={() => onCellClick(rowIndex, colIndex)}

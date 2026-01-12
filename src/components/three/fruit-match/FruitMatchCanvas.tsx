@@ -47,8 +47,24 @@ export function FruitMatchCanvas({
         near: 0.1,
         far: 1000,
       }}
-      gl={{ antialias: true, alpha: false }}
+      gl={{
+        antialias: true,
+        alpha: true,
+        preserveDrawingBuffer: true,
+      }}
       dpr={[1, 2]}
+      style={{
+        background: 'transparent',
+        width: '100%',
+        height: '100%',
+      }}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x000000, 0); // 完全透明
+        console.log('Canvas 已创建');
+      }}
+      onPointerMissed={() => {
+        console.log('点击未命中任何物体');
+      }}
     >
       <GameScene
         grid={grid}

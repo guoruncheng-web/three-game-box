@@ -33,7 +33,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
   const initializeGrid = useCallback(() => {
     const newGrid: Cell[][] = [];
     let id = 0;
-    
+
     for (let row = 0; row < GRID_SIZE; row++) {
       newGrid[row] = [];
       for (let col = 0; col < GRID_SIZE; col++) {
@@ -45,14 +45,14 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         };
       }
     }
-    
+
     return newGrid;
   }, []);
 
   // 检查匹配
   const checkMatches = useCallback((currentGrid: Cell[][]) => {
     const matches: { row: number; col: number }[] = [];
-    
+
     // 检查横向匹配
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE - 2; col++) {
@@ -67,7 +67,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         }
       }
     }
-    
+
     // 检查纵向匹配
     for (let col = 0; col < GRID_SIZE; col++) {
       for (let row = 0; row < GRID_SIZE - 2; row++) {
@@ -82,7 +82,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         }
       }
     }
-    
+
     return matches;
   }, []);
 
@@ -94,11 +94,11 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         const [row, col] = str.split(',').map(Number);
         return { row, col };
       });
-    
+
     uniqueMatches.forEach(({ row, col }) => {
       newGrid[row][col].isMatched = true;
     });
-    
+
     return { newGrid, matchCount: uniqueMatches.length };
   }, []);
 
@@ -106,10 +106,10 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
   const dropFruits = useCallback((currentGrid: Cell[][]) => {
     const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
     let idCounter = GRID_SIZE * GRID_SIZE;
-    
+
     for (let col = 0; col < GRID_SIZE; col++) {
       let emptySpaces = 0;
-      
+
       for (let row = GRID_SIZE - 1; row >= 0; row--) {
         if (newGrid[row][col].isMatched) {
           emptySpaces++;
@@ -123,7 +123,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
           };
         }
       }
-      
+
       for (let row = 0; row < emptySpaces; row++) {
         newGrid[row][col] = {
           fruit: fruits[Math.floor(Math.random() * fruits.length)],
@@ -133,7 +133,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         };
       }
     }
-    
+
     return newGrid;
   }, []);
 
@@ -142,27 +142,27 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
     let newGrid = currentGrid;
     let totalMatches = 0;
     let currentCombo = 0;
-    
+
     while (true) {
       const matches = checkMatches(newGrid);
       if (matches.length === 0) break;
-      
+
       const { newGrid: gridAfterRemoval, matchCount } = removeMatches(newGrid, matches);
       totalMatches += matchCount;
       currentCombo++;
-      
+
       await new Promise(resolve => setTimeout(resolve, 300));
       newGrid = dropFruits(gridAfterRemoval);
       await new Promise(resolve => setTimeout(resolve, 200));
     }
-    
+
     if (totalMatches > 0) {
       const points = totalMatches * 10 * Math.max(1, currentCombo);
       setScore(prev => prev + points);
       setCombo(currentCombo);
       setTimeout(() => setCombo(0), 1000);
     }
-    
+
     return newGrid;
   }, [checkMatches, removeMatches, dropFruits]);
 
@@ -170,17 +170,17 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
   const swapFruits = useCallback(async (row1: number, col1: number, row2: number, col2: number) => {
     if (isAnimating) return;
     setIsAnimating(true);
-    
+
     const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
     const temp = newGrid[row1][col1];
     newGrid[row1][col1] = newGrid[row2][col2];
     newGrid[row2][col2] = temp;
-    
+
     setGrid(newGrid);
     await new Promise(resolve => setTimeout(resolve, 200));
-    
+
     const matches = checkMatches(newGrid);
-    
+
     if (matches.length > 0) {
       setMoves(prev => prev - 1);
       const finalGrid = await processMatches(newGrid);
@@ -193,14 +193,14 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       revertGrid[row2][col2] = tempRevert;
       setGrid(revertGrid);
     }
-    
+
     setIsAnimating(false);
   }, [grid, checkMatches, processMatches, isAnimating]);
 
   // 处理点击
   const handleCellClick = useCallback((row: number, col: number) => {
     if (gameState !== 'playing' || isAnimating) return;
-    
+
     if (selectedCell === null) {
       const newGrid = grid.map(r => r.map(cell => ({ ...cell, isSelected: false })));
       newGrid[row][col].isSelected = true;
@@ -209,11 +209,11 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
     } else {
       const rowDiff = Math.abs(selectedCell.row - row);
       const colDiff = Math.abs(selectedCell.col - col);
-      
+
       if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
         swapFruits(selectedCell.row, selectedCell.col, row, col);
       }
-      
+
       const newGrid = grid.map(r => r.map(cell => ({ ...cell, isSelected: false })));
       setGrid(newGrid);
       setSelectedCell(null);
@@ -323,7 +323,16 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
         )}
 
         {/* 游戏网格 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-4 shadow-2xl mb-4 animate-fade-in-up delay-200">
+        <div
+          className="rounded-3xl p-4 shadow-2xl mb-4 animate-fade-in-up delay-200 overflow-hidden relative"
+          style={{
+            backgroundImage: "url('/images/board.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: 'transparent',
+          }}
+        >
           <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
             {grid.map((row, rowIndex) =>
               row.map((cell, colIndex) => (
@@ -331,13 +340,12 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
                   key={cell.id}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                   disabled={gameState !== 'playing' || isAnimating}
-                  className={`aspect-square rounded-xl flex items-center justify-center text-3xl transition-all duration-300 ${
-                    cell.isSelected
-                      ? 'bg-gradient-to-br from-yellow-300 to-orange-300 scale-110 shadow-lg ring-4 ring-yellow-400'
-                      : cell.isMatched
+                  className={`aspect-square rounded-xl flex items-center justify-center text-3xl transition-all duration-300 ${cell.isSelected
+                    ? 'bg-gradient-to-br from-yellow-300 to-orange-300 scale-110 shadow-lg ring-4 ring-yellow-400'
+                    : cell.isMatched
                       ? 'bg-gradient-to-br from-green-200 to-emerald-200 scale-75 opacity-50'
                       : 'bg-gradient-to-br from-purple-100 to-pink-100 hover:scale-110 active:scale-95 shadow-md'
-                  }`}
+                    }`}
                   style={{
                     animation: cell.isMatched ? 'pop-out 0.3s ease-out' : undefined,
                   }}
