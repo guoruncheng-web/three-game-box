@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Star, Target, Zap, Trophy, RotateCcw, Pause, Play, Volume2, VolumeX } from 'lucide-react';
+import { soundEffects } from '@/utils/soundEffects';
 
 interface FruitMatchGameProps {
   onBack: () => void;
@@ -99,13 +100,19 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       newGrid[row][col].isMatched = true;
     });
 
+    // 播放消除音效
+    if (soundEnabled && uniqueMatches.length > 0) {
+      soundEffects.playPop();
+    }
+
     return { newGrid, matchCount: uniqueMatches.length };
-  }, []);
+  }, [soundEnabled]);
 
   // 水果下落
   const dropFruits = useCallback((currentGrid: Cell[][]) => {
     const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
     let idCounter = GRID_SIZE * GRID_SIZE;
+    let hasDrops = false;
 
     for (let col = 0; col < GRID_SIZE; col++) {
       let emptySpaces = 0;
@@ -121,6 +128,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
             isMatched: false,
             isSelected: false,
           };
+          hasDrops = true;
         }
       }
 
@@ -131,11 +139,17 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
           isMatched: false,
           isSelected: false,
         };
+        hasDrops = true;
       }
     }
 
+    // 播放下落音效
+    if (soundEnabled && hasDrops) {
+      soundEffects.playDrop();
+    }
+
     return newGrid;
-  }, []);
+  }, [soundEnabled]);
 
   // 处理匹配和下落的循环
   const processMatches = useCallback(async (currentGrid: Cell[][]) => {
@@ -151,6 +165,11 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       totalMatches += matchCount;
       currentCombo++;
 
+      // 播放匹配音效
+      if (soundEnabled && currentCombo === 1) {
+        soundEffects.playMatch();
+      }
+
       await new Promise(resolve => setTimeout(resolve, 300));
       newGrid = dropFruits(gridAfterRemoval);
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -160,11 +179,17 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       const points = totalMatches * 10 * Math.max(1, currentCombo);
       setScore(prev => prev + points);
       setCombo(currentCombo);
+      
+      // 播放连击音效
+      if (soundEnabled && currentCombo > 1) {
+        soundEffects.playCombo(currentCombo);
+      }
+      
       setTimeout(() => setCombo(0), 1000);
     }
 
     return newGrid;
-  }, [checkMatches, removeMatches, dropFruits]);
+  }, [checkMatches, removeMatches, dropFruits, soundEnabled]);
 
   // 交换水果
   const swapFruits = useCallback(async (row1: number, col1: number, row2: number, col2: number) => {
@@ -186,7 +211,10 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       const finalGrid = await processMatches(newGrid);
       setGrid(finalGrid);
     } else {
-      // 交换回来
+      // 交换回来，播放错误音效
+      if (soundEnabled) {
+        soundEffects.playError();
+      }
       const revertGrid = newGrid.map(row => row.map(cell => ({ ...cell })));
       const tempRevert = revertGrid[row1][col1];
       revertGrid[row1][col1] = revertGrid[row2][col2];
@@ -195,7 +223,7 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
     }
 
     setIsAnimating(false);
-  }, [grid, checkMatches, processMatches, isAnimating]);
+  }, [grid, checkMatches, processMatches, isAnimating, soundEnabled]);
 
   // 处理点击
   const handleCellClick = useCallback((row: number, col: number) => {
@@ -206,19 +234,28 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
       newGrid[row][col].isSelected = true;
       setGrid(newGrid);
       setSelectedCell({ row, col });
+      // 播放选择音效
+      if (soundEnabled) {
+        soundEffects.playSelect();
+      }
     } else {
       const rowDiff = Math.abs(selectedCell.row - row);
       const colDiff = Math.abs(selectedCell.col - col);
 
       if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
         swapFruits(selectedCell.row, selectedCell.col, row, col);
+      } else {
+        // 取消选择
+        if (soundEnabled) {
+          soundEffects.playSelect();
+        }
       }
 
       const newGrid = grid.map(r => r.map(cell => ({ ...cell, isSelected: false })));
       setGrid(newGrid);
       setSelectedCell(null);
     }
-  }, [selectedCell, grid, gameState, swapFruits, isAnimating]);
+  }, [selectedCell, grid, gameState, swapFruits, isAnimating, soundEnabled]);
 
   // 重置游戏
   const resetGame = () => {
@@ -233,18 +270,49 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
   // 初始化
   useEffect(() => {
     setGrid(initializeGrid());
-  }, [initializeGrid]);
+    // 同步音效状态
+    soundEffects.setEnabled(soundEnabled);
+    soundEffects.setBGMEnabled(soundEnabled);
+    // 开始播放背景音乐
+    if (soundEnabled) {
+      soundEffects.startBGM();
+    }
+    
+    // 清理函数：停止背景音乐
+    return () => {
+      soundEffects.stopBGM();
+    };
+  }, [initializeGrid, soundEnabled]);
+
+  // 管理背景音乐播放状态
+  useEffect(() => {
+    if (gameState === 'playing') {
+      soundEffects.resumeBGM();
+    } else if (gameState === 'paused') {
+      soundEffects.pauseBGM();
+    } else if (gameState === 'won' || gameState === 'lost') {
+      soundEffects.stopBGM();
+    }
+  }, [gameState]);
 
   // 检查游戏结束
   useEffect(() => {
     if (gameState === 'playing') {
       if (score >= TARGET_SCORE) {
         setGameState('won');
+        // 播放胜利音效
+        if (soundEnabled) {
+          soundEffects.playWin();
+        }
       } else if (moves <= 0) {
         setGameState('lost');
+        // 播放失败音效
+        if (soundEnabled) {
+          soundEffects.playLose();
+        }
       }
     }
-  }, [score, moves, gameState]);
+  }, [score, moves, gameState, soundEnabled]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-200 via-purple-200 to-blue-200 pb-6">
@@ -262,7 +330,12 @@ export function FruitMatchGame({ onBack }: FruitMatchGameProps) {
           </h1>
           <div className="flex gap-2">
             <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
+              onClick={() => {
+                const newSoundEnabled = !soundEnabled;
+                setSoundEnabled(newSoundEnabled);
+                soundEffects.setEnabled(newSoundEnabled);
+                soundEffects.setBGMEnabled(newSoundEnabled);
+              }}
               className="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300"
             >
               {soundEnabled ? (
