@@ -22,8 +22,21 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Verify files
+        run: |
+          echo "=== 检查关键文件 ==="
+          ls -lah package.json package-lock.json
+          echo "=== Node 和 npm 版本 ==="
+          node --version
+          npm --version
+          echo "=== package-lock.json lockfileVersion ==="
+          head -10 package-lock.json
+
+      - name: Clean npm cache (if needed)
+        run: npm cache verify
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit
         env:
           NODE_ENV: development
 
@@ -60,9 +73,14 @@ jobs:
               git reset --hard origin/main
             fi
             
+            # 检查环境
+            echo "=== 检查环境 ==="
+            node --version
+            npm --version
+
             # 安装依赖
-            echo "安装依赖..."
-            npm ci --production=false
+            echo "=== 安装依赖 ==="
+            npm ci --prefer-offline --no-audit --production=false
             
             # 构建项目
             echo "构建项目..."
