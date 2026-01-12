@@ -7,9 +7,16 @@
     "build": "next build",
     "start": "next start -p ${PORT:-7006}",
     "lint": "eslint",
-    "migrate": "node scripts/migrate-db.js"
+    "migrate": "node scripts/migrate-db.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:prod": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@prisma/client": "^6.2.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@reduxjs/toolkit": "^2.11.2",
@@ -39,6 +46,8 @@
     "@types/three": "^0.182.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.9",
+    "prisma": "^6.2.1",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
