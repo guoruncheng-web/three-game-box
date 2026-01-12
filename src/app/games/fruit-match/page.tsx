@@ -172,12 +172,22 @@ export default function FruitMatchPage() {
               position: { row, col: centerCol },
             };
           } else if (matchCount === 4 && !specialFruit) {
-            // 4连消 → 炸弹（中间位置）
+            // 4连消 → 炸弹（中间位置）100%
             const centerCol = col + Math.floor(matchCount / 2);
             specialFruit = {
               type: SPECIAL_FRUITS.BOMB,
               position: { row, col: centerCol },
             };
+          } else if (matchCount === 3 && !specialFruit) {
+            // 3连消 → 60% 概率生成炸弹
+            if (Math.random() < 0.6) {
+              const centerCol = col + Math.floor(matchCount / 2);
+              specialFruit = {
+                type: SPECIAL_FRUITS.BOMB,
+                position: { row, col: centerCol },
+              };
+              console.log('🎲 3连消幸运触发！生成炸弹');
+            }
           }
         }
       }
@@ -216,12 +226,22 @@ export default function FruitMatchPage() {
               position: { row: centerRow, col },
             };
           } else if (matchCount === 4 && !specialFruit) {
-            // 4连消 → 炸弹（中间位置）
+            // 4连消 → 炸弹（中间位置）100%
             const centerRow = row + Math.floor(matchCount / 2);
             specialFruit = {
               type: SPECIAL_FRUITS.BOMB,
               position: { row: centerRow, col },
             };
+          } else if (matchCount === 3 && !specialFruit) {
+            // 3连消 → 60% 概率生成炸弹
+            if (Math.random() < 0.6) {
+              const centerRow = row + Math.floor(matchCount / 2);
+              specialFruit = {
+                type: SPECIAL_FRUITS.BOMB,
+                position: { row: centerRow, col },
+              };
+              console.log('🎲 3连消幸运触发！生成炸弹');
+            }
           }
         }
       }
@@ -320,6 +340,23 @@ export default function FruitMatchPage() {
   // 初始化游戏
   useEffect(() => {
     const initialGrid = initializeGrid();
+
+    // 确保初始网格没有特殊水果（调试用）
+    let hasSpecialFruit = false;
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const fruit = initialGrid[row][col];
+        if (fruit && Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) {
+          hasSpecialFruit = true;
+          console.error('❌ 初始网格包含特殊水果！', fruit, '位置:', [row, col]);
+        }
+      }
+    }
+
+    if (!hasSpecialFruit) {
+      console.log('✅ 初始网格验证通过：没有特殊水果');
+    }
+
     setGameState((prev) => ({
       ...prev,
       grid: initialGrid,
@@ -559,13 +596,18 @@ export default function FruitMatchPage() {
     let removedCount = 0;
     const specialFruitsToActivate: Array<{ row: number; col: number; type: SpecialFruitType }> = [];
 
+    console.log('🔥 removeMatches 被调用，匹配数量:', matches.size);
+    console.log('🔥 匹配的单元格:', Array.from(matches));
+
     // 先检查匹配中是否有普通水果（用于彩虹激活）
     let normalFruitInMatch: NormalFruitType | null = null;
     matches.forEach((key) => {
       const [row, col] = key.split('-').map(Number);
       const fruit = grid[row][col];
+      console.log(`  检查单元格 [${row},${col}]: ${fruit}`);
       if (fruit && FRUITS.includes(fruit as NormalFruitType)) {
         normalFruitInMatch = fruit as NormalFruitType;
+        console.log(`  ✓ 找到普通水果: ${fruit}`);
       }
     });
 
@@ -575,8 +617,11 @@ export default function FruitMatchPage() {
       const fruit = grid[row][col];
       if (fruit && Object.values(SPECIAL_FRUITS).includes(fruit as SpecialFruitType)) {
         specialFruitsToActivate.push({ row, col, type: fruit as SpecialFruitType });
+        console.log(`  ⭐ 发现特殊水果需要激活: ${fruit} 在 [${row}, ${col}]`);
       }
     });
+
+    console.log(`🎯 共有 ${specialFruitsToActivate.length} 个特殊水果需要激活`);
 
     // 激活特殊水果
     specialFruitsToActivate.forEach(({ row, col, type }) => {
@@ -584,7 +629,9 @@ export default function FruitMatchPage() {
       const targetFruit = (type === SPECIAL_FRUITS.RAINBOW && normalFruitInMatch)
         ? normalFruitInMatch
         : undefined;
+      console.log(`🚀 正在激活特殊水果: ${type} 在 [${row}, ${col}]`, targetFruit ? `目标水果: ${targetFruit}` : '');
       const extraCells = activateSpecialFruit(grid, row, col, type, targetFruit);
+      console.log(`💥 激活后额外标记了 ${extraCells.size} 个单元格`);
       extraCells.forEach((cell) => matches.add(cell));
     });
 
@@ -849,7 +896,11 @@ export default function FruitMatchPage() {
   // 处理单元格点击
   const handleCellClick = useCallback(
     (row: number, col: number) => {
-      console.log('点击了水果:', row, col, gameState.grid[row][col]);
+      const clickedFruit = gameState.grid[row][col];
+      console.log('🖱️ 点击了水果:', row, col, clickedFruit);
+      console.log('🔍 特殊水果定义:', SPECIAL_FRUITS);
+      console.log('🔍 是否为特殊水果:', Object.values(SPECIAL_FRUITS).includes(clickedFruit as SpecialFruitType));
+
       if (gameState.gameOver || gameState.gameWon || gameState.isPaused) return;
       if (gameState.grid[row][col] === null) return;
 

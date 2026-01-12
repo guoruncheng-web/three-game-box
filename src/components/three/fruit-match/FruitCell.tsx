@@ -13,7 +13,7 @@ import * as THREE from 'three';
 type NormalFruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
 // 特殊水果类型
-type SpecialFruitType = '💣' | '🌈' | '🍈';
+type SpecialFruitType = '💣' | '🌈' | '🎃';
 
 // 所有水果类型
 type FruitType = NormalFruitType | SpecialFruitType;
@@ -32,23 +32,23 @@ interface FruitCellProps {
 
 // 水果类型到图片路径的映射
 const fruitImages: Record<FruitType, string> = {
-  // 普通水果
+  // 普通水果 - 使用 7 张独特的图片
   '🍇': '/images/generated/fruid/Grape.png',
   '🍋': '/images/generated/fruid/lemon.png',
   '🍉': '/images/generated/fruid/Watermelon.png',
   '🍊': '/images/generated/fruid/Orange.png',
-  '🍎': '/images/generated/fruid/RainbowCandy.png',
+  '🍎': '/images/generated/fruid/Strawberry.png',      // 苹果用草莓（临时）
   '🍒': '/images/generated/fruid/VerticalStriped.png',
-  '🍓': '/images/generated/fruid/Strawberry.png',
-  // 特殊水果 - 暂时使用现有图片作为占位符
-  '💣': '/images/generated/fruid/Banana.png',         // 炸弹 - 使用香蕉图片（黄色爆炸效果）
-  '🌈': '/images/generated/fruid/RainbowCandy.png',   // 彩虹 - 使用彩虹糖果
-  '🍈': '/images/generated/fruid/Watermelon.png',     // 特殊西瓜
+  '🍓': '/images/generated/fruid/Banana.png',          // 草莓用香蕉（临时）
+  // 特殊水果 - 注意：现在只有彩虹有独特图片！
+  '💣': '/images/generated/fruid/Banana.png',          // 炸弹 - 和草莓重复（需要添加特效区分）
+  '🌈': '/images/generated/fruid/RainbowCandy.png',    // 彩虹 - 唯一独特的特殊水果
+  '🎃': '/images/generated/fruid/Watermelon.png',      // 南瓜 - 和西瓜重复（需要添加特效区分）
 };
 
 // 判断是否为特殊水果
 const isSpecialFruit = (fruit: FruitType): boolean => {
-  return fruit === '💣' || fruit === '🌈' || fruit === '🍈';
+  return fruit === '💣' || fruit === '🌈' || fruit === '🎃';
 };
 
 export function FruitCell({
@@ -293,13 +293,13 @@ export function FruitCell({
         <mesh geometry={bgGeometry} position={[0, 0, -0.01]}>
           <meshBasicMaterial
             color={
-              fruit === '💣' ? '#ff6b00' :   // 炸弹 - 橙色
-              fruit === '🌈' ? '#ff00ff' :   // 彩虹 - 品红色
-              '#00ff00'                       // 西瓜 - 绿色
+              fruit === '💣' ? '#ff6b00' :   // 炸弹 - 橙色发光
+              fruit === '🌈' ? '#ff00ff' :   // 彩虹 - 品红色发光
+              '#ffa500'                       // 南瓜 - 橙黄色发光
             }
             side={THREE.DoubleSide}
             transparent
-            opacity={0.4}
+            opacity={0.5}
           />
         </mesh>
       )}

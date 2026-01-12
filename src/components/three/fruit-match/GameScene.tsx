@@ -12,7 +12,7 @@ import { FruitGrid } from './FruitGrid';
 type NormalFruitType = '🍇' | '🍋' | '🍉' | '🍊' | '🍎' | '🍒' | '🍓';
 
 // 特殊水果类型
-type SpecialFruitType = '💣' | '🌈' | '🍈';
+type SpecialFruitType = '💣' | '🌈' | '🎃';
 
 // 所有水果类型
 type FruitType = NormalFruitType | SpecialFruitType;
