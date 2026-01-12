@@ -345,3 +345,4 @@ export const metadata: Metadata = {
 
 # 部署项目的时候不要去改动其他域名的nginx配置文件
 
+## 编写任何文档或者指令文件要追加中文说明
