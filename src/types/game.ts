@@ -3,14 +3,15 @@
  */
 
 /** 游戏分类 */
-export type GameCategory = 
+export type GameCategory =
   | 'action'    // 动作
   | 'puzzle'    // 益智
   | 'arcade'    // 街机
   | 'casual'    // 休闲
   | 'racing'    // 竞速
   | 'shooter'   // 射击
-  | 'sports';   // 体育
+  | 'sports'    // 体育
+  | 'card';     // 棋牌
 
 /** 游戏难度 */
 export type GameDifficulty = 'easy' | 'medium' | 'hard';

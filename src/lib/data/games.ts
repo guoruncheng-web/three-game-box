@@ -5,7 +5,7 @@
 import type { Game, GameCategory } from '@/types/game';
 
 // 游戏分类
-const categories: GameCategory[] = ['action', 'puzzle', 'arcade', 'casual', 'racing', 'shooter'];
+const categories: GameCategory[] = ['action', 'puzzle', 'arcade', 'casual', 'racing', 'shooter', 'card'];
 
 // 游戏图标
 const gameIcons = ['🎮', '🎯', '🎪', '🎨', '🚀', '🏃', '🧩', '🎲', '🏎️', '⚽', '🎳', '🎰'];
@@ -81,6 +81,16 @@ const presetGames: Partial<Game>[] = [
     category: 'action',
     difficulty: 'easy',
   },
+  {
+    id: 'zhajinhua',
+    name: '炸金花',
+    description: '经典三张牌扑克游戏，支持多人在线对战，考验你的策略和心理博弈能力！',
+    icon: '🃏',
+    category: 'casual',
+    difficulty: 'medium',
+    isHot: true,
+    isNew: true,
+  },
 ];
 
 /**
@@ -139,7 +149,7 @@ function randomChineseParagraph(min: number = 1, max: number = 2): string {
 /**
  * 生成游戏数据
  */
-export function generateGames(count: number = 8): Game[] {
+export function generateGames(count: number = 9): Game[] {
   const now = new Date().toISOString();
   
   return presetGames.slice(0, count).map((preset, index) => ({

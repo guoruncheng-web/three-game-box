@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ==================== 枚举类型 ====================
@@ -56,6 +57,11 @@ model User {
   leaderboards        Leaderboard[]
   userAchievements    UserAchievement[]
   userDailyChallenges UserDailyChallenge[]
+
+  // 炸金花关系
+  ownedZjhRooms    ZjhRoom[]       @relation("ZjhRoomOwner")
+  zjhRoomPlayers   ZjhRoomPlayer[] @relation("ZjhRoomPlayers")
+  zjhStats         ZjhPlayerStats? @relation("ZjhStats")
 
   @@index([guestToken])
   @@index([email])
@@ -179,4 +185,219 @@ model UserDailyChallenge {
 
   @@unique([userId, challengeId])
   @@index([userId, isCompleted])
+}
+
+// ==================== 炸金花枚举类型 ====================
+
+// 房间状态
+enum ZjhRoomStatus {
+  WAITING // 等待中
+  PLAYING // 游戏中
+  CLOSED  // 已关闭
+}
+
+// 游戏状态
+enum ZjhGameStatus {
+  DEALING    // 发牌中
+  BETTING    // 下注中
+  SHOWDOWN   // 亮牌比牌
+  SETTLEMENT // 结算中
+}
+
+// 玩家游戏内状态
+enum ZjhPlayerStatus {
+  WAITING // 等待中
+  READY   // 已准备
+  PLAYING // 游戏中（未看牌）
+  LOOKED  // 已看牌
+  FOLDED  // 已弃牌
+  ALL_IN  // 已全押
+  OUT     // 已出局
+}
+
+// 操作类型
+enum ZjhActionType {
+  LOOK    // 看牌
+  CALL    // 跟注
+  RAISE   // 加注
+  ALL_IN  // 全押
+  COMPARE // 比牌
+  FOLD    // 弃牌
+}
+
+// 牌型
+enum ZjhHandType {
+  TRIPLE         // 豹子
+  STRAIGHT_FLUSH // 顺金
+  FLUSH          // 金花
+  STRAIGHT       // 顺子
+  PAIR           // 对子
+  HIGH_CARD      // 散牌
+}
+
+// ==================== 炸金花模型定义 ====================
+
+// 炸金花房间表
+model ZjhRoom {
+  id             String        @id @default(uuid())
+  roomCode       String        @unique // 6 位房间号
+  ownerId        String // 房主用户 ID
+  status         ZjhRoomStatus @default(WAITING)
+
+  // 房间配置
+  minPlayers     Int           @default(2) // 最少玩家数
+  maxPlayers     Int           @default(6) // 最多玩家数
+  baseAnte       Int           @default(10) // 底注
+  maxRounds      Int           @default(20) // 封顶轮次
+  turnTimeout    Int           @default(30) // 操作超时（秒）
+  minChips       Int           @default(100) // 最低入场筹码
+
+  currentPlayers Int           @default(0) // 当前玩家数
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  closedAt       DateTime?
+
+  // 关系
+  owner   User            @relation("ZjhRoomOwner", fields: [ownerId], references: [id])
+  players ZjhRoomPlayer[]
+  games   ZjhGame[]
+
+  @@index([roomCode])
+  @@index([status])
+  @@index([ownerId])
+}
+
+// 房间玩家表
+model ZjhRoomPlayer {
+  id        String    @id @default(uuid())
+  roomId    String
+  userId    String
+  seatIndex Int // 座位号 (0-5)
+  chips     Int // 当前筹码
+  isReady   Boolean   @default(false)
+  isOnline  Boolean   @default(true)
+
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+
+  // 关系
+  room ZjhRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User    @relation("ZjhRoomPlayers", fields: [userId], references: [id])
+
+  @@unique([roomId, userId])
+  @@unique([roomId, seatIndex])
+  @@index([userId])
+}
+
+// 游戏对局表
+model ZjhGame {
+  id           String        @id @default(uuid())
+  roomId       String
+  gameIndex    Int // 第几局
+  status       ZjhGameStatus @default(DEALING)
+
+  // 牌局数据
+  deck         Json // 洗好的牌组（加密存储）
+  pot          Int           @default(0) // 当前奖池
+  currentAnte  Int // 当前底注
+  currentRound Int           @default(0) // 当前轮次
+  currentTurn  String? // 当前行动玩家 ID
+  dealerIndex  Int           @default(0) // 庄家座位号
+
+  winnerId     String? // 获胜者 ID
+  winnerHand   ZjhHandType? // 获胜牌型
+
+  startedAt    DateTime      @default(now())
+  endedAt      DateTime?
+
+  // 关系
+  room    ZjhRoom         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  players ZjhGamePlayer[]
+  actions ZjhGameAction[]
+
+  @@index([roomId])
+  @@index([status])
+}
+
+// 对局玩家表
+model ZjhGamePlayer {
+  id              String          @id @default(uuid())
+  gameId          String
+  userId          String
+  seatIndex       Int // 座位号
+  status          ZjhPlayerStatus @default(PLAYING)
+
+  // 手牌（JSON: [{suit: "spade", rank: "A"}, ...]）
+  hand            Json // 玩家手牌（服务端加密）
+  handType        ZjhHandType? // 牌型（比牌后填入）
+  handRank        Int? // 牌型排名值（用于快速比较）
+
+  hasLooked       Boolean         @default(false) // 是否已看牌
+  totalBet        Int             @default(0) // 本局总下注
+  chipsBeforeGame Int // 本局开始前筹码
+  chipsChange     Int             @default(0) // 本局筹码变化
+  isWinner        Boolean         @default(false)
+
+  // 关系
+  game ZjhGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, userId])
+  @@unique([gameId, seatIndex])
+  @@index([userId])
+}
+
+// 下注记录表
+model ZjhGameAction {
+  id            String        @id @default(uuid())
+  gameId        String
+  userId        String
+  round         Int // 第几轮
+  actionOrder   Int // 本轮第几次操作
+
+  actionType    ZjhActionType // 操作类型
+  amount        Int           @default(0) // 下注金额
+
+  // 比牌相关
+  targetUserId  String? // 比牌目标（仅 COMPARE 类型）
+  compareResult Boolean? // 比牌结果（true = 发起者赢）
+
+  createdAt     DateTime      @default(now())
+
+  // 关系
+  game ZjhGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+  @@index([gameId, round])
+}
+
+// 玩家炸金花战绩表
+model ZjhPlayerStats {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+
+  totalGames           Int      @default(0) // 总局数
+  totalWins            Int      @default(0) // 胜局数
+  totalChipsWon        Int      @default(0) // 总赢取筹码
+  totalChipsLost       Int      @default(0) // 总损失筹码
+  maxSingleWin         Int      @default(0) // 单局最大赢取
+  currentChips         Int      @default(10000) // 当前筹码余额
+  lastDailyBonusAt     DateTime? // 上次领取每日奖励时间
+
+  // 牌型统计
+  tripleCount          Int      @default(0) // 豹子次数
+  straightFlushCount   Int      @default(0) // 顺金次数
+  flushCount           Int      @default(0) // 金花次数
+  straightCount        Int      @default(0) // 顺子次数
+  pairCount            Int      @default(0) // 对子次数
+  highCardCount        Int      @default(0) // 散牌次数
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // 关系
+  user User @relation("ZjhStats", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([totalWins(sort: Desc)])
 }
