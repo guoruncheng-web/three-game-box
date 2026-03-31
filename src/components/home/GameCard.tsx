@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 // 游戏卡片背景渐变色配置
@@ -24,6 +25,8 @@ export interface GameCardData {
     name: string;
     category: string;
     icon: string;
+    /** 可选：封面图（如 /images/games/fruit-match-cover.png），加载失败时回退为 emoji */
+    coverImage?: string;
     rating: number;
     playCount: string;
     isHot?: boolean;
@@ -37,6 +40,14 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onClick }: GameCardProps) {
+    const [coverFailed, setCoverFailed] = useState(false);
+
+    useEffect(() => {
+        setCoverFailed(false);
+    }, [game.coverImage]);
+
+    const showCover = Boolean(game.coverImage) && !coverFailed;
+
     return (
         <button
             onClick={() => onClick(game.id)}
@@ -66,13 +77,30 @@ export function GameCard({ game, onClick }: GameCardProps) {
                 </div>
             )}
 
-            {/* 图标区域 */}
+            {/* 图标 / 封面区域 */}
             <div className="p-4 pb-0">
                 <div
-                    className="w-full aspect-square rounded-2xl flex items-center justify-center shadow-lg"
-                    style={{ backgroundImage: gradientColors[game.gradientColor] }}
+                    className="w-full aspect-square rounded-2xl overflow-hidden shadow-lg relative flex items-center justify-center"
+                    style={
+                        !showCover
+                            ? { backgroundImage: gradientColors[game.gradientColor] }
+                            : { backgroundColor: '#f3f4f6' }
+                    }
                 >
-                    <span className="text-[60px]">{game.icon}</span>
+                    {showCover && game.coverImage ? (
+                        // 使用原生 img：本地大图经 next/image 优化偶发失败时会整页回退成 emoji
+                        <img
+                            src={game.coverImage}
+                            alt=""
+                            role="presentation"
+                            className="absolute inset-0 h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            onError={() => setCoverFailed(true)}
+                        />
+                    ) : (
+                        <span className="text-[60px]">{game.icon}</span>
+                    )}
                 </div>
             </div>
 

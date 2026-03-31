@@ -43,6 +43,7 @@ const gamesData: GameCardData[] = [
     name: '水果消消乐',
     category: '休闲益智',
     icon: '🍓',
+    coverImage: '/images/games/fruit-match-cover.png',
     rating: 4.8,
     playCount: '1.2万',
     isHot: true,
@@ -201,9 +202,10 @@ export default function HomePage() {
 
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen min-h-[100dvh]"
       style={{
         background: 'linear-gradient(to bottom, #f3e8ff, #ffedd4)',
+        paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
       }}
     >
       <div className="max-w-md mx-auto px-4 pt-4 flex flex-col gap-6">
@@ -260,6 +262,7 @@ export default function HomePage() {
             subtitle="本周最热"
             playerCount="已有 12,000+ 玩家在线！"
             onPlay={handleHotGamePlay}
+            coverImageSrc="/images/games/fruit-match-cover.png"
           />
         </div>
 

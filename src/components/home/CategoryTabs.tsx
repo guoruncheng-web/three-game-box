@@ -23,15 +23,15 @@ export function CategoryTabs({ categories, activeCategory, onCategoryChange }: C
     return (
         <div className="w-full">
             {/* 标题 */}
-            <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-[18px] font-black text-[#1e2939] leading-7">
+            <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-[16px] font-black text-[#1e2939] leading-6">
                     游戏分类
                 </h2>
-                <span className="text-[18px]">⚡</span>
+                <span className="text-[16px]">⚡</span>
             </div>
 
-            {/* 分类标签 */}
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {/* 分类标签 - 横向滚动 */}
+            <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4">
                 {categories.map((category) => {
                     const isActive = category.id === activeCategory;
                     return (
@@ -39,19 +39,19 @@ export function CategoryTabs({ categories, activeCategory, onCategoryChange }: C
                             key={category.id}
                             onClick={() => onCategoryChange(category.id)}
                             className={`
-                                flex items-center gap-2 px-5 py-3 rounded-2xl shrink-0
-                                transition-all duration-200
+                                flex items-center gap-1.5 px-3.5 py-2 rounded-xl shrink-0
+                                transition-all duration-200 active:scale-95
                                 ${isActive
                                     ? 'text-white shadow-lg'
-                                    : 'bg-white text-[#4a5565] shadow-md'
+                                    : 'bg-white text-[#4a5565] shadow-sm'
                                 }
                             `}
                             style={isActive ? {
                                 backgroundImage: 'linear-gradient(to right, #ad46ff, #f6339a)',
                             } : undefined}
                         >
-                            <span className="text-[18px]">{category.icon}</span>
-                            <span className="text-[14px] font-bold whitespace-nowrap">
+                            <span className="text-[15px]">{category.icon}</span>
+                            <span className="text-[13px] font-bold whitespace-nowrap">
                                 {category.name}
                             </span>
                         </button>

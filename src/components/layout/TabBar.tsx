@@ -30,13 +30,14 @@ export function TabBar({ tabs }: TabBarProps) {
 
     return (
         <div
-            className="fixed bottom-0 left-0 right-0 z-50 bg-white safe-area-inset"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-white"
             style={{
                 borderTop: '4px solid #e9d4ff',
                 boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.08)',
+                paddingBottom: 'env(safe-area-inset-bottom, 0px)',
             }}
         >
-            <div className="max-w-md mx-auto flex items-center h-[76px] px-4 pt-4 pb-0">
+            <div className="flex items-center h-[60px] px-3">
                 {tabs.map((tab) => {
                     const isActive = pathname === tab.path || pathname.startsWith(tab.path + '/');
 
@@ -44,63 +45,53 @@ export function TabBar({ tabs }: TabBarProps) {
                         <button
                             key={tab.key}
                             onClick={() => handleTabClick(tab)}
-                            className={`
-                                flex-1 h-full relative
-                                flex flex-col items-center justify-center
-                                transition-all duration-200
-                            `}
+                            className="flex-1 h-full flex flex-col items-center justify-center transition-all duration-200"
                         >
                             {isActive ? (
-                                // 激活状态 - 渐变背景按钮
                                 <div
-                                    className="flex flex-col items-center justify-center gap-[5px] w-[182px] h-[80px] rounded-[16px]"
+                                    className="flex flex-col items-center justify-center gap-[4px] w-full max-w-[180px] h-[52px] rounded-[14px]"
                                     style={{
                                         backgroundImage: 'linear-gradient(156.284deg, rgb(173, 70, 255) 0%, rgb(246, 51, 154) 100%)',
-                                        boxShadow: '0px 20px 25px -5px rgba(0, 0, 0, 0.1), 0px 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                                        boxShadow: '0px 10px 20px -5px rgba(173, 70, 255, 0.3)',
                                     }}
                                 >
-                                    {/* 激活状态图标 */}
-                                    <div className="relative w-[29px] h-[29px]">
+                                    <div className="relative w-[24px] h-[24px]">
                                         {tab.activeIcon ? (
                                             <Image
                                                 src={tab.activeIcon}
                                                 alt={tab.label}
-                                                width={29}
-                                                height={29}
+                                                width={24}
+                                                height={24}
                                                 className="object-contain"
                                             />
                                         ) : (
-                                            <span className="text-white text-xl">
+                                            <span className="text-white text-lg">
                                                 {tab.key === 'home' ? '🏠' : '👤'}
                                             </span>
                                         )}
                                     </div>
-                                    {/* 激活状态文字 */}
-                                    <span className="font-bold text-[14px] text-white leading-[20px] tracking-[-0.15px]">
+                                    <span className="font-bold text-[12px] text-white leading-[16px] tracking-[-0.15px]">
                                         {tab.label}
                                     </span>
                                 </div>
                             ) : (
-                                // 未激活状态
-                                <div className="flex flex-col items-center justify-center gap-1 w-[173px] h-[76px] rounded-[16px]">
-                                    {/* 未激活状态图标 */}
-                                    <div className="relative w-[28px] h-[28px]">
+                                <div className="flex flex-col items-center justify-center gap-1 w-full h-full">
+                                    <div className="relative w-[24px] h-[24px]">
                                         {tab.icon ? (
                                             <Image
                                                 src={tab.icon}
                                                 alt={tab.label}
-                                                width={28}
-                                                height={28}
+                                                width={24}
+                                                height={24}
                                                 className="object-contain"
                                             />
                                         ) : (
-                                            <span className="text-[#99a1af] text-xl">
+                                            <span className="text-[#99a1af] text-lg">
                                                 {tab.key === 'home' ? '🏠' : '👤'}
                                             </span>
                                         )}
                                     </div>
-                                    {/* 未激活状态文字 */}
-                                    <span className="font-bold text-[14px] text-[#99a1af] leading-[20px] tracking-[-0.15px]">
+                                    <span className="font-bold text-[12px] text-[#99a1af] leading-[16px] tracking-[-0.15px]">
                                         {tab.label}
                                     </span>
                                 </div>

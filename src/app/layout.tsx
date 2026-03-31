@@ -3,9 +3,6 @@ import { Nunito, Quicksand } from "next/font/google";
 import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
 import { ToastProvider } from "@/components/toast";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { IOSInstallBanner } from "@/components/IOSInstallBanner";
-import { PWATestButton } from "@/components/PWATestButton";
 import "./globals.css";
 
 // 显示字体
@@ -24,28 +21,22 @@ const quicksand = Quicksand({
 
 export const metadata: Metadata = {
   title: {
-    default: "Three Game Box",
-    template: "%s | Three Game Box",
+    default: "游戏盒子",
+    template: "%s | 游戏盒子",
   },
   description: "🎮 休闲游戏盒子 - 精选小游戏合集",
-  manifest: "/manifest.json",
   icons: {
     icon: "/icons/apple-touch-icon.png",
     apple: "/icons/apple-touch-icon.png",
     shortcut: "/icons/apple-touch-icon.png",
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "GameBox",
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
     type: "website",
-    siteName: "Three Game Box",
-    title: "Three Game Box",
+    siteName: "游戏盒子",
+    title: "游戏盒子",
     description: "🎮 休闲游戏盒子 - 精选小游戏合集",
     images: ["/icons/apple-touch-icon.png"],
   },
@@ -73,10 +64,7 @@ export default function RootLayout({
         <ClientInit>
           <ReduxProvider>
             <ToastProvider>
-              <IOSInstallBanner />
               {children}
-              <PWAInstallPrompt />
-              <PWATestButton />
             </ToastProvider>
           </ReduxProvider>
         </ClientInit>

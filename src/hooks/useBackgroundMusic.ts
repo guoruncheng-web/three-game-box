@@ -13,7 +13,7 @@ interface BackgroundMusicOptions {
   loop?: boolean;
 }
 
-const MUSIC_PATH = '/sounds/fruit-match/fruit-match-bg-music.wav';
+const MUSIC_PATH = '/sounds/fruit-match/fruit-match-bg-music.mp3';
 
 export function useBackgroundMusic({ enabled, volume = 0.5, loop = true }: BackgroundMusicOptions) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -66,9 +66,7 @@ export function useBackgroundMusic({ enabled, volume = 0.5, loop = true }: Backg
       isPlayingRef.current = true;
       console.log('背景音乐开始播放');
     } catch (error) {
-      console.warn('播放背景音乐失败:', error);
-      // 某些浏览器需要用户交互才能播放音频
-      // 这里静默失败，不影响游戏体验
+      console.warn('播放背景音乐失败（可能需用户交互后才会播放）:', error);
     }
   }, [enabled]);
 
@@ -115,6 +113,31 @@ export function useBackgroundMusic({ enabled, volume = 0.5, loop = true }: Backg
       pause();
     }
   }, [enabled, play, pause]);
+
+  // 多数浏览器禁止无用户手势的音频自动播放：在开启背景音乐时监听首次交互并重试播放
+  useEffect(() => {
+    if (!enabled) return;
+
+    const tryPlayAfterUserGesture = () => {
+      if (!audioRef.current || isPlayingRef.current) return;
+      void audioRef.current
+        .play()
+        .then(() => {
+          isPlayingRef.current = true;
+        })
+        .catch(() => {
+          /* 仍未就绪或仍被策略拦截时忽略 */
+        });
+    };
+
+    window.addEventListener('pointerdown', tryPlayAfterUserGesture, { passive: true });
+    window.addEventListener('keydown', tryPlayAfterUserGesture);
+
+    return () => {
+      window.removeEventListener('pointerdown', tryPlayAfterUserGesture);
+      window.removeEventListener('keydown', tryPlayAfterUserGesture);
+    };
+  }, [enabled]);
 
   return {
     play,

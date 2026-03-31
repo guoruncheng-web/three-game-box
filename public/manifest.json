@@ -1,6 +1,6 @@
 {
-  "name": "Three Game Box",
-  "short_name": "GameBox",
+  "name": "游戏盒子",
+  "short_name": "游戏盒子",
   "description": "🎮 休闲游戏盒子 - 精选小游戏合集",
   "start_url": "/",
   "scope": "/",

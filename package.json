@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:prod": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "generate:fruit-cover": "node scripts/generate-fruit-match-cover-bailian.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.2.1",

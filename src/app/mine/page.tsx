@@ -321,9 +321,14 @@ export default function MinePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f3e8ff] via-[#fef3c7] to-[#ffedd4]">
+        <div
+            className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-[#f3e8ff] via-[#fef3c7] to-[#ffedd4]"
+        >
             {/* 主要内容区域 */}
-            <div className="max-w-md mx-auto px-4 pt-4 pb-24">
+            <div
+                className="max-w-md mx-auto px-4 pt-4"
+                style={{ paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}
+            >
                 {/* 用户信息卡片 */}
                 <div
                     className="relative rounded-3xl overflow-hidden shadow-2xl animate-slide-down"

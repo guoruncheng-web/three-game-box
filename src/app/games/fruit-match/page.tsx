@@ -5,12 +5,17 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameSounds } from '@/hooks/useGameSounds';
+import {
+  clearFruitMatchGame,
+  loadFruitMatchGame,
+  saveFruitMatchGame,
+} from '@/utils/fruit-match-storage';
 
 // 动态导入 Canvas 包装组件以避免 SSR 问题
 const FruitMatchCanvas = dynamic(
@@ -117,6 +122,15 @@ export default function FruitMatchPage() {
   const [unlockedAchievements, setUnlockedAchievements] = useState<Achievement[]>([]);
   const [showAchievementModal, setShowAchievementModal] = useState<boolean>(false);
 
+  /** 开场「Let's go」已触发（首次交互后），用于 UI */
+  const [introStarted, setIntroStarted] = useState(false);
+  /** 开场结束后再播 BGM */
+  const [introFinished, setIntroFinished] = useState(false);
+  const introLockRef = useRef(false);
+  const introTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameInitDoneRef = useRef(false);
+  const isFirstSoundMountRef = useRef(true);
+
   // 音效系统
   const {
     playClickSound,
@@ -125,12 +139,76 @@ export default function FruitMatchPage() {
     playScoreSound,
     playWinSound,
     playLoseSound,
+    playLetsGoSound,
   } = useGameSounds({ enabled: gameState.isSoundOn });
 
-  // 背景音乐系统（暂时禁用）
-  const { play: playMusic, pause: pauseMusic, stop: stopMusic } = useBackgroundMusic({
-    enabled: false, // 暂时禁用背景音乐
-    volume: 0.5,
+  // 音效：关闭时跳过开场；从关→开时重走开场。首次挂载不重置开场（避免覆盖本地存档恢复）
+  useEffect(() => {
+    if (isFirstSoundMountRef.current) {
+      isFirstSoundMountRef.current = false;
+      if (!gameState.isSoundOn) {
+        setIntroStarted(true);
+        setIntroFinished(true);
+      }
+      return;
+    }
+    if (!gameState.isSoundOn) {
+      setIntroStarted(true);
+      setIntroFinished(true);
+    } else {
+      setIntroStarted(false);
+      setIntroFinished(false);
+      introLockRef.current = false;
+    }
+  }, [gameState.isSoundOn]);
+
+  // 网格就绪且开启音效：首次点击/按键后播放 Let's go，约 1.5s 后再播背景音乐（满足浏览器音频策略）
+  useEffect(() => {
+    if (!gameState.isSoundOn || gameState.grid.length === 0 || introLockRef.current) {
+      return undefined;
+    }
+
+    const startIntro = () => {
+      if (introLockRef.current) return;
+      introLockRef.current = true;
+      setIntroStarted(true);
+      playLetsGoSound();
+      window.removeEventListener('pointerdown', onInteract);
+      window.removeEventListener('keydown', onInteract);
+      introTimerRef.current = setTimeout(() => {
+        setIntroFinished(true);
+        introTimerRef.current = null;
+      }, 1500);
+    };
+
+    const onInteract = () => {
+      startIntro();
+    };
+
+    window.addEventListener('pointerdown', onInteract, { passive: true });
+    window.addEventListener('keydown', onInteract);
+
+    return () => {
+      window.removeEventListener('pointerdown', onInteract);
+      window.removeEventListener('keydown', onInteract);
+      if (introTimerRef.current) {
+        clearTimeout(introTimerRef.current);
+        introTimerRef.current = null;
+      }
+    };
+  }, [gameState.isSoundOn, gameState.grid.length, playLetsGoSound]);
+
+  // 背景音乐：开场结束后与音效开关、暂停、结算状态联动
+  const bgMusicEnabled =
+    gameState.isSoundOn &&
+    introFinished &&
+    !gameState.isPaused &&
+    !gameState.gameOver &&
+    !gameState.gameWon;
+
+  useBackgroundMusic({
+    enabled: bgMusicEnabled,
+    volume: 0.35,
     loop: true,
   });
 
@@ -337,11 +415,37 @@ export default function FruitMatchPage() {
     initUser();
   }, []);
 
-  // 初始化游戏
+  // 初始化游戏：优先恢复本地存档（PWA/返回页面时保留进度）
   useEffect(() => {
+    if (gameInitDoneRef.current) return;
+    gameInitDoneRef.current = true;
+
+    const saved = loadFruitMatchGame(GRID_SIZE);
+    if (saved) {
+      setGameState((prev) => ({
+        ...prev,
+        grid: saved.gameState.grid as (FruitType | null)[][],
+        score: saved.gameState.score,
+        moves: saved.gameState.moves,
+        selectedCell: saved.gameState.selectedCell,
+        isPaused: saved.gameState.isPaused,
+        isSoundOn: saved.gameState.isSoundOn,
+        gameOver: saved.gameState.gameOver,
+        gameWon: saved.gameState.gameWon,
+      }));
+      setIntroStarted(saved.introStarted);
+      setIntroFinished(saved.introFinished);
+      introLockRef.current = saved.introLocked;
+      setGameStartTime(saved.gameStartTime || Date.now());
+      setMaxCombo(0);
+      setTotalMatches(0);
+      setCurrentCombo(0);
+      console.log('🎮 已恢复本地游戏进度');
+      return;
+    }
+
     const initialGrid = initializeGrid();
 
-    // 确保初始网格没有特殊水果（调试用）
     let hasSpecialFruit = false;
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
@@ -362,15 +466,37 @@ export default function FruitMatchPage() {
       grid: initialGrid,
     }));
 
-    // 记录游戏开始时间
     setGameStartTime(Date.now());
     setMaxCombo(0);
     setTotalMatches(0);
     setCurrentCombo(0);
 
     console.log('🎮 游戏初始化完成');
-    console.log('特殊水果定义:', SPECIAL_FRUITS);
   }, [initializeGrid]);
+
+  // 自动保存进度（防抖）
+  useEffect(() => {
+    if (gameState.grid.length === 0) return;
+    const id = window.setTimeout(() => {
+      saveFruitMatchGame({
+        gameState: {
+          grid: gameState.grid as (string | null)[][],
+          score: gameState.score,
+          moves: gameState.moves,
+          selectedCell: gameState.selectedCell,
+          isPaused: gameState.isPaused,
+          isSoundOn: gameState.isSoundOn,
+          gameOver: gameState.gameOver,
+          gameWon: gameState.gameWon,
+        },
+        introStarted,
+        introFinished,
+        introLocked: introLockRef.current,
+        gameStartTime,
+      });
+    }, 400);
+    return () => clearTimeout(id);
+  }, [gameState, introStarted, introFinished, gameStartTime]);
 
   // 调试：监听网格变化
   useEffect(() => {
@@ -982,9 +1108,9 @@ export default function FruitMatchPage() {
     [gameState, performSwap]
   );
 
-  // 处理返回
+  // 处理返回：不用 router.back()，避免从直达/刷新/PWA 打开时没有历史记录导致无法离开
   const handleBack = () => {
-    router.back();
+    router.push('/');
   };
 
   // 处理暂停/继续
@@ -1001,7 +1127,6 @@ export default function FruitMatchPage() {
       ...prev,
       isSoundOn: !prev.isSoundOn,
     }));
-    // 背景音乐已禁用
   };
 
   return (
@@ -1082,16 +1207,17 @@ export default function FruitMatchPage() {
         {/* 3D 游戏网格 */}
         <div className="px-4 mb-4">
           <div
-            className="rounded-3xl shadow-2xl p-4"
+            className="rounded-3xl shadow-2xl p-2 relative"
             style={{
-              height: '400px',
+              aspectRatio: '1 / 1',
+              width: '100%',
               backgroundImage: 'url(/images/board.jpg)',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1), 0 4px 20px rgba(0,0,0,0.2)',
             }}
           >
-            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <div style={{ position: 'absolute', inset: '8px' }}>
               <FruitMatchCanvas
                 grid={gameState.grid}
                 selectedCell={gameState.selectedCell}
@@ -1101,6 +1227,16 @@ export default function FruitMatchPage() {
                 onCellSwipe={handleCellSwipe}
               />
             </div>
+            {/* 首次需触摸以解锁音频：提示轻触；事件由 window 监听 */}
+            {gameState.isSoundOn &&
+              gameState.grid.length > 0 &&
+              !introStarted && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+                  <p className="text-sm font-bold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] bg-black/30 rounded-full px-4 py-2">
+                    轻触屏幕开始 · Let&apos;s go
+                  </p>
+                </div>
+              )}
           </div>
         </div>
 
@@ -1187,6 +1323,10 @@ export default function FruitMatchPage() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => {
+                      clearFruitMatchGame();
+                      setIntroStarted(false);
+                      setIntroFinished(false);
+                      introLockRef.current = false;
                       setGameState({
                         grid: initializeGrid(),
                         score: 0,
@@ -1197,14 +1337,12 @@ export default function FruitMatchPage() {
                         gameOver: false,
                         gameWon: false,
                       });
-                      // 重置游戏统计
                       setGameStartTime(Date.now());
                       setMaxCombo(0);
                       setTotalMatches(0);
                       setCurrentCombo(0);
                       setUnlockedAchievements([]);
                       setShowAchievementModal(false);
-                      // 背景音乐已禁用
                     }}
                     className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-2xl font-black shadow-lg hover:scale-105 active:scale-95 transition-all"
                   >

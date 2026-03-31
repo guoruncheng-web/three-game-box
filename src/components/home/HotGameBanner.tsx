@@ -12,17 +12,44 @@ interface HotGameBannerProps {
     subtitle: string;
     playerCount: string;
     onPlay: () => void;
+    /** 可选：底部铺一张封面图（如水果消消乐），其上叠渐变保证文字可读 */
+    coverImageSrc?: string;
 }
 
-export function HotGameBanner({ title, subtitle, playerCount, onPlay }: HotGameBannerProps) {
+export function HotGameBanner({
+    title,
+    subtitle,
+    playerCount,
+    onPlay,
+    coverImageSrc,
+}: HotGameBannerProps) {
     return (
         <div
             className="relative w-full h-[208px] rounded-3xl overflow-hidden"
             style={{
-                backgroundImage: 'linear-gradient(to right, #ad46ff, #ff6900)',
                 boxShadow: '0px 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                backgroundImage: coverImageSrc
+                    ? undefined
+                    : 'linear-gradient(to right, #ad46ff, #ff6900)',
             }}
         >
+            {coverImageSrc ? (
+                <>
+                    <img
+                        src={coverImageSrc}
+                        alt=""
+                        className="absolute inset-0 z-0 h-full w-full object-cover"
+                        aria-hidden
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background:
+                                'linear-gradient(105deg, rgba(124, 58, 237, 0.88) 0%, rgba(234, 88, 12, 0.75) 55%, rgba(249, 115, 22, 0.55) 100%)',
+                        }}
+                    />
+                </>
+            ) : null}
             {/* 装饰圆形 */}
             <div
                 className="absolute -top-16 right-[calc(100%-298px-128px)] w-32 h-32 rounded-full"
@@ -34,7 +61,7 @@ export function HotGameBanner({ title, subtitle, playerCount, onPlay }: HotGameB
             />
 
             {/* 内容区域 */}
-            <div className="absolute top-6 left-6 w-[314px] h-[160px]">
+            <div className="absolute top-6 left-6 z-10 w-[314px] h-[160px]">
                 {/* 标签 */}
                 <div className="flex items-center gap-2 mb-2">
                     <Image

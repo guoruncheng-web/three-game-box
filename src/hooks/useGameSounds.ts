@@ -27,12 +27,25 @@ export function useGameSounds({ enabled }: GameSoundsOptions) {
   const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
   const [audioFilesLoaded, setAudioFilesLoaded] = useState(false);
 
+  /** 懒创建，保证在用户首次点击时也能立即用到（不依赖 useEffect 已执行） */
+  function ensureAudioContext(): AudioContext {
+    if (typeof window === 'undefined') {
+      throw new Error('AudioContext unavailable');
+    }
+    if (!audioContextRef.current) {
+      const AC =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioContextRef.current = new AC();
+    }
+    return audioContextRef.current;
+  }
+
   // 初始化 AudioContext 和预加载音频文件
   useEffect(() => {
     if (typeof window === 'undefined' || !enabled) return;
 
-    // 初始化 AudioContext（用于动态生成音效的回退方案）
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    ensureAudioContext();
 
     // 预加载音频文件
     const loadAudioFiles = async () => {
@@ -320,6 +333,53 @@ export function useGameSounds({ enabled }: GameSoundsOptions) {
     playAudioFile('lose', fallback);
   }, [enabled, playAudioFile]);
 
+  /**
+   * 开场「Let's go」：Web Audio 上升音阶 + 英文语音（须在用户手势内调用）
+   * 同步调用 resume + 立刻调度振荡器，避免 await 导致脱离用户手势（尤其 Safari 会静音）
+   */
+  const playLetsGoSound = useCallback(() => {
+    if (!enabled || typeof window === 'undefined') return;
+
+    try {
+      const ctx = ensureAudioContext();
+      if (ctx.state === 'suspended') {
+        void ctx.resume();
+      }
+
+      const t0 = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((freq, i) => {
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(freq, t0);
+        const t = t0 + i * 0.09;
+        gainNode.gain.setValueAtTime(0, t);
+        gainNode.gain.linearRampToValueAtTime(0.28, t + 0.02);
+        gainNode.gain.linearRampToValueAtTime(0.01, t + 0.18);
+        oscillator.start(t);
+        oscillator.stop(t + 0.2);
+      });
+    } catch (error) {
+      console.warn("播放 Let's go 合成音效失败:", error);
+    }
+
+    try {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance("Let's go!");
+        utter.lang = 'en-US';
+        utter.rate = 1.12;
+        utter.volume = 0.95;
+        window.speechSynthesis.speak(utter);
+      }
+    } catch {
+      /* 部分 WebView 无语音 */
+    }
+  }, [enabled]);
+
   return {
     playClickSound,
     playSwapSound,
@@ -327,5 +387,6 @@ export function useGameSounds({ enabled }: GameSoundsOptions) {
     playScoreSound,
     playWinSound,
     playLoseSound,
+    playLetsGoSound,
   };
 }

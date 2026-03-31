@@ -3,61 +3,55 @@ const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
   skipWaiting: true,
-  disable: false, // 开启 PWA（包括开发环境）
+  // 全局关闭 PWA：不注入 Service Worker、不启用 Workbox 运行时缓存（需要时再改回 false）
+  disable: true,
+  // 顺序很重要：先匹配先生效。勿把「匹配全部 URL 的正则」放在最前，否则会盖住 API、静态资源等规则。
   runtimeCaching: [
     {
-      urlPattern: /^https?.*/, // 匹配所有 HTTP(S) 请求
-      handler: "NetworkFirst", // 网络优先策略
-      options: {
-        cacheName: "offlineCache",
-        expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 24 * 60 * 60, // 24 小时
-        },
-      },
+      urlPattern: /\/api\/.*/,
+      handler: "NetworkOnly",
     },
     {
-      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/, // 图片资源
-      handler: "CacheFirst", // 缓存优先
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+      handler: "CacheFirst",
       options: {
         cacheName: "image-cache",
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 天
+          maxAgeSeconds: 30 * 24 * 60 * 60,
         },
       },
     },
     {
-      urlPattern: /\.(?:js|css)$/, // JS 和 CSS 文件
-      handler: "StaleWhileRevalidate", // 使用缓存，后台更新
+      urlPattern: /\.(?:js|css)$/i,
+      handler: "StaleWhileRevalidate",
       options: {
         cacheName: "static-resources",
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 天
+          maxAgeSeconds: 7 * 24 * 60 * 60,
         },
       },
     },
     {
-      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/, // Google Fonts
+      urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/,
       handler: "CacheFirst",
       options: {
         cacheName: "google-fonts-cache",
         expiration: {
           maxEntries: 20,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 年
+          maxAgeSeconds: 365 * 24 * 60 * 60,
         },
       },
     },
     {
-      urlPattern: /\/api\/.*/, // API 请求
-      handler: "NetworkFirst", // 网络优先
+      urlPattern: /^https?:\/\/.+/i,
+      handler: "NetworkFirst",
       options: {
-        cacheName: "api-cache",
-        networkTimeoutSeconds: 5,
+        cacheName: "pages-and-fallback",
         expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 5 * 60, // 5 分钟
+          maxEntries: 200,
+          maxAgeSeconds: 24 * 60 * 60,
         },
       },
     },
