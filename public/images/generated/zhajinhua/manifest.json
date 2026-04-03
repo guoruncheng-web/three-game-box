@@ -1,0 +1,175 @@
+{
+  "generatedAt": "2026-03-31T06:25:54.987Z",
+  "renamedAt": "2026-03-31T08:00:00.000Z",
+  "basePath": "/images/generated/zhajinhua",
+  "items": [
+    {
+      "id": "1",
+      "assetKey": "lobbyBg",
+      "file": "lobby-bg.png",
+      "title": "游戏大厅背景",
+      "wanxSize": "720*1280"
+    },
+    {
+      "id": "2",
+      "assetKey": "tableBg",
+      "file": "table-bg.png",
+      "title": "游戏桌面背景",
+      "wanxSize": "720*1280"
+    },
+    {
+      "id": "3",
+      "assetKey": "cardBack",
+      "file": "card-back.png",
+      "title": "扑克牌背面",
+      "wanxSize": "720*1280"
+    },
+    {
+      "id": "4",
+      "assetKey": "chip10",
+      "file": "chip-10.png",
+      "title": "筹码 - 小额 (10)",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "5",
+      "assetKey": "chip100",
+      "file": "chip-100.png",
+      "title": "筹码 - 中额 (100)",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "6",
+      "assetKey": "chip1000",
+      "file": "chip-1000.png",
+      "title": "筹码 - 大额 (1000)",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "7",
+      "assetKey": "avatarFrame",
+      "file": "avatar-frame.png",
+      "title": "玩家头像框",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "8",
+      "assetKey": "avatarFrameVip",
+      "file": "avatar-frame-vip.png",
+      "title": "VIP 玩家头像框",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "9",
+      "assetKey": "btnCall",
+      "file": "btn-call.png",
+      "title": "操作按钮 - 跟注 (CALL)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "10",
+      "assetKey": "btnRaise",
+      "file": "btn-raise.png",
+      "title": "操作按钮 - 加注 (RAISE)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "11",
+      "assetKey": "btnFold",
+      "file": "btn-fold.png",
+      "title": "操作按钮 - 弃牌 (FOLD)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "12",
+      "assetKey": "btnLook",
+      "file": "btn-look.png",
+      "title": "操作按钮 - 看牌 (LOOK)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "13",
+      "assetKey": "btnCompare",
+      "file": "btn-compare.png",
+      "title": "操作按钮 - 比牌 (COMPARE)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "14",
+      "assetKey": "btnAllIn",
+      "file": "btn-all-in.png",
+      "title": "操作按钮 - 全押 (ALL IN)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "15",
+      "assetKey": "handBannerTriple",
+      "file": "hand-banner-triple.png",
+      "title": "牌型展示 - 豹子 (Triple/Three of a Kind)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "16",
+      "assetKey": "handBannerStraightFlush",
+      "file": "hand-banner-straight-flush.png",
+      "title": "牌型展示 - 顺金 (Straight Flush)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "17",
+      "assetKey": "handBannerFlush",
+      "file": "hand-banner-flush.png",
+      "title": "牌型展示 - 金花 (Flush)",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "18",
+      "assetKey": "victoryPopupBg",
+      "file": "victory-popup-bg.png",
+      "title": "胜利特效弹窗背景",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "19",
+      "assetKey": "potDisplayFrame",
+      "file": "pot-display-frame.png",
+      "title": "筹码堆/奖池显示框",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "20",
+      "assetKey": "countdownHintFrame",
+      "file": "countdown-hint-frame.png",
+      "title": "倒计时/操作提示框",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "21",
+      "assetKey": "gameLogoTitle",
+      "file": "game-logo-title.png",
+      "title": "游戏 Logo / 标题",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "22",
+      "assetKey": "dealCardMotion",
+      "file": "deal-card-motion.png",
+      "title": "发牌动效帧 - 牌飞出效果",
+      "wanxSize": "1280*720"
+    },
+    {
+      "id": "23",
+      "assetKey": "seatEmptyWaiting",
+      "file": "seat-empty-waiting.png",
+      "title": "座位标记 - 空座/等待中",
+      "wanxSize": "1024*1024"
+    },
+    {
+      "id": "24",
+      "assetKey": "dealerIntro",
+      "file": "dealer-intro.png",
+      "title": "荷官欢迎弹层立绘",
+      "wanxSize": "1024*1024"
+    }
+  ]
+}

@@ -50,6 +50,18 @@ const gamesData: GameCardData[] = [
     gradientColor: 'pink',
   },
   {
+    id: 'zhajinhua',
+    name: '炸金花',
+    category: '经典怀旧',
+    icon: '🃏',
+    coverImage: '/images/games/zhajinhua-cover.png',
+    rating: 4.7,
+    playCount: '6.2千',
+    isHot: true,
+    isNew: true,
+    gradientColor: 'violet',
+  },
+  {
     id: '2',
     name: '跑酷大冒险',
     category: '动作跑酷',
@@ -193,6 +205,10 @@ export default function HomePage() {
   });
 
   const handleGameClick = (gameId: string) => {
+    if (gameId === 'zhajinhua') {
+      router.push('/games/zhajinhua/loading');
+      return;
+    }
     router.push(`/games/${gameId}`);
   };
 

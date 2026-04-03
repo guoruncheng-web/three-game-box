@@ -4,14 +4,14 @@
  */
 
 import { NextResponse } from 'next/server';
-import { generateGames } from '@/lib/data/games';
+import { generateGames, PRESET_GAME_COUNT } from '@/lib/data/games';
 import type { Game } from '@/types/game';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
-    const limit = parseInt(searchParams.get('limit') || '8', 10);
+    const limit = parseInt(searchParams.get('limit') || String(PRESET_GAME_COUNT), 10);
 
     let games: Game[] = generateGames(limit);
 

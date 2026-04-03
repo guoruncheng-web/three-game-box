@@ -104,6 +104,7 @@ export interface RoomInfo {
   roomCode: string;
   ownerId: string;
   status: RoomStatus;
+  minPlayers: number;
   maxPlayers: number;
   baseAnte: number;
   maxRounds: number;

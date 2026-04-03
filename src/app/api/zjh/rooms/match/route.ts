@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateRoomCode, assignSeat } from '@/lib/zjh/room-manager';
 import { DEFAULT_ROOM_CONFIG, INITIAL_CHIPS } from '@/lib/zjh/constants';
+import { ensureUserById } from '@/lib/user/ensure-user';
 import type { MatchRoomRequest } from '@/types/zjh';
 
 export async function POST(request: Request) {
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    await ensureUserById(userId);
 
     // 获取或创建玩家战绩
     let stats = await prisma.zjhPlayerStats.findUnique({ where: { userId } });

@@ -45,6 +45,7 @@ export async function GET(
         roomCode: room.roomCode,
         ownerId: room.ownerId,
         status: room.status,
+        minPlayers: room.minPlayers,
         maxPlayers: room.maxPlayers,
         baseAnte: room.baseAnte,
         maxRounds: room.maxRounds,

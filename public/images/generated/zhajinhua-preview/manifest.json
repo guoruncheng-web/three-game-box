@@ -1,0 +1,154 @@
+{
+  "generatedAt": "2026-03-31T07:21:57.093Z",
+  "preview": true,
+  "basePath": "/images/generated/zhajinhua-preview",
+  "items": [
+    {
+      "id": "1",
+      "title": "游戏大厅背景",
+      "file": "lobby-bg.png",
+      "wanxSize": "720*1280",
+      "assetKey": "lobbyBg"
+    },
+    {
+      "id": "2",
+      "title": "游戏桌面背景",
+      "file": "table-bg.png",
+      "wanxSize": "720*1280",
+      "assetKey": "tableBg"
+    },
+    {
+      "id": "3",
+      "title": "扑克牌背面",
+      "error": "任务超时"
+    },
+    {
+      "id": "4",
+      "title": "筹码 - 小额 (10)",
+      "error": "任务超时"
+    },
+    {
+      "id": "5",
+      "title": "筹码 - 中额 (100)",
+      "file": "chip-100.png",
+      "wanxSize": "1024*1024",
+      "assetKey": "chip100"
+    },
+    {
+      "id": "6",
+      "title": "筹码 - 大额 (1000)",
+      "file": "chip-1000.png",
+      "wanxSize": "1024*1024",
+      "assetKey": "chip1000"
+    },
+    {
+      "id": "7",
+      "title": "玩家头像框",
+      "file": "avatar-frame.png",
+      "wanxSize": "1024*1024",
+      "assetKey": "avatarFrame"
+    },
+    {
+      "id": "8",
+      "title": "VIP 玩家头像框",
+      "file": "avatar-frame-vip.png",
+      "wanxSize": "1024*1024",
+      "assetKey": "avatarFrameVip"
+    },
+    {
+      "id": "9",
+      "title": "操作按钮 - 跟注 (CALL)",
+      "file": "btn-call.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnCall"
+    },
+    {
+      "id": "10",
+      "title": "操作按钮 - 加注 (RAISE)",
+      "file": "btn-raise.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnRaise"
+    },
+    {
+      "id": "11",
+      "title": "操作按钮 - 弃牌 (FOLD)",
+      "file": "btn-fold.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnFold"
+    },
+    {
+      "id": "12",
+      "title": "操作按钮 - 看牌 (LOOK)",
+      "file": "btn-look.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnLook"
+    },
+    {
+      "id": "13",
+      "title": "操作按钮 - 比牌 (COMPARE)",
+      "file": "btn-compare.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnCompare"
+    },
+    {
+      "id": "14",
+      "title": "操作按钮 - 全押 (ALL IN)",
+      "file": "btn-all-in.png",
+      "wanxSize": "1280*720",
+      "assetKey": "btnAllIn"
+    },
+    {
+      "id": "15",
+      "title": "牌型展示 - 豹子 (Triple/Three of a Kind)",
+      "file": "hand-banner-triple.png",
+      "wanxSize": "1280*720",
+      "assetKey": "handBannerTriple"
+    },
+    {
+      "id": "16",
+      "title": "牌型展示 - 顺金 (Straight Flush)",
+      "file": "hand-banner-straight-flush.png",
+      "wanxSize": "1280*720",
+      "assetKey": "handBannerStraightFlush"
+    },
+    {
+      "id": "17",
+      "title": "牌型展示 - 金花 (Flush)",
+      "file": "hand-banner-flush.png",
+      "wanxSize": "1280*720",
+      "assetKey": "handBannerFlush"
+    },
+    {
+      "id": "18",
+      "title": "胜利特效弹窗背景",
+      "file": "victory-popup-bg.png",
+      "wanxSize": "1280*720",
+      "assetKey": "victoryPopupBg"
+    },
+    {
+      "id": "19",
+      "title": "筹码堆/奖池显示框",
+      "error": "Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment"
+    },
+    {
+      "id": "20",
+      "title": "倒计时/操作提示框",
+      "error": "Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment"
+    },
+    {
+      "id": "21",
+      "title": "游戏 Logo / 标题",
+      "error": "Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment"
+    },
+    {
+      "id": "22",
+      "title": "发牌动效帧 - 牌飞出效果",
+      "error": "Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment"
+    },
+    {
+      "id": "23",
+      "title": "座位标记 - 空座/等待中",
+      "error": "Access denied, please make sure your account is in good standing. For details, see: https://help.aliyun.com/zh/model-studio/error-code#overdue-payment"
+    }
+  ]
+}

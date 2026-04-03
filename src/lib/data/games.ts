@@ -93,6 +93,9 @@ const presetGames: Partial<Game>[] = [
   },
 ];
 
+/** 预设条目数量，供列表/API 默认条数与 slice 对齐 */
+export const PRESET_GAME_COUNT = presetGames.length;
+
 /**
  * 生成随机数字
  */
@@ -149,7 +152,7 @@ function randomChineseParagraph(min: number = 1, max: number = 2): string {
 /**
  * 生成游戏数据
  */
-export function generateGames(count: number = 9): Game[] {
+export function generateGames(count: number = PRESET_GAME_COUNT): Game[] {
   const now = new Date().toISOString();
   
   return presetGames.slice(0, count).map((preset, index) => ({
@@ -173,7 +176,7 @@ export function generateGames(count: number = 9): Game[] {
  * 根据 ID 获取游戏
  */
 export function getGameById(id: string): Game | null {
-  const games = generateGames(8);
+  const games = generateGames(PRESET_GAME_COUNT);
   return games.find(g => g.id === id) || null;
 }
 
@@ -181,6 +184,6 @@ export function getGameById(id: string): Game | null {
  * 根据分类获取游戏
  */
 export function getGamesByCategory(category: GameCategory): Game[] {
-  const games = generateGames(8);
+  const games = generateGames(PRESET_GAME_COUNT);
   return games.filter(g => g.category === category);
 }
