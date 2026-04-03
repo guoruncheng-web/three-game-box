@@ -3,12 +3,14 @@
  * 优先使用 public/images/generated/zhajinhua/manifest.json，失败时回退到内置列表
  */
 
+import { zjhAssets } from '@/lib/zhajinhua/assets';
+
 const GENERATED_BASE = '/images/generated/zhajinhua';
 
 /** 与 manifest 不同步时的回退（与 manifest.json items.file 一致） */
 const FALLBACK_GENERATED_FILES = [
   'lobby-bg.png',
-  'table-bg.png',
+  'table.png',
   'card-back.png',
   'chip-10.png',
   'chip-100.png',
@@ -73,4 +75,18 @@ export function preloadImage(url: string): Promise<void> {
     img.onerror = () => resolve();
     img.src = url;
   });
+}
+
+/**
+ * 预加载荷官 glb：等待整文件下载完成（`useGLTF.preload` 无 Promise，故用 fetch）
+ * 进入游戏后 `ZhajinhuaDealerModel` 内仍会 `useGLTF.preload`，解析可走 HTTP 缓存
+ */
+export async function preloadDealerModelGlb(url: string = zjhAssets.dealerModelGlb): Promise<void> {
+  try {
+    const res = await fetch(url, { cache: 'force-cache' });
+    if (!res.ok) return;
+    await res.arrayBuffer();
+  } catch {
+    /* 忽略 */
+  }
 }

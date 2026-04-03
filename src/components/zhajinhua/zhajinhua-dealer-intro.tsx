@@ -1,13 +1,25 @@
 /**
- * 对局开始后荷官欢迎弹层：自下跳出 + 口播奖池信息（透明底立绘 + 文案）
+ * 对局开始后荷官欢迎弹层：自下跳出 + 口播奖池信息（荷官 GLB 模型 + 文案）
  */
 
 'use client';
 
-import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { Button } from 'antd-mobile';
 
 import { zjhAssets } from '@/lib/zhajinhua/assets';
+
+const ZhajinhuaDealerModel = dynamic(
+  () => import('./zhajinhua-dealer-model').then((m) => m.ZhajinhuaDealerModel),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[min(58vh,460px)] w-full max-w-[340px] items-center justify-center rounded-lg bg-black/15 text-[13px] text-amber-100/80">
+        荷官模型加载中…
+      </div>
+    ),
+  }
+);
 
 /** 已看过荷官欢迎则不再自动弹出 */
 export const ZJH_DEALER_INTRO_STORAGE_KEY = 'zhajinhua_dealer_intro_seen_v1';
@@ -60,18 +72,8 @@ export function ZhajinhuaDealerIntro({
           </p>
         </div>
 
-        <div className="animate-zjh-dealer-pop-in relative z-[1] flex w-[min(88vw,300px)] justify-center">
-          <div className="relative aspect-[3/4] w-full max-h-[min(48vh,340px)]">
-            <Image
-              src={zjhAssets.dealerIntro}
-              alt="荷官"
-              fill
-              className="object-contain object-bottom drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
-              sizes="300px"
-              priority
-              unoptimized
-            />
-          </div>
+        <div className="animate-zjh-dealer-pop-in relative z-[1] flex w-[min(92vw,340px)] justify-center">
+          <ZhajinhuaDealerModel modelUrl={zjhAssets.dealerModelGlb} />
         </div>
 
         <div className="relative z-[2] mt-2 w-full max-w-xs">

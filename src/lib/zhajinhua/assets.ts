@@ -8,7 +8,7 @@ const BASE = '/images/generated/zhajinhua';
 
 export const zjhAssets = {
   lobbyBg: `${BASE}/lobby-bg.png`,
-  tableBg: `${BASE}/table-bg.png`,
+  tableBg: `${BASE}/table.png`,
   cardBack: `${BASE}/card-back.png`,
   chip10: `${BASE}/chip-10.png`,
   chip100: `${BASE}/chip-100.png`,
@@ -25,8 +25,10 @@ export const zjhAssets = {
   handBannerStraightFlush: `${BASE}/hand-banner-straight-flush.png`,
   handBannerFlush: `${BASE}/hand-banner-flush.png`,
   victoryPopupBg: `${BASE}/victory-popup-bg.png`,
-  /** 荷官欢迎弹层立绘（透明底 PNG，由项目生成或替换） */
+  /** 荷官欢迎弹层立绘（与 `gril3.png` 同源，备用） */
   dealerIntro: `${BASE}/dealer-intro.png`,
+  /** 荷官欢迎弹层 3D 模型（优先于 dealerIntro 展示） */
+  dealerModelGlb: `${BASE}/model/gril/three.glb`,
   /** 旧版奖池整图（多为黑底）；牌桌中央奖池已改用 CSS 透明磨砂框，此路径保留供换透明装饰图或文档引用 */
   potDisplayFrame: `${BASE}/pot-display-frame.png`,
   countdownHintFrame: `${BASE}/countdown-hint-frame.png`,

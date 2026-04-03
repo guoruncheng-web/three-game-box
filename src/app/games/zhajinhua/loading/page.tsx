@@ -8,7 +8,11 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-import { preloadImage, resolveZhajinhuaPreloadUrls } from '@/lib/zhajinhua/preload-assets';
+import {
+  preloadDealerModelGlb,
+  preloadImage,
+  resolveZhajinhuaPreloadUrls,
+} from '@/lib/zhajinhua/preload-assets';
 
 const MIN_LOADING_MS = 400;
 
@@ -22,7 +26,7 @@ export default function ZhajinhuaLoadingPage() {
 
     const run = async () => {
       const urls = await resolveZhajinhuaPreloadUrls();
-      const total = urls.length;
+      const total = urls.length + 1;
       let loaded = 0;
 
       const tickProgress = () => {
@@ -31,16 +35,26 @@ export default function ZhajinhuaLoadingPage() {
         setProgress(pct);
       };
 
+      const bump = () => {
+        if (cancelled) return;
+        loaded += 1;
+        tickProgress();
+        setStatusText(`加载素材 ${loaded}/${total}`);
+      };
+
       const start = Date.now();
 
-      await Promise.all(
-        urls.map(async (url) => {
+      await Promise.all([
+        ...urls.map(async (url) => {
           await preloadImage(url);
-          loaded += 1;
-          tickProgress();
-          setStatusText(`加载素材 ${loaded}/${total}`);
-        })
-      );
+          bump();
+        }),
+        (async () => {
+          setStatusText('加载荷官模型…');
+          await preloadDealerModelGlb();
+          bump();
+        })(),
+      ]);
 
       const elapsed = Date.now() - start;
       if (elapsed < MIN_LOADING_MS) {

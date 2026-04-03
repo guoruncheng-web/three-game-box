@@ -86,19 +86,8 @@ export function ZhajinhuaTableBoard({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 px-2 pb-2">
-      {/* 牌桌区域：manifest 桌面图 table-bg + 中央奖池框 */}
-      <div className="relative flex-1 min-h-[min(72vh,520px)] w-full max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl ring-1 ring-amber-900/30">
-        <Image
-          src={zjhAssets.tableBg}
-          alt=""
-          fill
-          className="object-cover object-center"
-          sizes="(max-width: 512px) 100vw, 512px"
-          priority
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/25 pointer-events-none" />
-
+      {/* 牌桌区域：背景图为全屏层（见 zhajinhua-app），此处仅布局奖池与座位 */}
+      <div className="relative flex-1 min-h-[min(72vh,520px)] w-full">
         {/* 中央奖池：透明磨砂底 + CSS 金边与内高光动效（不再使用黑底 pot-display-frame 整图铺底） */}
         <div
           ref={tourAnchors?.potRef}

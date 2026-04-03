@@ -13,7 +13,7 @@
     {
       "id": "2",
       "assetKey": "tableBg",
-      "file": "table-bg.png",
+      "file": "table.png",
       "title": "游戏桌面背景",
       "wanxSize": "720*1280"
     },
@@ -168,15 +168,15 @@
       "id": "24",
       "assetKey": "dealerIntro",
       "file": "dealer-intro.png",
-      "title": "荷官欢迎弹层立绘",
-      "wanxSize": "1024*1024"
+      "title": "荷官欢迎弹层立绘（与 gril3 同源，国风3D全身）",
+      "wanxSize": "586*1024"
     },
     {
       "id": "25",
       "assetKey": "girl",
-      "file": "girl.png",
-      "title": "美女荷官",
-      "wanxSize": "720*1280"
+      "file": "gril3.png",
+      "title": "美女荷官源文件",
+      "wanxSize": "586*1024"
     }
   ]
 }

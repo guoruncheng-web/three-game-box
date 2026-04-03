@@ -7,8 +7,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Button, Dialog, Input, Toast } from 'antd-mobile';
+import { Button, Dialog, Input } from 'antd-mobile';
 
+import { useToast } from '@/components/toast';
 import { BET_MULTIPLIER } from '@/lib/zjh/constants';
 import { ZJH_BOT_USER_ID } from '@/lib/zjh/bot-constants';
 import { zjhAssets } from '@/lib/zhajinhua/assets';
@@ -49,6 +50,7 @@ function shortName(userId: string, username: string | null | undefined) {
 
 export function ZhajinhuaApp() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
   const [initing, setIniting] = useState(true);
 
@@ -210,13 +212,13 @@ export function ZhajinhuaApp() {
           if (st.success && st.data) setChips(st.data.currentChips);
         }
       } catch {
-        Toast.show({ content: '初始化失败', position: 'bottom' });
+        showToast('error', '初始化失败');
       } finally {
         setIniting(false);
       }
     };
     void run();
-  }, []);
+  }, [showToast]);
 
   const refreshStats = useCallback(async () => {
     if (!userId) return;
@@ -314,7 +316,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhHumanVsBot(userId);
       if (!res.success || !res.data) {
-        Toast.show({ content: res.error || '创建人机房间失败', position: 'bottom' });
+        showToast('error', res.error || '创建人机房间失败');
         return;
       }
       setRoomId(res.data.roomId);
@@ -337,7 +339,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhMatchRoom(userId);
       if (!res.success || !res.data) {
-        Toast.show({ content: res.error || '匹配失败', position: 'bottom' });
+        showToast('error', res.error || '匹配失败');
         return;
       }
       setRoomId(res.data.roomId);
@@ -358,14 +360,14 @@ export function ZhajinhuaApp() {
     if (!userId) return;
     const code = joinInput.trim();
     if (code.length < 4) {
-      Toast.show({ content: '请输入房间号', position: 'bottom' });
+      showToast('warning', '请输入房间号');
       return;
     }
     setBusy(true);
     try {
       const res = await zjhJoinRoom(userId, code);
       if (!res.success || !res.data) {
-        Toast.show({ content: res.error || '加入失败', position: 'bottom' });
+        showToast('error', res.error || '加入失败');
         return;
       }
       setRoomId(res.data.roomId);
@@ -386,13 +388,13 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhSetReady(userId, roomId, !roomReady);
       if (!res.success) {
-        Toast.show({ content: res.error || '操作失败', position: 'bottom' });
+        showToast('error', res.error || '操作失败');
         return;
       }
       setRoomReady(!!res.data?.isReady);
       await refreshRoom();
       if (res.data?.allReady) {
-        Toast.show({ content: '全员已准备，房主可开始', position: 'bottom' });
+        showToast('success', '全员已准备，房主可开始');
       }
     } finally {
       setBusy(false);
@@ -405,14 +407,14 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhStartGame(userId, roomId);
       if (!res.success || !res.data) {
-        Toast.show({ content: res.error || '无法开始', position: 'bottom' });
+        showToast('error', res.error || '无法开始');
         return;
       }
       setGameId(res.data.gameId);
       settlementFetchedRef.current = false;
       setPhase('playing');
       setResult(null);
-      Toast.show({ content: '游戏开始', position: 'bottom' });
+      showToast('success', '游戏开始');
     } finally {
       setBusy(false);
     }
@@ -444,7 +446,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhLook(userId, gameId);
       if (!res.success) {
-        Toast.show({ content: res.error || '看牌失败', position: 'bottom' });
+        showToast('error', res.error || '看牌失败');
         return;
       }
       await refreshGame();
@@ -459,7 +461,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhAction(userId, gameId, action);
       if (!res.success) {
-        Toast.show({ content: res.error || '操作失败', position: 'bottom' });
+        showToast('error', res.error || '操作失败');
         return;
       }
       if (res.data?.gameOver) {
@@ -489,7 +491,7 @@ export function ZhajinhuaApp() {
     if (!userId || !gameId || !gameState) return;
     const { minBet, maxBet } = getRaiseAmounts();
     if (val < minBet || val > maxBet) {
-      Toast.show({ content: '金额超出范围', position: 'bottom' });
+      showToast('warning', '金额超出范围');
       return;
     }
     setRaiseOptionsOpen(false);
@@ -497,7 +499,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhAction(userId, gameId, 'RAISE', val);
       if (!res.success) {
-        Toast.show({ content: res.error || '加注失败', position: 'bottom' });
+        showToast('error', res.error || '加注失败');
         return;
       }
       await refreshGame();
@@ -513,7 +515,7 @@ export function ZhajinhuaApp() {
     try {
       const res = await zjhCompare(userId, gameId, targetUserId);
       if (!res.success) {
-        Toast.show({ content: res.error || '比牌失败', position: 'bottom' });
+        showToast('error', res.error || '比牌失败');
         return;
       }
       await refreshGame();
@@ -548,10 +550,26 @@ export function ZhajinhuaApp() {
       style={{
         background:
           phase === 'playing'
-            ? 'linear-gradient(180deg, #12081f 0%, #1a0a2e 45%, #0d0618 100%)'
+            ? 'transparent'
             : 'linear-gradient(to bottom, #1a0a2e, #2d1b4e)',
       }}
     >
+      {/* 对局中：牌桌图铺满整个屏幕（含安全区），操作区仍叠在上层 */}
+      {phase === 'playing' && gameState ? (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <Image
+            src={zjhAssets.tableBg}
+            alt=""
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+        </div>
+      ) : null}
+
       <header className="flex items-center gap-3 px-4 pt-[max(12px,env(safe-area-inset-top))] pb-3 shrink-0 z-10">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <button
@@ -571,16 +589,6 @@ export function ZhajinhuaApp() {
           >
             <Image src="/images/back.png" alt="" width={24} height={24} />
           </button>
-          <div className="relative h-9 min-w-0 flex-1 max-w-[140px]">
-            <Image
-              src={zjhAssets.gameLogoTitle}
-              alt="炸金花"
-              fill
-              className="object-contain object-left"
-              sizes="140px"
-              unoptimized
-            />
-          </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
@@ -705,7 +713,7 @@ export function ZhajinhuaApp() {
                 fill="outline"
                 onClick={() => {
                   void navigator.clipboard.writeText(roomInfo.roomCode);
-                  Toast.show({ content: '已复制房间号', position: 'bottom' });
+                  showToast('success', '已复制房间号');
                 }}
               >
                 复制
@@ -788,7 +796,7 @@ export function ZhajinhuaApp() {
             onClose={closeDealerIntro}
           />
 
-          <div className="flex-1 flex flex-col min-h-0 px-1 pb-[calc(200px+env(safe-area-inset-bottom))] overflow-hidden">
+          <div className="relative z-[1] flex-1 flex flex-col min-h-0 px-1 pb-[calc(200px+env(safe-area-inset-bottom))] overflow-hidden">
             <ZhajinhuaTableBoard
               gameState={gameState}
               userId={userId}
