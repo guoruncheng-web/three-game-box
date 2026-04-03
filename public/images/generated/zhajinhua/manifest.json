@@ -170,6 +170,13 @@
       "file": "dealer-intro.png",
       "title": "荷官欢迎弹层立绘",
       "wanxSize": "1024*1024"
+    },
+    {
+      "id": "25",
+      "assetKey": "girl",
+      "file": "girl.png",
+      "title": "美女荷官",
+      "wanxSize": "720*1280"
     }
   ]
 }

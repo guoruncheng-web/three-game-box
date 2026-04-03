@@ -587,15 +587,15 @@ export function ZhajinhuaApp() {
             ref={tourGuideBtnRef}
             type="button"
             onClick={() => setGuideOpen(true)}
-            className="rounded-full border border-amber-400/45 bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-100 touch-manipulation transition-transform active:scale-95"
+            className="rounded-full border border-amber-400/50 bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-100 touch-manipulation transition-transform active:scale-95"
           >
             玩法说明
           </button>
           <div
-            className="rounded-full pl-2 pr-3 py-1.5 text-sm font-bold text-amber-200 flex items-center gap-1.5"
-            style={{ background: 'rgba(0,0,0,0.35)' }}
+            className="rounded-full pl-2 pr-3 py-1.5 text-sm font-bold text-amber-200 flex items-center gap-1.5 border border-amber-400/40 tabular-nums"
+            style={{ background: 'rgba(0,0,0,0.40)' }}
           >
-            <span className="relative w-7 h-7 shrink-0">
+            <span className="relative w-5 h-5 shrink-0">
               <Image src={zjhAssets.chip1000} alt="" fill className="object-contain" unoptimized />
             </span>
             {chips}
@@ -615,58 +615,61 @@ export function ZhajinhuaApp() {
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#1a0a2e]/75 via-[#1a0a2e]/45 to-[#0f0618]/80 pointer-events-none" />
-          <div className="relative z-10 flex-1 flex flex-col px-4 pb-28 gap-6 overflow-y-auto">
-          <div className="relative w-full max-w-[280px] mx-auto aspect-square rounded-3xl overflow-hidden shadow-2xl ring-2 ring-amber-400/30">
+          <div className="relative z-10 flex-1 flex flex-col px-4 pb-28 gap-3 overflow-y-auto">
+          <div className="relative w-full max-w-[360px] mx-auto aspect-square rounded-3xl overflow-hidden shadow-[0_0_48px_rgba(234,179,8,0.35)] ring-2 ring-amber-400/30">
             <Image
               src="/images/games/zhajinhua-cover.png"
               alt="炸金花"
               fill
               className="object-cover"
-              sizes="280px"
+              sizes="360px"
               priority
             />
           </div>
           <p className="text-center text-white/75 text-sm leading-relaxed">
             经典三张牌对战。人机模式无需等待真人；快速匹配可与在线玩家同桌。点击右上角「玩法说明」随时查看规则。
           </p>
-          <Button
-            color="primary"
-            size="large"
-            loading={busy}
+          <button
+            type="button"
+            disabled={busy}
             onClick={() => void handleHumanVsBot()}
-            block
-            style={{
-              background: 'linear-gradient(90deg, #00bc7d, #00c950)',
-              border: 'none',
-            }}
+            className="w-full min-h-[52px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,158,11,0.4)]"
           >
+            {busy ? (
+              <span className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            ) : null}
             人机对战（练习）
-          </Button>
-          <Button
-            color="primary"
-            size="large"
-            loading={busy}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
             onClick={() => void handleMatch()}
-            block
-            fill="outline"
-            style={{
-              borderColor: 'rgba(255,255,255,0.35)',
-              color: '#fff',
-            }}
+            className="w-full min-h-[52px] rounded-2xl font-bold text-amber-100 text-base border border-amber-400/50 active:scale-[0.97] transition-transform touch-manipulation flex items-center justify-center gap-2"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
           >
+            {busy ? (
+              <span className="w-5 h-5 rounded-full border-2 border-amber-200/30 border-t-amber-200 animate-spin" />
+            ) : null}
             快速匹配（真人）
-          </Button>
+          </button>
           <div className="flex gap-2 items-center">
-            <Input
-              placeholder="房间号"
+            <input
+              type="text"
+              placeholder="输入房间号"
               value={joinInput}
-              onChange={setJoinInput}
+              onChange={(e) => setJoinInput(e.target.value)}
               maxLength={8}
-              className="flex-1"
+              className="flex-1 h-[52px] rounded-xl px-4 text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-amber-400/60 border border-white/20"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
             />
-            <Button color="primary" fill="outline" loading={busy} onClick={() => void handleJoin()}>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void handleJoin()}
+              className="h-[52px] px-5 rounded-xl font-bold text-white text-sm bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation shrink-0"
+            >
               加入
-            </Button>
+            </button>
           </div>
           </div>
         </div>
@@ -688,10 +691,7 @@ export function ZhajinhuaApp() {
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/60 pointer-events-none" />
           <div className="relative z-10 flex-1 flex flex-col px-4 pb-28 gap-4 overflow-y-auto">
-          <div
-            className="rounded-2xl p-4 text-white backdrop-blur-[2px]"
-            style={{ background: 'rgba(0,0,0,0.4)' }}
-          >
+          <div className="rounded-2xl p-4 text-white backdrop-blur-sm bg-black/40 border border-amber-400/30">
             <div className="flex justify-between items-center mb-2">
               <span className="text-amber-200 font-bold">
                 房间 {roomInfo.roomCode}
@@ -722,43 +722,58 @@ export function ZhajinhuaApp() {
             {roomInfo.players.map((p) => (
               <div
                 key={p.userId}
-                className="flex items-center justify-between rounded-xl px-3 py-2 bg-white/10 text-white"
+                className="flex items-center justify-between rounded-xl px-3 py-2.5 bg-white/8 border border-white/10 text-white"
               >
-                <span>
-                  {shortName(p.userId, p.username)}
-                  {p.userId === ownerId ? '（房主）' : ''}
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.isReady ? 'bg-emerald-400' : 'bg-white/30'}`} />
+                  <span>{shortName(p.userId, p.username)}</span>
+                  {p.userId === ownerId && (
+                    <span className="text-amber-300 text-xs font-bold ml-1">房主</span>
+                  )}
+                </div>
+                <span className={`text-sm font-bold ${p.isReady ? 'text-emerald-300' : 'text-white/50'}`}>
+                  {p.isReady ? '已准备' : '未准备'}
                 </span>
-                <span className="text-amber-200 text-sm">{p.isReady ? '已准备' : '未准备'}</span>
               </div>
             ))}
           </div>
 
-          <Button
-            color="success"
-            fill={roomReady ? 'outline' : 'solid'}
-            loading={busy}
+          <button
             onClick={() => void handleToggleReady()}
-            block
-            disabled={isOwner}
+            disabled={busy || isOwner}
+            className={`min-h-[52px] w-full rounded-2xl font-bold active:scale-[0.97] transition-transform touch-manipulation
+              ${isOwner
+                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white opacity-50 cursor-not-allowed'
+                : roomReady
+                  ? 'bg-transparent border border-amber-400/50 text-amber-200'
+                  : 'bg-gradient-to-r from-amber-500 to-amber-600 text-white'
+              }`}
           >
             {isOwner ? '房主无需准备' : roomReady ? '取消准备' : '准备'}
-          </Button>
+          </button>
 
           {isOwner && (
-            <Button
-              color="danger"
-              loading={busy}
-              onClick={() => void handleStartGame()}
-              block
-              disabled={roomInfo.currentPlayers < roomInfo.minPlayers}
-            >
-              开始游戏
-            </Button>
+            <div>
+              <button
+                onClick={() => void handleStartGame()}
+                disabled={busy || roomInfo.currentPlayers < roomInfo.minPlayers}
+                className="w-full min-h-[52px] rounded-2xl font-bold text-white bg-gradient-to-r from-red-500 to-rose-600 active:scale-[0.97] transition-transform touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                开始游戏
+              </button>
+              {roomInfo.currentPlayers < roomInfo.minPlayers && (
+                <p className="text-center text-xs text-white/50 mt-1">人数不足</p>
+              )}
+            </div>
           )}
 
-          <Button fill="outline" onClick={() => void handleLeaveToLobby()} block>
+          <button
+            onClick={() => void handleLeaveToLobby()}
+            disabled={busy}
+            className="w-full min-h-[44px] rounded-2xl font-bold text-white/70 border border-white/25 active:scale-[0.97] transition-transform touch-manipulation"
+          >
             离开房间
-          </Button>
+          </button>
           </div>
         </div>
       )}
@@ -842,23 +857,36 @@ export function ZhajinhuaApp() {
               )}
 
             {raiseOptionsOpen && isMyTurn && gameState.status === 'BETTING' && (
-              <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="rounded-2xl border border-amber-400/30 bg-black/60 backdrop-blur-md p-3 animate-slide-up">
+                <p className="text-center text-sm font-bold text-amber-200 mb-2">选择加注金额</p>
                 {(() => {
                   const { minBet, mid, maxBet, ante } = getRaiseAmounts();
                   return (
                     <>
-                      <Button size="small" onClick={() => void handleRaiseAmount(minBet)}>
-                        小 {minBet}
-                      </Button>
-                      <Button size="small" color="primary" onClick={() => void handleRaiseAmount(mid)}>
-                        中 {mid}
-                      </Button>
-                      <Button size="small" color="warning" onClick={() => void handleRaiseAmount(maxBet)}>
-                        大 {maxBet}
-                      </Button>
-                      <p className="col-span-3 text-center text-[11px] text-white/55">
-                        当前底注 {ante}，点击档位加注
-                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleRaiseAmount(minBet)}
+                          className="h-[44px] rounded-xl border border-white/30 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
+                        >
+                          小 {minBet}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleRaiseAmount(mid)}
+                          className="h-[44px] rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
+                        >
+                          中 {mid}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleRaiseAmount(maxBet)}
+                          className="h-[44px] rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
+                        >
+                          大 {maxBet}
+                        </button>
+                      </div>
+                      <p className="text-center text-[11px] text-white/55 mt-2">当前底注 {ante}，点击档位加注</p>
                     </>
                   );
                 })()}
@@ -882,32 +910,40 @@ export function ZhajinhuaApp() {
               onClick={() => setCompareOpen(false)}
             >
               <div
-                className="w-full max-w-md rounded-t-2xl bg-[#2d1b4e] p-4 pb-[max(16px,env(safe-area-inset-bottom))] text-white"
+                className="w-full max-w-md rounded-t-3xl p-4 pb-[max(16px,env(safe-area-inset-bottom))] text-white"
+                style={{ background: 'linear-gradient(180deg, #3d2666 0%, #1a0f2e 100%)' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <p className="text-center font-bold mb-3">选择比牌对象</p>
-                <div className="flex flex-col gap-2">
-                  {gameState.players
-                    .filter(
-                      (p) =>
-                        p.userId !== userId &&
-                        p.status !== 'FOLDED' &&
-                        p.status !== 'OUT'
-                    )
-                    .map((p) => (
-                      <Button
-                        key={p.userId}
-                        color="primary"
-                        fill="outline"
-                        onClick={() => void runCompare(p.userId)}
-                      >
-                        {shortName(p.userId, p.username)}
-                      </Button>
-                    ))}
-                </div>
-                <Button className="mt-3" fill="none" block onClick={() => setCompareOpen(false)}>
+                <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-4" />
+                <p className="text-center font-bold text-amber-200 mb-3">选择比牌对象</p>
+                {(() => {
+                  const candidates = gameState.players.filter(
+                    (p) => p.userId !== userId && p.status !== 'FOLDED' && p.status !== 'OUT'
+                  );
+                  return candidates.length === 0 ? (
+                    <p className="text-center text-white/50 text-sm py-4">暂无可比牌对象</p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {candidates.map((p) => (
+                        <button
+                          key={p.userId}
+                          type="button"
+                          onClick={() => void runCompare(p.userId)}
+                          className="h-[48px] rounded-xl border border-amber-400/50 text-amber-100 font-bold active:scale-[0.97] transition-transform touch-manipulation"
+                        >
+                          {shortName(p.userId, p.username)}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+                <button
+                  type="button"
+                  className="mt-3 w-full h-[44px] rounded-xl border border-white/20 text-white/70 active:scale-[0.97] transition-transform touch-manipulation"
+                  onClick={() => setCompareOpen(false)}
+                >
                   取消
-                </Button>
+                </button>
               </div>
             </div>
           )}
@@ -929,54 +965,66 @@ export function ZhajinhuaApp() {
 
       {phase === 'settled' && result && (
         <div className="flex-1 flex flex-col items-center justify-center px-4 pb-24">
-          <div
-            className="w-full max-w-sm rounded-3xl p-6 text-white text-center space-y-3"
-            style={{
-              backgroundImage: `url(${zjhAssets.victoryPopupBg})`,
-              backgroundSize: 'cover',
-              backgroundColor: 'rgba(0,0,0,0.5)',
-            }}
-          >
-            <h2 className="text-xl font-black text-amber-200">本局结束</h2>
-            <p>
-              胜者：
-              {result.winnerId
-                ? shortName(
-                    result.winnerId,
-                    result.players.find((p) => p.userId === result.winnerId)?.username ?? null
-                  )
-                : '平局'}
-            </p>
-            <p className="text-sm text-white/80">奖池 {result.pot}</p>
-            <div className="text-left text-sm space-y-2 max-h-48 overflow-y-auto">
-              {result.players.map((p) => (
-                <div key={p.userId} className="flex justify-between">
-                  <span>{shortName(p.userId, p.username)}</span>
-                  <span className={p.isWinner ? 'text-green-300' : 'text-red-300'}>
-                    {p.chipsChange != null ? (p.chipsChange >= 0 ? '+' : '') + p.chipsChange : ''}
-                  </span>
+          {(() => {
+            const isWinner = result.winnerId === userId;
+            const isDraw = !result.winnerId;
+            const resultIcon = isDraw ? '🤝' : isWinner ? '🏆' : '💔';
+            return (
+              <div
+                className={`w-full max-w-sm rounded-3xl p-6 text-white text-center space-y-3 ${isWinner ? 'shadow-[0_0_60px_rgba(234,179,8,0.4)]' : ''}`}
+                style={{
+                  backgroundImage: `url(${zjhAssets.victoryPopupBg})`,
+                  backgroundSize: 'cover',
+                  backgroundColor: 'rgba(0,0,0,0.45)',
+                }}
+              >
+                <div className="text-4xl">{resultIcon}</div>
+                <h2 className="text-xl font-black text-amber-200">本局结束</h2>
+                <p>
+                  胜者：
+                  {result.winnerId
+                    ? shortName(
+                        result.winnerId,
+                        result.players.find((p) => p.userId === result.winnerId)?.username ?? null
+                      )
+                    : '平局'}
+                </p>
+                <p className="text-sm text-white/80">奖池 {result.pot}</p>
+                <div className="text-left text-sm space-y-2 max-h-48 overflow-y-auto">
+                  {result.players.map((p) => (
+                    <div key={p.userId} className="flex justify-between">
+                      <span>{shortName(p.userId, p.username)}</span>
+                      <span className={p.isWinner ? 'text-emerald-300' : 'text-red-400'}>
+                        {p.chipsChange != null ? (p.chipsChange >= 0 ? '+' : '') + p.chipsChange : ''}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <Button
-              color="primary"
-              block
-              onClick={() => {
-                settlementFetchedRef.current = false;
-                setPhase('room');
-                setGameId(null);
-                setGameState(null);
-                setResult(null);
-                void refreshRoom();
-                void refreshStats();
-              }}
-            >
-              返回房间
-            </Button>
-            <Button fill="outline" block onClick={() => void handleLeaveToLobby()}>
-              返回大厅
-            </Button>
-          </div>
+                <button
+                  type="button"
+                  className="w-full min-h-[52px] rounded-2xl font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation"
+                  onClick={() => {
+                    settlementFetchedRef.current = false;
+                    setPhase('room');
+                    setGameId(null);
+                    setGameState(null);
+                    setResult(null);
+                    void refreshRoom();
+                    void refreshStats();
+                  }}
+                >
+                  返回房间
+                </button>
+                <button
+                  type="button"
+                  className="w-full min-h-[44px] rounded-2xl font-bold text-white/70 border border-white/25 active:scale-[0.97] transition-transform touch-manipulation"
+                  onClick={() => void handleLeaveToLobby()}
+                >
+                  返回大厅
+                </button>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

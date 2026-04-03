@@ -29,7 +29,7 @@ export function ZjhImageButton({
       disabled={disabled || loading}
       onClick={onClick}
       aria-label={label}
-      className={`relative w-full min-h-[48px] rounded-xl overflow-hidden touch-manipulation
+      className={`relative w-full min-h-[56px] rounded-xl overflow-hidden touch-manipulation
         transition-all duration-150 ease-out
         active:scale-[0.94] hover:brightness-110
         disabled:opacity-45 disabled:active:scale-100 disabled:hover:brightness-100

@@ -7,14 +7,14 @@ import Image from 'next/image';
 import { zjhAssets } from '@/lib/zhajinhua/assets';
 import type { Card } from '@/types/zjh';
 
-const SUIT_CHAR: Record<Card['suit'], string> = {
+export const SUIT_CHAR: Record<Card['suit'], string> = {
   spade: '♠',
   heart: '♥',
   club: '♣',
   diamond: '♦',
 };
 
-function isRedSuit(suit: Card['suit']) {
+export function isRedSuit(suit: Card['suit']) {
   return suit === 'heart' || suit === 'diamond';
 }
 
@@ -43,20 +43,34 @@ export function PokerCard({ faceDown, card, className = '' }: PokerCardProps) {
   }
 
   const red = isRedSuit(card.suit);
+  const colorClass = red ? 'text-red-600' : 'text-zinc-900';
+  const suitChar = SUIT_CHAR[card.suit];
+
   return (
     <div
-      className={`relative rounded-lg shadow-md bg-white flex flex-col items-center justify-center shrink-0 w-[52px] h-[72px] sm:w-[58px] sm:h-[80px] border border-white/40 ${className}`}
+      className={`relative rounded-lg shadow-md shrink-0 w-[52px] h-[72px] sm:w-[58px] sm:h-[80px] border border-zinc-200 overflow-hidden ${className}`}
+      style={{
+        backgroundColor: '#fff',
+        backgroundImage:
+          'repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(0,0,0,0.03) 9px, rgba(0,0,0,0.03) 10px), repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(0,0,0,0.03) 9px, rgba(0,0,0,0.03) 10px)',
+      }}
     >
-      <span
-        className={`text-[15px] font-black leading-none ${red ? 'text-red-600' : 'text-zinc-900'}`}
-      >
-        {card.rank}
-      </span>
-      <span
-        className={`text-[22px] leading-none mt-0.5 ${red ? 'text-red-600' : 'text-zinc-900'}`}
-      >
-        {SUIT_CHAR[card.suit]}
-      </span>
+      {/* 左上角：点数 + 花色，竖排 */}
+      <div className={`absolute top-1 left-1.5 flex flex-col items-center leading-none ${colorClass}`}>
+        <span className="text-[11px] font-black leading-none">{card.rank}</span>
+        <span className="text-[10px] leading-none">{suitChar}</span>
+      </div>
+
+      {/* 中央大号花色 */}
+      <div className={`absolute inset-0 flex items-center justify-center ${colorClass}`}>
+        <span className="text-[24px] leading-none">{suitChar}</span>
+      </div>
+
+      {/* 右下角：旋转 180° 的点数 + 花色 */}
+      <div className={`absolute bottom-1 right-1.5 flex flex-col items-center leading-none rotate-180 ${colorClass}`}>
+        <span className="text-[11px] font-black leading-none">{card.rank}</span>
+        <span className="text-[10px] leading-none">{suitChar}</span>
+      </div>
     </div>
   );
 }
