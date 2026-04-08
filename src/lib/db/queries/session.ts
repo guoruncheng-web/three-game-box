@@ -25,7 +25,7 @@ export async function createSession(sessionData: {
     [
       sessionData.user_id,
       sessionData.token_hash,
-      sessionData.device_info || null,
+      sessionData.device_info ? sessionData.device_info.substring(0, 255) : null,
       sessionData.ip_address || null,
       sessionData.expires_at,
     ]
