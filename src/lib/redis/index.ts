@@ -76,6 +76,12 @@ export async function deleteCache(key: string): Promise<void> {
 }
 
 /**
+ * 删除缓存（别名）
+ * @param key - 缓存键
+ */
+export const delCache = deleteCache;
+
+/**
  * 检查键是否存在
  * @param key - 缓存键
  * @returns 是否存在

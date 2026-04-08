@@ -60,6 +60,10 @@ const withPWA = require("next-pwa")({
 
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    // ESLint 在 CI 中单独运行，构建时跳过避免模块解析差异
+    ignoreDuringBuilds: true,
+  },
   // 使用 Turbopack 配置
   turbopack: {},
   images: {
