@@ -122,11 +122,21 @@ export async function POST(request: NextRequest) {
     const subDir = uploadType === 'avatar' ? 'avatars' : 'images';
     const pathname = `${subDir}/${user.userId}_${Date.now()}_${random}.${ext}`;
 
-    // 上传到 Vercel Blob
+    // 上传到 Vercel Blob（显式传递 token 防止环境变量未注入）
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!blobToken) {
+      console.error('BLOB_READ_WRITE_TOKEN 环境变量未配置');
+      return NextResponse.json<ApiResponse>(
+        { code: 500, message: '服务器存储未配置，请联系管理员', data: null },
+        { status: 500 }
+      );
+    }
+
     const blob = await put(pathname, bytes, {
       access: 'public',
       contentType: file.type,
       addRandomSuffix: false,
+      token: blobToken,
     });
 
     return NextResponse.json<ApiResponse<{ url: string; filename: string }>>(
