@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/stores/authHooks';
+import { useToast } from '@/components/toast';
+import AvatarUpload from '@/components/ui/avatar-upload';
 
 // 开关组件
 interface ToggleProps {
@@ -36,7 +38,8 @@ function Toggle({ checked, onChange }: ToggleProps) {
 
 export default function SettingsPage() {
     const router = useRouter();
-    const { user, logout } = useAuth();
+    const { user, token, logout, updateProfile } = useAuth();
+    const { showToast } = useToast();
 
     // 开关状态
     const [pushNotification, setPushNotification] = useState(true);
@@ -96,48 +99,28 @@ export default function SettingsPage() {
                     </div>
                     <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
                         {/* 更换头像 */}
-                        <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
+                        <div className="w-full px-4 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="relative">
-                                    {user?.avatar_url ? (
-                                        <img
-                                            src={user.avatar_url}
-                                            alt="头像"
-                                            className="w-16 h-16 rounded-full shadow-lg object-cover"
-                                        />
-                                    ) : (
-                                        <div
-                                            className="w-16 h-16 rounded-full shadow-lg flex items-center justify-center relative"
-                                            style={{
-                                                backgroundImage: 'linear-gradient(135deg, rgb(194, 122, 255) 0%, rgb(251, 100, 182) 100%)',
-                                            }}
-                                        >
-                                            <span className="text-3xl">
-                                                {user?.nickname?.[0] || user?.username?.[0] || '🎮'}
-                                            </span>
-                                        </div>
-                                    )}
-                                    <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#fdc700] shadow-lg flex items-center justify-center">
-                                        <Image
-                                            src="/images/settings/icon-camera.svg"
-                                            alt="camera"
-                                            width={12}
-                                            height={12}
-                                        />
-                                    </div>
-                                </div>
+                                <AvatarUpload
+                                    currentAvatar={user?.avatar_url}
+                                    username={user?.nickname || user?.username}
+                                    token={token || ''}
+                                    size={64}
+                                    onSuccess={async (url) => {
+                                        try {
+                                            await updateProfile({ avatar_url: url });
+                                            showToast('success', '头像更新成功！', '🎉');
+                                        } catch {
+                                            showToast('error', '头像保存失败，请重试');
+                                        }
+                                    }}
+                                />
                                 <div className="flex flex-col items-start">
                                     <span className="text-base font-black text-[#1e2939]">更换头像</span>
-                                    <span className="text-xs font-normal text-[#6a7282]">点击选择新头像</span>
+                                    <span className="text-xs font-normal text-[#6a7282]">点击头像选择新图片</span>
                                 </div>
                             </div>
-                            <Image
-                                src="/images/settings/icon-edit.svg"
-                                alt="arrow"
-                                width={20}
-                                height={20}
-                            />
-                        </button>
+                        </div>
                         <div className="h-[1px] bg-[#f3f4f6]" />
                         {/* 修改昵称 */}
                         <button onClick={handleEditProfile} className="w-full px-4 py-4 flex items-center justify-between">
@@ -260,7 +243,7 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="flex flex-col items-start">
                                     <span className="text-base font-bold text-[#1e2939]">
-                                        {user?.phone ? '绑定手机' : '绑定手机'}
+                                        {user?.phone ? '已绑定手机' : '绑定手机'}
                                     </span>
                                     <span className="text-xs font-normal text-[#6a7282]">
                                         {user?.phone

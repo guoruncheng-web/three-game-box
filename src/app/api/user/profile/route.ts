@@ -19,7 +19,7 @@ const updateProfileSchema = z.object({
     .regex(/^1[3-9]\d{9}$/, '请输入有效的手机号')
     .optional()
     .or(z.literal('')),
-  avatar_url: z.string().url('请输入有效的头像URL').optional().or(z.literal('')),
+  avatar_url: z.string().min(1, '头像地址不能为空').optional().or(z.literal('')),
 });
 
 export async function PUT(request: NextRequest) {
