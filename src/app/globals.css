@@ -81,10 +81,16 @@
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-body), system-ui, sans-serif;
+  font-family: var(--font-body), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui,
+    sans-serif;
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
+}
+
+/* 标题/展示：Outfit + 中文回退 Noto */
+.font-display {
+  font-family: var(--font-display), var(--font-body), "PingFang SC", sans-serif;
 }
 
 /* 安全区域 */
@@ -138,9 +144,9 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* 游戏字体 */
+/* 游戏字体（标题感） */
 .font-game {
-  font-family: var(--font-display), "Comic Sans MS", cursive;
+  font-family: var(--font-display), var(--font-body), "PingFang SC", sans-serif;
   font-weight: 700;
 }
 

@@ -1,22 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Quicksand } from "next/font/google";
+import { Noto_Sans_SC, Outfit } from "next/font/google";
 import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
 import { ToastProvider } from "@/components/toast";
 import "./globals.css";
 
-// 显示字体
-const nunito = Nunito({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
-});
-
-// 正文字体
-const quicksand = Quicksand({
+/**
+ * 正文字体：Noto Sans SC — 中文清晰、西文配套，适合移动端长文
+ * 展示字体：Outfit — 几何感强、偏游戏/休闲，用于标题与强调（中文自动回退到 Noto）
+ */
+const notoSansSc = Noto_Sans_SC({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const outfit = Outfit({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -59,7 +63,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body
-        className={`${nunito.variable} ${quicksand.variable} font-body antialiased bg-bg-primary text-text-primary`}
+        className={`${notoSansSc.variable} ${outfit.variable} font-body antialiased bg-bg-primary text-text-primary`}
       >
         <ClientInit>
           <ReduxProvider>

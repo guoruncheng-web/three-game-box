@@ -6,10 +6,10 @@ import Redis from 'ioredis';
 
 // Redis 连接配置
 const REDIS_CONFIG = {
-  host: process.env.REDIS_HOST || '47.86.46.212',
-  port: parseInt(process.env.REDIS_PORT || '6379', 10),
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: parseInt(process.env.REDIS_DB || '0', 10),
+  host: (process.env.REDIS_HOST || '47.86.46.212').trim(),
+  port: parseInt((process.env.REDIS_PORT || '6379').trim(), 10),
+  password: process.env.REDIS_PASSWORD?.trim() || undefined,
+  db: parseInt((process.env.REDIS_DB || '0').trim(), 10),
   connectTimeout: 5000, // 连接超时 5 秒
   commandTimeout: 3000, // 命令超时 3 秒
   retryStrategy: (times: number) => {
