@@ -3,6 +3,7 @@ import { Noto_Sans_SC, Outfit } from "next/font/google";
 import { ClientInit } from "@/components/ClientInit";
 import { ReduxProvider } from "@/components/providers";
 import { ToastProvider } from "@/components/toast";
+import { AuthWrapper } from "@/components/auth/AuthWrapper";
 import "./globals.css";
 
 /**
@@ -68,7 +69,9 @@ export default function RootLayout({
         <ClientInit>
           <ReduxProvider>
             <ToastProvider>
-              {children}
+              <AuthWrapper>
+                {children}
+              </AuthWrapper>
             </ToastProvider>
           </ReduxProvider>
         </ClientInit>
