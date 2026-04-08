@@ -170,74 +170,94 @@ public/
 
 ### AI 生成提示词
 
-#### A. ACE-Step 1.5 提示词（背景音乐 BGM）
+#### A. TopMediai 提示词（背景音乐 BGM）
 
-> 平台地址：https://modelscope.cn/studios/ACE-Step/ACE-Step
-> ACE-Step 擅长生成完整音乐段落，适合 BGM。每条提示词包含 tags（风格标签）和 prompt（描述）两个字段。
-> 建议参数：duration 60-120s（BGM），num_inference_steps 150+，guidance_scale 5-7
+> 平台地址：https://tw.topmediai.com/app/ai-music/?isMusicData=true
+> 操作步骤：选择「自訂」模式 → 打开「纯音樂模式」开关 → 歌詞留空 → 風格填入下方内容 → 点击「生成」
+> 生成后下载 MP3 放入 `public/audio/zjh/bgm/` 目录
 
 **1. 大厅 BGM（bgm-lobby.mp3）**
 ```
-tags: chinese traditional, jazz lounge, lo-fi, smooth, elegant, relaxing, guzheng, cyberpunk ambient
-lyrics:
-[instrumental]
-
-prompt: Sophisticated Chinese-style jazz lounge music for a card game lobby. Gentle guzheng arpeggios and soft pipa plucks over lo-fi hip-hop drum pattern, warm upright bass, subtle synthesizer pads adding cyberpunk ambient texture. Relaxed yet classy casino atmosphere. Seamless loop-friendly structure with no strong intro or outro. 90 BPM.
+風格：中国风爵士、古筝琵琶、Lo-fi beats、柔和优雅、赛博朋克氛围、轻松休闲、90 BPM、可循环
 ```
 
 **2. 游戏中 BGM（bgm-gameplay.mp3）**
 ```
-tags: tension, suspense, electronic, oriental, erhu, pipa, synth bass, cyberpunk fusion, mid-tempo
-lyrics:
-[instrumental]
-
-prompt: Tense oriental electronic music for an active poker game round. Haunting erhu melody layered with pipa rhythmic plucks and deep analog synth bass. Light electronic percussion building steady anticipation, subtle hi-hat patterns. Mysterious cyberpunk fusion atmosphere, focused and strategic mood. Seamless loop-friendly. 110 BPM.
+風格：紧张悬疑、东方电子、二胡琵琶、合成器低音、赛博朋克融合、中速节奏、博弈氛围、110 BPM、可循环
 ```
 
-**3. 紧张对决 BGM（比牌/All-in 时切换，bgm-showdown.mp3）**
+**3. 紧张对决 BGM（比牌/All-in，bgm-showdown.mp3）**
 ```
-tags: dramatic, cinematic, orchestral, intense, chinese, taiko drums, brass, rising tension
-lyrics:
-[instrumental]
-
-prompt: Dramatic cinematic music for a high-stakes poker showdown moment. Powerful taiko drum rolls building from pianissimo to fortissimo, rising orchestral string tremolo, intense brass stabs, Chinese war horn accent. Heart-pounding climax atmosphere, adrenaline rush. 130 BPM, 15-30 seconds with clear dramatic arc.
+風格：史诗电影感、太鼓鼓点、管弦乐、紧张激烈、中国战鼓号角、肾上腺素飙升、130 BPM、15-30秒高潮段落
 ```
 
 **4. 结算 BGM（bgm-settlement.mp3）**
 ```
-tags: gentle, reflective, chinese, piano, erhu, ambient, soft ending
-lyrics:
-[instrumental]
-
-prompt: Gentle reflective music for poker game settlement screen. Soft piano chords with distant erhu melody, light ambient pads, slow tempo winding down. Peaceful transition moment, neither too happy nor sad. Graceful fade-out ending. 75 BPM, 10-15 seconds.
+風格：温柔舒缓、钢琴二胡、氛围音乐、慢节奏收尾、平静过渡、75 BPM、10-15秒渐弱结束
 ```
 
 **5. 胜利音乐（sfx-victory.mp3）**
 ```
-tags: victory, celebration, chinese, bright, triumphant, gong, suona, electronic flourish
-lyrics:
-[instrumental]
-
-prompt: Triumphant victory fanfare with Chinese traditional instruments. Bright suona melody leading a celebratory phrase, big gong crash on downbeat, rapid Chinese drum fills, shimmering electronic arpeggios ascending. Golden and rewarding climax. 140 BPM, 3-5 seconds sharp ending.
+風格：胜利庆祝、唢呐锣鼓、明亮辉煌、电子琶音上行、金色奖赏感、140 BPM、3-5秒短促结尾
 ```
 
 **6. 大赢家音乐（sfx-big-win.mp3）**
 ```
-tags: epic victory, chinese orchestra, electronic drop, celebration, fireworks, gold coins
-lyrics:
-[instrumental]
-
-prompt: Epic grand victory celebration music. Full Chinese orchestral fanfare with suona and erhu leading, massive taiko hit into electronic bass drop, cascading golden coin sound texture, firework-like sparkle synths ascending. Maximum hype and reward feeling. 150 BPM, 4-5 seconds.
+風格：史诗胜利、中国管弦乐全奏、唢呐二胡领奏、电子低音drop、金币烟花音效质感、最大奖励感、150 BPM、4-5秒
 ```
 
 **7. 失败音乐（sfx-defeat.mp3）**
 ```
-tags: sad, melancholy, soft, gentle, erhu solo, minor key, fading
-lyrics:
-[instrumental]
-
-prompt: Brief melancholy melody for a poker loss. Solo erhu playing a descending minor phrase over sparse piano chords, gentle and not depressing, dignified sadness. Notes trail off and fade naturally. 80 BPM, 3-5 seconds with soft fade-out.
+風格：忧伤惆怅、二胡独奏、小调下行旋律、稀疏钢琴和弦、体面的失落感、80 BPM、3-5秒自然消逝
 ```
+
+---
+
+> **备选平台（如 TopMediai 额度用完）：**
+> - Suno AI：https://suno.com （质量高，免费额度有限）
+> - 将上方「風格」内容翻译为英文填入 Suno 的 Style 字段，打开 Instrumental 模式即可
+>
+> **英文版提示词（Suno / 其他英文平台通用）：**
+
+<details>
+<summary>点击展开英文版提示词</summary>
+
+**1. bgm-lobby.mp3**
+```
+Style: Chinese traditional jazz lounge, guzheng and pipa, lo-fi hip-hop beats, smooth elegant, cyberpunk ambient, relaxing, 90 BPM, loopable
+```
+
+**2. bgm-gameplay.mp3**
+```
+Style: Tense suspense, oriental electronic, erhu and pipa, synth bass, cyberpunk fusion, mid-tempo, poker game atmosphere, 110 BPM, loopable
+```
+
+**3. bgm-showdown.mp3**
+```
+Style: Epic cinematic, taiko drums, orchestral, intense dramatic, Chinese war drums and horns, adrenaline rush, 130 BPM, 15-30 seconds climax
+```
+
+**4. bgm-settlement.mp3**
+```
+Style: Gentle reflective, piano and erhu, ambient pads, slow winding down, peaceful transition, 75 BPM, 10-15 seconds fade out
+```
+
+**5. sfx-victory.mp3**
+```
+Style: Victory celebration, suona and gongs, bright triumphant, electronic arpeggios ascending, golden reward, 140 BPM, 3-5 seconds sharp ending
+```
+
+**6. sfx-big-win.mp3**
+```
+Style: Epic victory, full Chinese orchestra, suona and erhu lead, electronic bass drop, gold coins fireworks, maximum hype, 150 BPM, 4-5 seconds
+```
+
+**7. sfx-defeat.mp3**
+```
+Style: Melancholy, solo erhu, minor key descending phrase, sparse piano chords, dignified sadness, 80 BPM, 3-5 seconds fade out
+```
+
+</details>
 
 ---
 

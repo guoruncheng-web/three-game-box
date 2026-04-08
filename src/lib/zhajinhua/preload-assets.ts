@@ -3,7 +3,7 @@
  * 优先使用 public/images/generated/zhajinhua/manifest.json，失败时回退到内置列表
  */
 
-import { zjhAssets } from '@/lib/zhajinhua/assets';
+import { zjhAssets, zjhAudioUrls } from '@/lib/zhajinhua/assets';
 
 const GENERATED_BASE = '/images/generated/zhajinhua';
 
@@ -94,4 +94,26 @@ export async function preloadDealerModelGlb(url: string = zjhAssets.dealerModelG
   } catch {
     /* 忽略 */
   }
+}
+
+/**
+ * 获取所有需要预加载的音频 URL
+ */
+export function resolveZhajinhuaAudioUrls(): string[] {
+  return zjhAudioUrls;
+}
+
+/**
+ * 预加载单个音频文件（fetch 到浏览器缓存，失败不抛错）
+ */
+export function preloadAudio(url: string): Promise<void> {
+  return new Promise((resolve) => {
+    fetch(url, { cache: 'force-cache' })
+      .then((res) => {
+        if (!res.ok) { resolve(); return; }
+        return res.arrayBuffer();
+      })
+      .then(() => resolve())
+      .catch(() => resolve());
+  });
 }

@@ -43,6 +43,30 @@ export const zjhAssets = {
   ruleGuideBg: '/zhajinhua/rule_bg.png',
 } as const;
 
+/* ---- 音频素材 ---- */
+
+const AUDIO_BASE = '/audio/zjh';
+
+export const zjhAudioAssets = {
+  // BGM
+  bgmLobby: `${AUDIO_BASE}/bgm/bgm-lobby.mp3`,
+  bgmGameplay: `${AUDIO_BASE}/bgm/bgm-gameplay.mp3`,
+  bgmSettlement: `${AUDIO_BASE}/bgm/bgm-settlement.mp3`,
+  // SFX - 游戏流程
+  sfxGameStart: `${AUDIO_BASE}/sfx/game/sfx-game-start.mp3`,
+  // SFX - 结果
+  sfxVictory: `${AUDIO_BASE}/sfx/result/sfx-victory.mp3`,
+  sfxDefeat: `${AUDIO_BASE}/sfx/result/sfx-defeat.mp3`,
+  sfxBigWin: `${AUDIO_BASE}/sfx/result/sfx-big-win.mp3`,
+  // SFX - 牌型
+  sfxHandTriple: `${AUDIO_BASE}/sfx/hand/sfx-hand-triple.mp3`,
+  sfxHandStraightFlush: `${AUDIO_BASE}/sfx/hand/sfx-hand-straightflush.mp3`,
+  sfxHand235: `${AUDIO_BASE}/sfx/hand/sfx-hand-235.mp3`,
+} as const;
+
+/** 所有音频 URL 列表（用于预加载） */
+export const zjhAudioUrls: string[] = Object.values(zjhAudioAssets);
+
 /** manifest 中只有豹子 / 顺金 / 金花 三张牌型条图，其余牌型仅展示文字 */
 export function zjhHandBannerUrl(handType: HandType | null | undefined): string | null {
   if (!handType) return null;

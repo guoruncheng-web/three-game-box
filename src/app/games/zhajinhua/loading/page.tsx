@@ -9,8 +9,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import {
+  preloadAudio,
   preloadDealerModelGlb,
   preloadImage,
+  resolveZhajinhuaAudioUrls,
   resolveZhajinhuaPreloadUrls,
 } from '@/lib/zhajinhua/preload-assets';
 
@@ -25,8 +27,10 @@ export default function ZhajinhuaLoadingPage() {
     let cancelled = false;
 
     const run = async () => {
-      const urls = await resolveZhajinhuaPreloadUrls();
-      const total = urls.length + 1;
+      const imageUrls = await resolveZhajinhuaPreloadUrls();
+      const audioUrls = resolveZhajinhuaAudioUrls();
+      // +1 for dealer model
+      const total = imageUrls.length + audioUrls.length + 1;
       let loaded = 0;
 
       const tickProgress = () => {
@@ -35,24 +39,27 @@ export default function ZhajinhuaLoadingPage() {
         setProgress(pct);
       };
 
-      const bump = () => {
+      const bump = (label: string) => {
         if (cancelled) return;
         loaded += 1;
         tickProgress();
-        setStatusText(`加载素材 ${loaded}/${total}`);
+        setStatusText(`${label} ${loaded}/${total}`);
       };
 
       const start = Date.now();
 
       await Promise.all([
-        ...urls.map(async (url) => {
+        ...imageUrls.map(async (url) => {
           await preloadImage(url);
-          bump();
+          bump('加载素材');
+        }),
+        ...audioUrls.map(async (url) => {
+          await preloadAudio(url);
+          bump('加载音效');
         }),
         (async () => {
-          setStatusText('加载荷官模型…');
           await preloadDealerModelGlb();
-          bump();
+          bump('加载模型');
         })(),
       ]);
 

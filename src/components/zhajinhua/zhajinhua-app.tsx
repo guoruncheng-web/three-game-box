@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Dialog, Input } from 'antd-mobile';
 
 import { useToast } from '@/components/toast';
+import { useZjhAudio } from '@/hooks/useZjhAudio';
 import { BET_MULTIPLIER } from '@/lib/zjh/constants';
 import { ZJH_BOT_USER_ID } from '@/lib/zjh/bot-constants';
 import { zjhAssets } from '@/lib/zhajinhua/assets';
@@ -73,6 +74,9 @@ export function ZhajinhuaApp() {
   const [gameState, setGameState] = useState<GameStateResponse | null>(null);
   const [result, setResult] = useState<GameResultResponse | null>(null);
   const settlementFetchedRef = useRef(false);
+
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const { switchBgm, stopBgm, playSfx, playClick } = useZjhAudio(soundEnabled);
 
   const [joinInput, setJoinInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -180,6 +184,25 @@ export function ZhajinhuaApp() {
     }
   }, [phase]);
 
+  /* ---- BGM 跟随 phase 切换 ---- */
+  useEffect(() => {
+    switch (phase) {
+      case 'lobby':
+      case 'room':
+        void switchBgm('lobby');
+        break;
+      case 'playing':
+        void switchBgm('gameplay');
+        break;
+      case 'settled':
+        void switchBgm('settlement');
+        break;
+    }
+  }, [phase, switchBgm]);
+
+  /* ---- 离开页面时停止 BGM ---- */
+  useEffect(() => () => void stopBgm(), [stopBgm]);
+
   const finishPlayingTour = useCallback(() => {
     setPlayingTourStep(null);
     try {
@@ -260,6 +283,14 @@ export function ZhajinhuaApp() {
         if (r.success && r.data) {
           setResult(r.data);
           setPhase('settled');
+          // 结算音效
+          const isWinner = r.data.winnerId === userId;
+          if (isWinner) {
+            const myChipsChange = r.data.players.find((p) => p.userId === userId)?.chipsChange ?? 0;
+            playSfx(myChipsChange >= 500 ? 'bigWin' : 'victory');
+          } else if (r.data.winnerId) {
+            playSfx('defeat');
+          }
           await refreshStats();
         }
       }
@@ -422,6 +453,7 @@ export function ZhajinhuaApp() {
       settlementFetchedRef.current = false;
       setPhase('playing');
       setResult(null);
+      playSfx('gameStart');
       showToast('success', '游戏开始');
     } finally {
       setBusy(false);
@@ -457,6 +489,11 @@ export function ZhajinhuaApp() {
         showToast('error', res.error || '看牌失败');
         return;
       }
+      // 特殊牌型音效
+      const ht = res.data?.handType;
+      if (ht === 'TRIPLE') playSfx('handTriple');
+      else if (ht === 'STRAIGHT_FLUSH') playSfx('handStraightFlush');
+      else if (ht === 'SPECIAL_235') playSfx('hand235');
       await refreshGame();
     } finally {
       setBusy(false);
@@ -605,6 +642,7 @@ export function ZhajinhuaApp() {
           <button
             type="button"
             onClick={() => {
+              playClick();
               if (phase === 'lobby') {
                 Dialog.confirm({
                   title: '返回游戏首页？',
@@ -636,9 +674,17 @@ export function ZhajinhuaApp() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
+            type="button"
+            onClick={() => { playClick(); setSoundEnabled((v) => !v); }}
+            className="rounded-full border border-amber-400/50 bg-white/10 w-8 h-8 flex items-center justify-center text-base touch-manipulation transition-transform active:scale-95"
+            aria-label={soundEnabled ? '关闭音效' : '开启音效'}
+          >
+            {soundEnabled ? '🔊' : '🔇'}
+          </button>
+          <button
             ref={tourGuideBtnRef}
             type="button"
-            onClick={() => setGuideOpen(true)}
+            onClick={() => { playClick(); setGuideOpen(true); }}
             className="rounded-full border border-amber-400/50 bg-white/10 px-3 py-1.5 text-xs font-bold text-amber-100 touch-manipulation transition-transform active:scale-95"
           >
             玩法说明
@@ -674,7 +720,7 @@ export function ZhajinhuaApp() {
           <button
             type="button"
             disabled={busy}
-            onClick={() => void handleHumanVsBot()}
+            onClick={() => { playClick(); void handleHumanVsBot(); }}
             className="w-full min-h-[52px] rounded-2xl font-bold text-white text-base bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(245,158,11,0.4)]"
           >
             {busy ? (
@@ -685,7 +731,7 @@ export function ZhajinhuaApp() {
           <button
             type="button"
             disabled={busy}
-            onClick={() => void handleMatch()}
+            onClick={() => { playClick(); void handleMatch(); }}
             className="w-full min-h-[52px] rounded-2xl font-bold text-amber-100 text-base border border-amber-400/50 active:scale-[0.97] transition-transform touch-manipulation flex items-center justify-center gap-2"
             style={{ background: 'rgba(255,255,255,0.08)' }}
           >
@@ -707,7 +753,7 @@ export function ZhajinhuaApp() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => void handleJoin()}
+              onClick={() => { playClick(); void handleJoin(); }}
               className="h-[52px] px-5 rounded-xl font-bold text-white text-sm bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation shrink-0"
             >
               加入
@@ -737,6 +783,7 @@ export function ZhajinhuaApp() {
                 color="warning"
                 fill="outline"
                 onClick={() => {
+                  playClick();
                   void navigator.clipboard.writeText(roomInfo.roomCode);
                   showToast('success', '已复制房间号');
                 }}
@@ -772,7 +819,7 @@ export function ZhajinhuaApp() {
           </div>
 
           <button
-            onClick={() => void handleToggleReady()}
+            onClick={() => { playClick(); void handleToggleReady(); }}
             disabled={busy || isOwner}
             className={`min-h-[52px] w-full rounded-2xl font-bold active:scale-[0.97] transition-transform touch-manipulation
               ${isOwner
@@ -788,7 +835,7 @@ export function ZhajinhuaApp() {
           {isOwner && (
             <div>
               <button
-                onClick={() => void handleStartGame()}
+                onClick={() => { playClick(); void handleStartGame(); }}
                 disabled={busy || roomInfo.currentPlayers < roomInfo.minPlayers}
                 className="w-full min-h-[52px] rounded-2xl font-bold text-white bg-gradient-to-r from-red-500 to-rose-600 active:scale-[0.97] transition-transform touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -801,7 +848,7 @@ export function ZhajinhuaApp() {
           )}
 
           <button
-            onClick={() => void handleLeaveToLobby()}
+            onClick={() => { playClick(); void handleLeaveToLobby(); }}
             disabled={busy}
             className="w-full min-h-[44px] rounded-2xl font-bold text-white/70 border border-white/25 active:scale-[0.97] transition-transform touch-manipulation"
           >
@@ -843,7 +890,7 @@ export function ZhajinhuaApp() {
                 src={zjhAssets.btnLook}
                 label="看牌"
                 loading={busy}
-                onClick={() => void handleLook()}
+                onClick={() => { playClick(); void handleLook(); }}
               />
             )}
 
@@ -853,25 +900,25 @@ export function ZhajinhuaApp() {
                   src={zjhAssets.btnCall}
                   label="跟注"
                   loading={busy}
-                  onClick={() => void handleAction('CALL')}
+                  onClick={() => { playClick(); void handleAction('CALL'); }}
                 />
                 <ZjhImageButton
                   src={zjhAssets.btnRaise}
                   label="加注"
                   loading={busy}
-                  onClick={() => setRaiseOptionsOpen((v) => !v)}
+                  onClick={() => { playClick(); setRaiseOptionsOpen((v) => !v); }}
                 />
                 <ZjhImageButton
                   src={zjhAssets.btnFold}
                   label="弃牌"
                   loading={busy}
-                  onClick={() => void handleAction('FOLD')}
+                  onClick={() => { playClick(); void handleAction('FOLD'); }}
                 />
                 <ZjhImageButton
                   src={zjhAssets.btnAllIn}
                   label="全押"
                   loading={busy}
-                  onClick={() => void handleAction('ALL_IN')}
+                  onClick={() => { playClick(); void handleAction('ALL_IN'); }}
                 />
               </div>
             )}
@@ -885,7 +932,7 @@ export function ZhajinhuaApp() {
                   src={zjhAssets.btnCompare}
                   label="比牌"
                   loading={busy}
-                  onClick={() => setCompareOpen(true)}
+                  onClick={() => { playClick(); setCompareOpen(true); }}
                 />
               )}
 
@@ -899,21 +946,21 @@ export function ZhajinhuaApp() {
                       <div className="grid grid-cols-3 gap-2">
                         <button
                           type="button"
-                          onClick={() => void handleRaiseAmount(minBet)}
+                          onClick={() => { playClick(); void handleRaiseAmount(minBet); }}
                           className="h-[44px] rounded-xl border border-white/30 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
                         >
                           小 {minBet}
                         </button>
                         <button
                           type="button"
-                          onClick={() => void handleRaiseAmount(mid)}
+                          onClick={() => { playClick(); void handleRaiseAmount(mid); }}
                           className="h-[44px] rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
                         >
                           中 {mid}
                         </button>
                         <button
                           type="button"
-                          onClick={() => void handleRaiseAmount(maxBet)}
+                          onClick={() => { playClick(); void handleRaiseAmount(maxBet); }}
                           className="h-[44px] rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-bold active:scale-[0.97] transition-transform touch-manipulation"
                         >
                           大 {maxBet}
@@ -961,7 +1008,7 @@ export function ZhajinhuaApp() {
                         <button
                           key={p.userId}
                           type="button"
-                          onClick={() => void runCompare(p.userId)}
+                          onClick={() => { playClick(); void runCompare(p.userId); }}
                           className="h-[48px] rounded-xl border border-amber-400/50 text-amber-100 font-bold active:scale-[0.97] transition-transform touch-manipulation"
                         >
                           {shortName(p.userId, p.username)}
@@ -973,7 +1020,7 @@ export function ZhajinhuaApp() {
                 <button
                   type="button"
                   className="mt-3 w-full h-[44px] rounded-xl border border-white/20 text-white/70 active:scale-[0.97] transition-transform touch-manipulation"
-                  onClick={() => setCompareOpen(false)}
+                  onClick={() => { playClick(); setCompareOpen(false); }}
                 >
                   取消
                 </button>
@@ -1037,6 +1084,7 @@ export function ZhajinhuaApp() {
                   type="button"
                   className="w-full min-h-[52px] rounded-2xl font-bold text-white bg-gradient-to-r from-amber-500 to-amber-600 active:scale-[0.97] transition-transform touch-manipulation"
                   onClick={() => {
+                    playClick();
                     settlementFetchedRef.current = false;
                     setPhase('room');
                     setGameId(null);
@@ -1051,7 +1099,7 @@ export function ZhajinhuaApp() {
                 <button
                   type="button"
                   className="w-full min-h-[44px] rounded-2xl font-bold text-white/70 border border-white/25 active:scale-[0.97] transition-transform touch-manipulation"
-                  onClick={() => void handleLeaveToLobby()}
+                  onClick={() => { playClick(); void handleLeaveToLobby(); }}
                 >
                   返回大厅
                 </button>
