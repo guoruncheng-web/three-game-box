@@ -22,6 +22,19 @@ export const redis = {
   ping: async (): Promise<string> => {
     return 'PONG';
   },
+  incr: async (key: string): Promise<number> => {
+    const current = await getCache(key);
+    const newValue = (current ? parseInt(current, 10) : 0) + 1;
+    const item = cache.get(key);
+    cache.set(key, { value: String(newValue), expireAt: item?.expireAt });
+    return newValue;
+  },
+  expire: async (key: string, ttl: number): Promise<void> => {
+    const item = cache.get(key);
+    if (item) {
+      item.expireAt = Date.now() + ttl * 1000;
+    }
+  },
 };
 
 /**
