@@ -168,57 +168,141 @@ public/
 | Stable Audio | Stability AI 的音频生成工具 |
 | Suno AI | AI 生成背景音乐 |
 
-### AI 生成提示词（用于 ElevenLabs / Stable Audio）
+### AI 生成提示词
 
-**大厅 BGM：**
-```
-Chinese traditional instruments lo-fi beat, guzheng melody with soft electronic drums,
-relaxed chill vibe, cyberpunk ambient undertone, loopable, 90 BPM
-```
+#### A. ACE-Step 1.5 提示词（背景音乐 BGM）
 
-**游戏中 BGM：**
-```
-Tense Chinese poker game music, erhu and pipa with electronic synth bass,
-suspenseful atmosphere, moderate tempo building tension, cyberpunk fusion,
-loopable, 110 BPM
-```
+> 平台地址：https://modelscope.cn/studios/ACE-Step/ACE-Step
+> ACE-Step 擅长生成完整音乐段落，适合 BGM。每条提示词包含 tags（风格标签）和 prompt（描述）两个字段。
+> 建议参数：duration 60-120s（BGM），num_inference_steps 150+，guidance_scale 5-7
 
-**洗牌音效：**
+**1. 大厅 BGM（bgm-lobby.mp3）**
 ```
-Card shuffling sound effect, crisp paper cards being riffled and bridged,
-casino atmosphere, clear and satisfying, 2 seconds
+tags: chinese traditional, jazz lounge, lo-fi, smooth, elegant, relaxing, guzheng, cyberpunk ambient
+lyrics:
+[instrumental]
+
+prompt: Sophisticated Chinese-style jazz lounge music for a card game lobby. Gentle guzheng arpeggios and soft pipa plucks over lo-fi hip-hop drum pattern, warm upright bass, subtle synthesizer pads adding cyberpunk ambient texture. Relaxed yet classy casino atmosphere. Seamless loop-friendly structure with no strong intro or outro. 90 BPM.
 ```
 
-**筹码推入：**
+**2. 游戏中 BGM（bgm-gameplay.mp3）**
 ```
-Casino poker chips being pushed forward on felt table,
-multiple chips clinking together, satisfying ceramic click sound, 0.5 seconds
+tags: tension, suspense, electronic, oriental, erhu, pipa, synth bass, cyberpunk fusion, mid-tempo
+lyrics:
+[instrumental]
+
+prompt: Tense oriental electronic music for an active poker game round. Haunting erhu melody layered with pipa rhythmic plucks and deep analog synth bass. Light electronic percussion building steady anticipation, subtle hi-hat patterns. Mysterious cyberpunk fusion atmosphere, focused and strategic mood. Seamless loop-friendly. 110 BPM.
 ```
 
-**全押音效：**
+**3. 紧张对决 BGM（比牌/All-in 时切换，bgm-showdown.mp3）**
 ```
-Large stack of casino chips pushed all-in on poker table,
-dramatic heavy impact with deep bass rumble, cinematic tension hit,
-chips cascading and settling, 2 seconds
+tags: dramatic, cinematic, orchestral, intense, chinese, taiko drums, brass, rising tension
+lyrics:
+[instrumental]
+
+prompt: Dramatic cinematic music for a high-stakes poker showdown moment. Powerful taiko drum rolls building from pianissimo to fortissimo, rising orchestral string tremolo, intense brass stabs, Chinese war horn accent. Heart-pounding climax atmosphere, adrenaline rush. 130 BPM, 15-30 seconds with clear dramatic arc.
 ```
 
-**豹子牌型展示：**
+**4. 结算 BGM（bgm-settlement.mp3）**
 ```
-Epic reveal sound effect, dramatic orchestral hit with Chinese gong crash,
-dragon roar undertone, powerful bass drop, triumphant and shocking, 2 seconds
+tags: gentle, reflective, chinese, piano, erhu, ambient, soft ending
+lyrics:
+[instrumental]
+
+prompt: Gentle reflective music for poker game settlement screen. Soft piano chords with distant erhu melody, light ambient pads, slow tempo winding down. Peaceful transition moment, neither too happy nor sad. Graceful fade-out ending. 75 BPM, 10-15 seconds.
 ```
 
-**235 通杀：**
+**5. 胜利音乐（sfx-victory.mp3）**
 ```
-Dramatic plot twist sound effect, reverse cymbal into shocking reveal hit,
-unexpected victory fanfare, Chinese opera percussion accent, 2 seconds
+tags: victory, celebration, chinese, bright, triumphant, gong, suona, electronic flourish
+lyrics:
+[instrumental]
+
+prompt: Triumphant victory fanfare with Chinese traditional instruments. Bright suona melody leading a celebratory phrase, big gong crash on downbeat, rapid Chinese drum fills, shimmering electronic arpeggios ascending. Golden and rewarding climax. 140 BPM, 3-5 seconds sharp ending.
 ```
 
-**胜利音效：**
+**6. 大赢家音乐（sfx-big-win.mp3）**
 ```
-Victory celebration jingle, Chinese style gong and drum with electronic flourish,
-golden coins dropping sound, cheerful and triumphant, short celebratory, 3 seconds
+tags: epic victory, chinese orchestra, electronic drop, celebration, fireworks, gold coins
+lyrics:
+[instrumental]
+
+prompt: Epic grand victory celebration music. Full Chinese orchestral fanfare with suona and erhu leading, massive taiko hit into electronic bass drop, cascading golden coin sound texture, firework-like sparkle synths ascending. Maximum hype and reward feeling. 150 BPM, 4-5 seconds.
 ```
+
+**7. 失败音乐（sfx-defeat.mp3）**
+```
+tags: sad, melancholy, soft, gentle, erhu solo, minor key, fading
+lyrics:
+[instrumental]
+
+prompt: Brief melancholy melody for a poker loss. Solo erhu playing a descending minor phrase over sparse piano chords, gentle and not depressing, dignified sadness. Notes trail off and fade naturally. 80 BPM, 3-5 seconds with soft fade-out.
+```
+
+---
+
+#### B. AudioLDM / ElevenLabs / Stable Audio 提示词（短音效 SFX）
+
+> 短音效（< 3s）不适合 ACE-Step，建议用 AudioLDM 2、ElevenLabs Sound Effects 或 Stable Audio 生成。
+> 每条提供英文提示词和中文说明。
+
+**游戏流程音效：**
+
+| # | 文件名 | 提示词 | 说明 |
+|---|--------|--------|------|
+| 4 | sfx-enter-room.mp3 | `Futuristic door sliding open with electronic chime, sci-fi room entry, clean and welcoming, 1.5 seconds` | 进入房间 |
+| 5 | sfx-ready.mp3 | `Short confirmation beep, positive UI feedback, bright digital chirp, 0.5 seconds` | 玩家准备 |
+| 6 | sfx-game-start.mp3 | `Game start fanfare, short electronic countdown beep into energetic gong hit, exciting beginning, 2 seconds` | 游戏开始 |
+| 7 | sfx-shuffle.mp3 | `Playing cards being shuffled by hand, crisp riffling and bridging, casino table atmosphere, satisfying paper sounds, 2 seconds` | 洗牌 |
+| 8 | sfx-deal-card.mp3 | `Single playing card dealt and sliding on green felt table, quick crisp snap, 0.3 seconds` | 发牌（单张） |
+| 9 | sfx-your-turn.mp3 | `Gentle attention chime, two-note ascending bell tone, subtle reminder, 0.5 seconds` | 轮到你操作 |
+| 10 | sfx-countdown-tick.mp3 | `Single clock tick, clean mechanical click, urgent but not harsh, 0.2 seconds` | 倒计时滴答 |
+| 11 | sfx-timeout.mp3 | `Buzzer timeout sound, low-pitched error horn, time expired, 1 second` | 操作超时 |
+
+**玩家操作音效：**
+
+| # | 文件名 | 提示词 | 说明 |
+|---|--------|--------|------|
+| 12 | sfx-look-card.mp3 | `Playing card flipping over on felt table, single card reveal with paper friction, satisfying flick sound, 0.5 seconds` | 看牌（翻牌） |
+| 13 | sfx-call.mp3 | `Single poker chip tossed onto felt table, clean ceramic clink, casual bet, 0.5 seconds` | 跟注 |
+| 14 | sfx-raise.mp3 | `Multiple poker chips stacked and pushed forward on table, heavier ceramic clinking with confidence, 0.8 seconds` | 加注 |
+| 15 | sfx-all-in.mp3 | `Large pile of casino chips dramatically pushed all-in across felt table, heavy sliding impact with deep bass rumble, chips cascading and settling, dramatic cinematic tension hit, 2 seconds` | 全押 |
+| 16 | sfx-fold.mp3 | `Playing cards tossed face-down onto table, giving up hand, soft paper thud on felt with slight disappointment, 0.5 seconds` | 弃牌 |
+| 17 | sfx-compare-start.mp3 | `Dramatic sword unsheathing sound mixed with rising tension strings, confrontation moment, 1.5 seconds` | 比牌发起 |
+| 18 | sfx-compare-reveal.mp3 | `Dramatic card reveal whoosh with orchestral hit and sparkle chime, magical unveil moment, 1 second` | 比牌翻牌 |
+
+**结果反馈音效：**
+
+| # | 文件名 | 提示词 | 说明 |
+|---|--------|--------|------|
+| 19 | sfx-compare-win.mp3 | `Short victory sting, bright ascending chime with small gong tap, satisfying win, 1 second` | 比牌胜利 |
+| 20 | sfx-compare-lose.mp3 | `Short defeat sting, descending low tone with muted thud, brief disappointment, 1 second` | 比牌失败 |
+| 23 | sfx-chips-collect.mp3 | `Pile of casino chips being gathered and stacked, multiple coins clinking together, collecting winnings, satisfying, 1.5 seconds` | 筹码收入 |
+
+**牌型展示音效：**
+
+| # | 文件名 | 提示词 | 说明 |
+|---|--------|--------|------|
+| 25 | sfx-hand-highcard.mp3 | `Plain card reveal, simple paper flip with neutral tone, nothing special, 0.5 seconds` | 散牌 |
+| 26 | sfx-hand-pair.mp3 | `Mild positive chime, gentle two-note bell ascending, slight surprise, 0.8 seconds` | 对子 |
+| 27 | sfx-hand-straight.mp3 | `Ascending musical scale run on xylophone, smooth upward progression, pleasant reveal, 1 second` | 顺子 |
+| 28 | sfx-hand-flush.mp3 | `Crystal clear bell cascade, sparkling water-like chime melody, beautiful and elegant, 1 second` | 金花 |
+| 29 | sfx-hand-straightflush.mp3 | `Brilliant ascending harp glissando into golden gong shimmer, luxurious and dazzling reveal, 1.5 seconds` | 顺金 |
+| 30 | sfx-hand-triple.mp3 | `Epic orchestral hit with massive Chinese gong crash, dragon roar undertone, powerful bass drop, earth-shaking impact, triumphant and shocking, 2 seconds` | 豹子 |
+| 31 | sfx-hand-235.mp3 | `Dramatic plot twist sound, reverse cymbal into shocking reveal hit, unexpected underdog victory fanfare, Chinese opera percussion accent, subversive and thrilling, 2 seconds` | 235 通杀 |
+
+**UI 交互音效：**
+
+| # | 文件名 | 提示词 | 说明 |
+|---|--------|--------|------|
+| 32 | sfx-btn-click.mp3 | `Soft digital button tap, clean subtle click, mobile UI interaction, 0.15 seconds` | 按钮点击 |
+| 33 | sfx-btn-hover.mp3 | `Very soft hover feedback, tiny subtle whoosh, barely perceptible, 0.1 seconds` | 按钮悬停 |
+| 34 | sfx-popup-open.mp3 | `Smooth popup appearing, gentle whoosh with soft chime, UI panel sliding in, 0.4 seconds` | 弹窗打开 |
+| 35 | sfx-popup-close.mp3 | `Quick popup dismiss, soft reverse whoosh, UI panel sliding out, 0.3 seconds` | 弹窗关闭 |
+| 36 | sfx-daily-bonus.mp3 | `Reward claim jingle, cheerful ascending coins dropping into pile with sparkle effects, gift received, 2 seconds` | 每日领取筹码 |
+| 37 | sfx-error.mp3 | `Short error buzz, low-pitched negative feedback tone, blocked action, 0.5 seconds` | 错误提示 |
+| 38 | sfx-player-join.mp3 | `Player joining notification, gentle ascending two-tone chime, someone arrived, 0.5 seconds` | 玩家加入 |
+| 39 | sfx-player-leave.mp3 | `Player leaving notification, soft descending two-tone chime, someone departed, 0.5 seconds` | 玩家离开 |
 
 ---
 

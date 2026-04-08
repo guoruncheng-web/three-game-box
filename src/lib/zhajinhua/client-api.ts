@@ -11,6 +11,15 @@ import type {
   RoomInfo,
 } from '@/types/zjh';
 
+function authHeaders(): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 async function parseJson<T>(res: Response): Promise<ApiResponse<T>> {
   const data = (await res.json()) as ApiResponse<T>;
   return data;
@@ -19,7 +28,7 @@ async function parseJson<T>(res: Response): Promise<ApiResponse<T>> {
 export async function zjhHumanVsBot(userId: string) {
   const res = await fetch('/api/zjh/rooms/human-vs-bot', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId }),
   });
   return parseJson<{
@@ -33,7 +42,7 @@ export async function zjhHumanVsBot(userId: string) {
 export async function zjhBotStep(gameId: string, userId: string) {
   const res = await fetch('/api/zjh/games/bot-step', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ gameId, userId }),
   });
   return parseJson<{ done: boolean }>(res);
@@ -42,7 +51,7 @@ export async function zjhBotStep(gameId: string, userId: string) {
 export async function zjhMatchRoom(userId: string) {
   const res = await fetch('/api/zjh/rooms/match', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId }),
   });
   return parseJson<{
@@ -56,7 +65,7 @@ export async function zjhMatchRoom(userId: string) {
 export async function zjhJoinRoom(userId: string, roomCode: string) {
   const res = await fetch('/api/zjh/rooms/join', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, roomCode }),
   });
   return parseJson<{
@@ -75,21 +84,21 @@ export async function zjhJoinRoom(userId: string, roomCode: string) {
 export async function zjhLeaveRoom(userId: string, roomId: string) {
   const res = await fetch('/api/zjh/rooms/leave', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, roomId }),
   });
   return parseJson<{ message: string; newOwnerId: string | null }>(res);
 }
 
 export async function zjhFetchRoom(roomId: string) {
-  const res = await fetch(`/api/zjh/rooms/${roomId}`);
+  const res = await fetch(`/api/zjh/rooms/${roomId}`, { headers: authHeaders() });
   return parseJson<RoomInfo>(res);
 }
 
 export async function zjhSetReady(userId: string, roomId: string, isReady: boolean) {
   const res = await fetch('/api/zjh/rooms/ready', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, roomId, isReady }),
   });
   return parseJson<{ isReady: boolean; allReady: boolean }>(res);
@@ -98,7 +107,7 @@ export async function zjhSetReady(userId: string, roomId: string, isReady: boole
 export async function zjhStartGame(userId: string, roomId: string) {
   const res = await fetch('/api/zjh/games/start', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, roomId }),
   });
   return parseJson<{
@@ -121,7 +130,8 @@ export async function zjhStartGame(userId: string, roomId: string) {
 /** GET /api/zjh/games/:gameId 返回的 data 与 GameStateResponse 对齐 */
 export async function zjhFetchGameState(gameId: string, userId: string) {
   const res = await fetch(
-    `/api/zjh/games/${encodeURIComponent(gameId)}?userId=${encodeURIComponent(userId)}`
+    `/api/zjh/games/${encodeURIComponent(gameId)}?userId=${encodeURIComponent(userId)}`,
+    { headers: authHeaders() }
   );
   return parseJson<GameStateResponse>(res);
 }
@@ -129,7 +139,7 @@ export async function zjhFetchGameState(gameId: string, userId: string) {
 export async function zjhLook(userId: string, gameId: string) {
   const res = await fetch('/api/zjh/games/look', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, gameId }),
   });
   return parseJson<{
@@ -147,7 +157,7 @@ export async function zjhAction(
 ) {
   const res = await fetch('/api/zjh/games/action', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, gameId, actionType, amount }),
   });
   return parseJson<{
@@ -166,18 +176,22 @@ export async function zjhAction(
 export async function zjhCompare(userId: string, gameId: string, targetUserId: string) {
   const res = await fetch('/api/zjh/games/compare', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),
     body: JSON.stringify({ userId, gameId, targetUserId }),
   });
   return parseJson<Record<string, unknown>>(res);
 }
 
 export async function zjhFetchGameResult(gameId: string) {
-  const res = await fetch(`/api/zjh/games/${encodeURIComponent(gameId)}/result`);
+  const res = await fetch(`/api/zjh/games/${encodeURIComponent(gameId)}/result`, {
+    headers: authHeaders(),
+  });
   return parseJson<GameResultResponse>(res);
 }
 
 export async function zjhFetchStats(userId: string) {
-  const res = await fetch(`/api/zjh/stats/${encodeURIComponent(userId)}`);
+  const res = await fetch(`/api/zjh/stats/${encodeURIComponent(userId)}`, {
+    headers: authHeaders(),
+  });
   return parseJson<PlayerStatsResponse>(res);
 }
