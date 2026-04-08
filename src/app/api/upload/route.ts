@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     const pathname = `${subDir}/${user.userId}_${Date.now()}_${random}.${ext}`;
 
     // 上传到 Vercel Blob（显式传递 token 防止环境变量未注入）
-    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN_READ_WRITE_TOKEN;
     if (!blobToken) {
       console.error('BLOB_READ_WRITE_TOKEN 环境变量未配置');
       return NextResponse.json<ApiResponse>(
