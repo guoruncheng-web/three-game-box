@@ -1,17 +1,24 @@
-name: CI/CD Deployment
+name: Vercel Deployment
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch: # 允许手动触发
 
 env:
-  NODE_ENV: production
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
-  build-and-deploy:
+  # PR 和非 main 分支 → Preview 部署
+  deploy-preview:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    
+    environment:
+      name: Preview
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,87 +29,53 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Verify files
-        run: |
-          echo "=== 检查关键文件 ==="
-          ls -lah package.json package-lock.json
-          echo "=== Node 和 npm 版本 ==="
-          node --version
-          npm --version
-          echo "=== package-lock.json lockfileVersion ==="
-          head -10 package-lock.json
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
 
-      - name: Clean npm cache (if needed)
-        run: npm cache verify
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-        env:
-          NODE_ENV: development
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build project
-        run: npm run build
-        env:
-          NODE_ENV: production
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy to Vercel (Preview)
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### 🔗 Preview 部署成功" >> $GITHUB_STEP_SUMMARY
+          echo "URL: $url" >> $GITHUB_STEP_SUMMARY
+
+  # main 分支推送 → Production 部署
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          timeout: 300s
-          script: |
-            set -e
-            
-            # 项目目录
-            PROJECT_DIR="/var/www/three-game"
-            
-            # 如果目录不存在，克隆仓库
-            if [ ! -d "$PROJECT_DIR" ]; then
-              echo "项目目录不存在，开始克隆..."
-              mkdir -p /var/www
-              cd /var/www
-              git clone https://github.com/guoruncheng-web/three-game-box.git three-game
-              cd $PROJECT_DIR
-            else
-              echo "更新代码..."
-              cd $PROJECT_DIR
-              git fetch origin
-              git reset --hard origin/main
-            fi
-            
-            # 检查环境
-            echo "=== 检查环境 ==="
-            node --version
-            npm --version
+          node-version: '20'
+          cache: 'npm'
 
-            # 安装依赖
-            echo "=== 安装依赖 ==="
-            npm ci --prefer-offline --no-audit --production=false
-            
-            # 构建项目
-            echo "构建项目..."
-            npm run build
-            
-            # 检查构建产物
-            if [ ! -d ".next" ]; then
-              echo "❌ 错误：构建产物 .next 目录不存在"
-              exit 1
-            fi
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
 
-            # 使用 PM2 管理进程
-            echo "重启应用..."
-            if pm2 list | grep -q "three-game"; then
-              pm2 reload ecosystem.config.js --only three-game
-            else
-              pm2 start ecosystem.config.js
-              pm2 save
-            fi
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-            # 显示状态和日志
-            pm2 status
-            pm2 logs three-game --lines 50 --nostream
+      - name: Build project
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-            echo "部署完成！"
+      - name: Deploy to Vercel (Production)
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "### ✅ Production 部署成功" >> $GITHUB_STEP_SUMMARY
+          echo "URL: $url" >> $GITHUB_STEP_SUMMARY

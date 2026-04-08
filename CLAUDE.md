@@ -16,10 +16,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **类型检查:** TypeScript 5
 
 **部署信息:**
-- 域名: www.gamebox.xingzdh.com
-- 服务器 IP: 47.86.46.212
-- 生产环境端口: 7006
-- 服务器私钥: 项目中的 `id_rsa` 文件
+- 部署平台: Vercel
+- 域名: www.gamebox.xingzdh.com (通过 Vercel 自定义域名绑定)
+- 部署区域: hkg1 (香港)
+- 部署方式: GitHub Actions + Vercel CLI
+- main 分支推送自动部署 Production，PR 自动部署 Preview
 
 ---
 
