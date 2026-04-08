@@ -35,6 +35,12 @@ export const zjhAssets = {
   gameLogoTitle: `${BASE}/game-logo-title.png`,
   dealCardMotion: `${BASE}/deal-card-motion.png`,
   seatEmptyWaiting: `${BASE}/seat-empty-waiting.png`,
+  /** 左上角返回按钮（public/zhajinhua） */
+  backButton: '/zhajinhua/back.png',
+  /** antd-mobile Dialog 弹窗底图（public/zhajinhua） */
+  dialogBg: '/zhajinhua/dialog_bg.png',
+  /** 玩法说明 Popup 底图（public/zhajinhua，768×1344） */
+  ruleGuideBg: '/zhajinhua/rule_bg.png',
 } as const;
 
 /** manifest 中只有豹子 / 顺金 / 金花 三张牌型条图，其余牌型仅展示文字 */

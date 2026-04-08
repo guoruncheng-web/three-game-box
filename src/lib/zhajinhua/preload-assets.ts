@@ -35,7 +35,7 @@ const FALLBACK_GENERATED_FILES = [
   'dealer-intro.png',
 ] as const;
 
-const EXTRA_URLS = ['/images/games/zhajinhua-cover.png', '/images/back.png'] as const;
+const EXTRA_URLS = ['/zhajinhua/logo.png', '/zhajinhua/back.png'] as const;
 
 function fallbackUrls(): string[] {
   return [...EXTRA_URLS, ...FALLBACK_GENERATED_FILES.map((f) => `${GENERATED_BASE}/${f}`)];

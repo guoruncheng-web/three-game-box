@@ -6,6 +6,8 @@
 
 import { Button, Popup } from 'antd-mobile';
 
+import { zjhAssets } from '@/lib/zhajinhua/assets';
+
 /** localStorage 键：已读过玩法说明则不再自动弹出 */
 export const ZJH_GUIDE_STORAGE_KEY = 'zhajinhua_guide_seen_v1';
 
@@ -30,23 +32,31 @@ export function ZhajinhuaGuidePopup({
       onMaskClick={onClose}
       position="bottom"
       destroyOnClose
+      bodyClassName="zjh-guide-popup-body"
       bodyStyle={{
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        maxHeight: '88vh',
+        /** 固定高度才能让 flex 子项 flex-1 + overflow 生效，避免底栏盖住正文；底图样式见 globals */
+        height: 'min(88vh, 100dvh)',
+        maxHeight: 'min(88vh, 100dvh)',
+        minHeight: 0,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        background: 'linear-gradient(180deg, #3d2666 0%, #2d1b4e 40%, #1a0f2e 100%)',
+        backgroundImage: `url(${zjhAssets.ruleGuideBg})`,
+        /** cover：横向铺满不留缝；100% auto 在窄屏上易与图内黑边叠出两侧「细黑条」观感 */
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat',
+        /** 与 rule_bg 内板/侧柱接近，填充素材里透明像素，减轻「上中下宽度不一」导致的缝隙 */
+        backgroundColor: '#162a30',
       }}
     >
-      <div className="flex min-h-0 max-h-[88vh] flex-col text-white">
-        <div className="shrink-0 border-b border-white/10 px-4 pb-3 pt-4">
+      <div className="zjh-guide-popup-inner flex h-full min-h-0 min-w-0 flex-1 flex-col text-white">
+        <div className="shrink-0 border-b border-amber-400/15 px-4 pb-3 pt-1">
           <h2 className="text-center text-lg font-black tracking-wide text-amber-200">炸金花 · 玩法说明</h2>
           <p className="mt-1 text-center text-[11px] text-white/55">以下为游戏盒内规则摘要，便于快速上手</p>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 text-[13px] leading-relaxed text-white/90">
+        <div className="zjh-guide-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 text-[13px] leading-relaxed text-white/90">
           <section className="mb-5">
             <h3 className="mb-2 text-sm font-bold text-amber-300/95">游戏目标</h3>
             <p>
@@ -121,7 +131,7 @@ export function ZhajinhuaGuidePopup({
           </p>
         </div>
 
-        <div className="shrink-0 space-y-2 border-t border-white/10 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
+        <div className="zjh-guide-footer shrink-0 space-y-2 border-t border-amber-400/20 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
           {onReplayPlayingTour ? (
             <Button fill="outline" block size="small" onClick={onReplayPlayingTour}>
               重播牌桌操作引导（点哪里、下一步）

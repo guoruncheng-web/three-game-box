@@ -48,6 +48,14 @@ function shortName(userId: string, username: string | null | undefined) {
   return `玩家${userId.slice(0, 4)}`;
 }
 
+/** 与 globals 中 `.zjh-adm-dialog-root` / `.zjh-adm-dialog-body` 配套的炸金花确认弹窗 */
+function zjhDialogConfirmSurface() {
+  return {
+    className: 'zjh-adm-dialog-root',
+    bodyClassName: 'zjh-adm-dialog-body',
+  };
+}
+
 export function ZhajinhuaApp() {
   const router = useRouter();
   const { showToast } = useToast();
@@ -549,11 +557,33 @@ export function ZhajinhuaApp() {
       className="min-h-[100dvh] flex flex-col relative overflow-hidden"
       style={{
         background:
-          phase === 'playing'
+          phase === 'playing' || phase === 'lobby' || phase === 'room'
             ? 'transparent'
             : 'linear-gradient(to bottom, #1a0a2e, #2d1b4e)',
       }}
     >
+      {/* 大厅 / 房间：大厅背景图铺满整个视口 */}
+      {phase === 'lobby' || phase === 'room' ? (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <Image
+            src={zjhAssets.lobbyBg}
+            alt=""
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority
+            unoptimized
+          />
+          <div
+            className={`absolute inset-0 ${
+              phase === 'room' && roomInfo
+                ? 'bg-gradient-to-b from-black/55 via-black/35 to-black/60'
+                : 'bg-gradient-to-b from-[#1a0a2e]/75 via-[#1a0a2e]/45 to-[#0f0618]/80'
+            }`}
+          />
+        </div>
+      ) : null}
+
       {/* 对局中：牌桌图铺满整个屏幕（含安全区），操作区仍叠在上层 */}
       {phase === 'playing' && gameState ? (
         <div className="pointer-events-none fixed inset-0 z-0">
@@ -575,19 +605,33 @@ export function ZhajinhuaApp() {
           <button
             type="button"
             onClick={() => {
-              if (phase === 'lobby') router.push('/');
-              else {
+              if (phase === 'lobby') {
+                Dialog.confirm({
+                  title: '返回游戏首页？',
+                  content: '将离开炸金花大厅，未加入房间无损失。',
+                  ...zjhDialogConfirmSurface(),
+                  onConfirm: () => void router.push('/'),
+                });
+              } else {
                 Dialog.confirm({
                   title: '离开房间？',
-                  content: '进行中的对局将视为放弃（若可离开）',
+                  content: '进行中的牌局将按规则处理，确定要离开吗？',
+                  ...zjhDialogConfirmSurface(),
                   onConfirm: () => void handleLeaveToLobby(),
                 });
               }
             }}
-            className="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center active:scale-95 transition-transform touch-manipulation shrink-0"
+            className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl p-0 active:scale-95 touch-manipulation transition-transform"
             aria-label="返回"
           >
-            <Image src="/images/back.png" alt="" width={24} height={24} />
+            <Image
+              src={zjhAssets.backButton}
+              alt=""
+              width={56}
+              height={56}
+              className="h-full w-full object-contain"
+              unoptimized
+            />
           </button>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -612,25 +656,15 @@ export function ZhajinhuaApp() {
       </header>
 
       {phase === 'lobby' && (
-        <div className="relative flex-1 flex flex-col min-h-0">
-          <Image
-            src={zjhAssets.lobbyBg}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-            unoptimized
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#1a0a2e]/75 via-[#1a0a2e]/45 to-[#0f0618]/80 pointer-events-none" />
+        <div className="relative z-[1] flex-1 flex flex-col min-h-0">
           <div className="relative z-10 flex-1 flex flex-col px-4 pb-28 gap-3 overflow-y-auto">
-          <div className="relative w-full max-w-[360px] mx-auto aspect-square rounded-3xl overflow-hidden shadow-[0_0_48px_rgba(234,179,8,0.35)] ring-2 ring-amber-400/30">
+          <div className="relative mx-auto w-full max-w-[min(68vw,252px)] aspect-square shrink-0 rounded-3xl overflow-hidden shadow-[0_0_36px_rgba(234,179,8,0.28)] ring-2 ring-amber-400/30">
             <Image
-              src="/images/games/zhajinhua-cover.png"
+              src="/zhajinhua/logo.png"
               alt="炸金花"
               fill
               className="object-cover"
-              sizes="360px"
+              sizes="(max-width: 430px) 68vw, 252px"
               priority
             />
           </div>
@@ -684,20 +718,11 @@ export function ZhajinhuaApp() {
       )}
 
       {phase === 'room' && !roomInfo && (
-        <div className="flex-1 flex items-center justify-center text-white/80">加载房间…</div>
+        <div className="relative z-[1] flex-1 flex items-center justify-center text-white/80">加载房间…</div>
       )}
 
       {phase === 'room' && roomInfo && (
-        <div className="relative flex-1 flex flex-col min-h-0">
-          <Image
-            src={zjhAssets.lobbyBg}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-            unoptimized
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/60 pointer-events-none" />
+        <div className="relative z-[1] flex-1 flex flex-col min-h-0">
           <div className="relative z-10 flex-1 flex flex-col px-4 pb-28 gap-4 overflow-y-auto">
           <div className="rounded-2xl p-4 text-white backdrop-blur-sm bg-black/40 border border-amber-400/30">
             <div className="flex justify-between items-center mb-2">

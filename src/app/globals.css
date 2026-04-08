@@ -519,6 +519,162 @@ body {
   animation: zjh-dealer-bubble-in 0.45s ease-out 0.2s both;
 }
 
+/*
+ * 炸金花 Dialog.confirm：覆盖 antd-mobile CenterPopup 默认白底与圆角，
+ * 按 public/zhajinhua/dialog_bg.png（1152×896）铺底；用 ::before/::after 弹性占位，
+ * 让标题+正文落在画框中部深色区，底部按钮落在下沿内侧。
+ */
+.adm-center-popup.zjh-adm-dialog-root {
+  --adm-center-popup-background-color: transparent;
+  --adm-center-popup-border-radius: 0;
+  --adm-center-popup-min-width: 0;
+  --adm-center-popup-max-width: min(92vw, 380px);
+}
+
+/* 避免包裹层 / 动画层透出默认浅色底 */
+.adm-center-popup.zjh-adm-dialog-root .adm-center-popup-wrap,
+.adm-center-popup.zjh-adm-dialog-root .adm-center-popup-wrap > div {
+  background: transparent !important;
+}
+
+.adm-center-popup-body.zjh-adm-dialog-body {
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  width: min(92vw, 380px);
+  min-width: unset !important;
+  max-width: min(92vw, 380px) !important;
+  aspect-ratio: 1152 / 896;
+  height: auto !important;
+  /* 仅左右与最底边留白；上下由伪元素分配，避免压到雕花 */
+  padding: 0 clamp(1rem, 6.5vw, 1.75rem) clamp(0.5rem, 2vw, 0.75rem);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 0;
+  background-color: transparent !important;
+  background-image: url(/zhajinhua/dialog_bg.png);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  isolation: isolate;
+}
+
+/* 上、下弹性区：把标题+正文顶到画框视觉中心带 */
+.adm-center-popup-body.zjh-adm-dialog-body::before,
+.adm-center-popup-body.zjh-adm-dialog-body::after {
+  content: '';
+  flex: 1 1 0;
+  min-height: clamp(1.75rem, 8vw, 2.75rem);
+  width: 100%;
+  pointer-events: none;
+}
+
+.adm-center-popup-body.zjh-adm-dialog-body::before {
+  order: 1;
+}
+
+.adm-center-popup-body.zjh-adm-dialog-body::after {
+  order: 4;
+}
+
+.zjh-adm-dialog-body .adm-dialog-title {
+  order: 2;
+  flex: 0 0 auto;
+  margin: 0 0 0.35rem;
+  padding: 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-align: center;
+  color: #fde68a;
+  text-shadow:
+    0 0 12px rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.85);
+}
+
+.zjh-adm-dialog-body .adm-dialog-content {
+  order: 3;
+  flex: 0 1 auto !important;
+  max-height: none !important;
+  margin: 0;
+  padding: 0 0.25rem 0.25rem !important;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  text-align: center;
+  color: rgba(255, 250, 235, 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+}
+
+.zjh-adm-dialog-body .adm-dialog-footer {
+  order: 5;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 0.2rem;
+}
+
+.zjh-adm-dialog-body .adm-dialog-footer .adm-dialog-action-row {
+  margin: 0 0.15rem;
+  border-top: 1px solid rgba(251, 191, 36, 0.22);
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.12) 0%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
+}
+
+.zjh-adm-dialog-body .adm-dialog-footer .adm-dialog-button.adm-button-primary.adm-button-fill-none {
+  --color: #fcd34d;
+  --text-color: #fde68a;
+  --background-color: transparent;
+  --border-width: 0;
+}
+
+.zjh-adm-dialog-body .adm-dialog-footer .adm-dialog-button {
+  padding-top: 0.7rem !important;
+  padding-bottom: 0.75rem !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border-right-color: rgba(251, 191, 36, 0.2) !important;
+}
+
+.zjh-adm-dialog-body .adm-dialog-footer .adm-dialog-button.adm-dialog-button-bold {
+  --text-color: #fcd34d;
+  --color: #fbbf24;
+  font-weight: 700 !important;
+}
+
+/*
+ * 炸金花玩法说明 Popup：rule_bg.png 为 768×1344（竖图）。
+ * 使用 cover 铺满面板宽度，避免两侧露底色；上下略裁剪可接受，必要时换更宽画幅素材。
+ */
+.adm-popup-body.zjh-guide-popup-body {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 100vw;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.zjh-guide-popup-inner {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(2.85rem, 10.5vw, 4.35rem) clamp(1.05rem, 5.5vw, 1.85rem) 0;
+}
+
+.zjh-guide-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+.zjh-guide-footer {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.22));
+}
+
 /* 延迟工具类 */
 .delay-100 { animation-delay: 0.1s; }
 .delay-150 { animation-delay: 0.15s; }

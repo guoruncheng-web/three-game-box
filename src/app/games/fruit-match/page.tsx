@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import dynamic from 'next/dynamic';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameSounds } from '@/hooks/useGameSounds';
@@ -1130,6 +1131,7 @@ export default function FruitMatchPage() {
   };
 
   return (
+    <AuthGuard>
     <div
       className="min-h-screen"
       style={{
@@ -1379,5 +1381,6 @@ export default function FruitMatchPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

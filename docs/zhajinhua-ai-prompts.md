@@ -6,6 +6,28 @@
 > 背景要求：透明背景（除游戏桌面和大厅背景外）
 > 推荐模型：Leonardo Diffusion XL / Leonardo Kino XL
 
+### 中文提示词（通义万相 / 即梦 / 可灵等）
+
+- **国内模型**通常对 **中文描述** 友好，可直接用中文写主体、风格、禁忌；也可 **中英混用**（如「中国风赛博朋克，transparent background」）。
+- 本文各节以 **英文** 为主（便于 Leonardo / 复用），需要时在对应小节下找 **「Positive（中文）」「Negative（中文）」**；未单独翻译的章节，可把英文 Positive/Negative **意译** 为中文使用，语义不变即可。
+- 负面词建议始终包含：**不要文字、不要水印、不要变形**；需要透明底时加 **透明背景、不要白底**。
+
+### 尺寸比例与生成工具预设（画面设置）
+
+在 Leonardo、通义万相等平台的 **「画面设置 / 尺寸比例」** 中，优先选与目标资源一致的 **比例**，再选接近的 **像素档位**（各平台命名可能为 `1152×896`、`1344×768` 等）。
+
+| 资源类型 | 建议比例 | 示例分辨率（可与工具预设对齐） | 说明 |
+|----------|----------|-------------------------------|------|
+| 二次确认弹窗底图 `dialog_bg.png` | **4:3** | **1152×896**（项目现网尺寸） | 横版 ornate 框，与弹层 `aspect-ratio: 1152/896` 一致 |
+| 玩法说明弹窗背景（第 24 节） | **9:16** | **768×1344**、720×1280、1080×1920 | 竖长全幅出血，金框贴齐左右边缘，避免两侧黑条 |
+| 玩法说明仅顶部装饰条 | **16:9** 或 **21:9** | 1344×768、宽条横图 | 只铺顶栏时裁切或单独出图 |
+| 需要正方图标/小图 | **1:1** | 1024×1024 | 筹码、头像框等见各节 |
+| **返回按钮图标**（第 25 节） | **1:1** | 256×256 或 512×512 | 透明底 PNG，前端可 `Image` 24～48dp |
+| **大厅主按钮「人机对战」**（第 26-A 节） | 约 **5:1～6:1** 横条 | 640×120、720×128 | 橙金渐变圆角条，**无字**，前端叠文案 |
+| **大厅「加入」侧按钮**（第 26-B 节） | **1:1** | 256×256、320×320 | 与主按钮同系小方钮，**无字** |
+
+生成后再按前端实际用 `cover`/`contain` 做轻微裁切即可；**比例比绝对像素更重要**。
+
 ---
 
 ## 1. 游戏大厅背景
@@ -558,6 +580,209 @@ bright, colorful, busy, complex, cartoon, realistic, text
 
 ---
 
+## 24. 玩法说明弹窗背景
+
+> **用途：** 炸金花「玩法说明」底部弹层（`ZhajinhuaGuidePopup`）整面板底图；与二次确认弹窗 `dialog_bg.png` 同系：**深色鎏金雕花外框 + 中间深色内容区**。前端常用 **`background-size: cover`** 铺满宽度，故素材需 **左右贴边、全幅出血**，避免出现两侧黑边或窄框外留白。  
+> **尺寸建议：** **9:16** 竖幅（与现网 `public/zhajinhua/rule_bg.png` 参考 **768×1344** 一致）；生成工具可选 **720×1280、1080×1920、768×1344**。构图以 **画幅左右边缘即为金色外框外沿** 为准。  
+> **导出：** **不透明 PNG**；外圈可为纯黑以便融进蒙层，但 **不要在画面左右留空黑条**——装饰框应撑满整宽。
+
+> **常见坑：生成图出现左右黑边（黑条）**  
+> - **原因：** 模型按「电影宽银幕」或「中间一块 UI」输出，在 **9:16 画布** 左右留了 **matte / letterbox**；或装饰框只画了中间一截，两侧未画到边。  
+> - **提示词上：** 下述 Positive 已加 **full canvas coverage / every pixel filled with art / no matte**；Negative 已加 **cinematic black bars、21:9、pillarbox** 等。可再叠一句：**「整幅 9:16 竖图，无任何左右黑边，金属边框贴齐画布最左最右像素」**。  
+> - **出图后：** 用修图软件 **左右各裁掉 2%～5%** 黑条；或用平台 **扩图/Outpaint** 向两侧补画框；或用 **16:9 出图再裁成 9:16** 有时反而更稳（视模型而定）。  
+> - **前端：** 工程里已用 `cover` + **与框内深色接近的实色底**（填充素材里透明像素），若仍有缝可略提高 `background-size` 或 **换无透明缝素材**。
+
+> **常见坑：上中下「宽度」不一致、侧沿有空隙（透明棋盘格）**  
+> - **现象：** 左右装饰在 **顶部、中部、底部** 外凸程度不同，最外侧竖边不是一条直线，或 **PNG 带透明通道**，与弹层叠放时出现 **透明缝隙**（棋盘格）。  
+> - **提示词上：** 要求 **左右外轮廓为两条平行竖线**（从顶到底对齐），**上中下段最外侧像素对齐**，不要「只有四角外凸、中段内凹」；并写明 **fully opaque PNG, no transparency, no alpha holes along edges**。  
+> - **出图后：** 在修图软件里 **合并为不透明图层**，用 **与金框相近的深青灰** 填满侧缘透明区；或 **向外侧轻微扩边 3～8px** 再压平。  
+> - **前端：** `background-color` 使用与内板接近的 **#162a30** 一类色，可减轻透明缝观感（见 `ZhajinhuaGuidePopup`）。
+
+**Positive:**
+```
+Full-bleed vertical mobile game panel background, ((Chinese fantasy "Zha Jin Hua" poker UI)),
+strict portrait 9:16 canvas, ((every pixel of the image must be filled with opaque artwork)) — no transparency, no alpha channel holes, no checkerboard gaps,
+((the outermost left silhouette and outermost right silhouette must be two straight parallel vertical lines)) from top to bottom — consistent border width, no staggered profile where top/bottom corners stick out wider than the middle section,
+the ((ornate gold and bronze carved frame)) MUST touch the extreme left and extreme right edges — no pillarboxing, no letterboxing, no side gutters,
+not a cinematic widescreen composition — this is a full mobile UI panel, not a movie frame with black bars,
+thick symmetrical decorative metal borders on left, right, and bottom; dragon or imperial seal motif at top center (abstract silhouette, no readable text),
+inner field: dark navy charcoal vertical wood grain or brushed stone texture, subtle vignette, warm rim light from top,
+thin double golden pinstripe inset border, premium 3D metallic bevel, cyberpunk neon gold edge highlights,
+large calm dark central area reserved for scrolling rules text, uncluttered middle, no icons or buttons,
+export as fully opaque image, masterpiece, sharp focus, 8k, game UI matte painting, seamless left and right edges, rectangular outer bounding box
+```
+
+**Negative:**
+```
+blurry, low quality, watermark, readable text, letters, numbers, logo,
+transparency, alpha channel, semi-transparent edges, checkerboard, transparent gaps along left or right edge,
+wavy side outline, inconsistent frame width between top middle and bottom, corner ornaments wider than mid-section side rails,
+black vertical bars on sides, cinematic letterbox, movie aspect ratio 21:9, ultra-wide matte,
+empty black regions on sides, pillarbox, narrow UI panel floating on pure black background,
+UI screenshot, fake buttons, playing cards and chips as hero subject, cluttered center, pure white background, cartoon kids style,
+western Vegas neon only, asymmetric frame, fisheye, tilted perspective, cropped frame
+```
+
+**Positive（中文）:**
+```
+竖屏 9:16 手机游戏「玩法说明」全幅面板背景，中国风幻想炸金花界面，
+整张图 **完全不透明**，不要透明通道、不要边缘透明像素、不要棋盘格缝隙，
+**左右最外侧轮廓必须是两条笔直、平行的竖线**（从上到下一刀齐），上段/中段/下段 **外沿宽度一致**，不要四角外凸、中段内凹造成侧缝，
+（鎏金与古铜色立体雕花金属框）紧贴画布最左、最右边缘，不要左右黑边、不要中间窄条浮在大黑底上，
+不是电影截图，不要 21:9 超宽加黑边，
+左右与下沿为厚重对称雕花，顶部正中可有龙首或玺印感装饰（抽象剪影，无可读文字），
+内区为深炭灰至藏青竖向木纹或拉丝石纹，略有过曝的顶侧暖光，
+内圈细双道金线勾边，赛博霓虹金边高光，3D 金属倒角，
+中间留出大块干净深色区域专供叠字与滚动，中心不要放按钮和图标，
+外轮廓为规整矩形，全幅出血，8K，清晰锐利
+```
+
+**Negative（中文）:**
+```
+模糊，低质量，水印，可读文字，字母数字，商标，
+透明底，半透明边，棋盘格透明，左右边缘透明洞，
+左右外轮廓波浪形、上中下宽度不一致、四角外凸中段内缩，
+左右黑条，电影宽银幕黑边，21:9 加黑边，上下大黑边，
+画面左右纯黑留白，中间窄条浮在黑底上，Pillarbox 黑边，
+界面截图，假按钮，扑克牌或筹码作为画面主体占满中心，中心杂乱，
+纯白底，低幼卡通，真人，纯拉斯维加斯霓虹，
+画框不对称，鱼眼，倾斜透视，画框被裁切
+```
+
+---
+
+## 25. 返回按钮图标
+
+> **用途：** 炸金花及游戏盒内左上角「返回上一页 / 大厅」的图标按钮贴图；项目内见 **`public/zhajinhua/back.png`**（`zjhAssets.backButton`，`next/image` 常用 24×24～48×48 显示，源图宜 2～4 倍分辨率）。  
+> **尺寸建议：** **1:1**，导出 **256×256** 或 **512×512**（或 1024×1024 再缩小）。  
+> **格式：** **透明背景 PNG**；箭头为主体，避免整张图铺满不透明底，便于叠在圆角按钮或毛玻璃上。
+
+**Positive:**
+```
+Game UI back navigation icon, ((Chinese cyberpunk style)), transparent background,
+left-pointing chevron or arrow glyph, bold readable silhouette,
+metallic silver-white or pale gold arrow with subtle neon cyan or amber edge glow,
+thin traditional Chinese cloud or circuit trace ornament hugging the arrow (optional, minimal),
+rounded soft stroke caps, centered in square canvas with safe padding margin,
+no circle plate, no filled square button background — icon only floating on alpha,
+high contrast for dark UI header, mobile game HUD icon asset,
+clean vector-like edges, crisp anti-aliased, front view, symmetrical vertical balance,
+high quality render, sharp details, professional, 8k
+```
+
+**Negative:**
+```
+blurry, low quality, opaque square background, filled circle button, 3D extruded block,
+text, letters, watermark, realistic photo, hand, finger,
+multiple arrows, curved back icon, western style only, cartoon cute, cluttered,
+bright white solid background, colored backdrop, drop shadow as heavy blob
+```
+
+**Positive（中文）:**
+```
+游戏 UI 返回图标，中国风赛博朋克，透明背景，
+朝左的尖角折线箭头或单箭头，轮廓清晰粗壮易辨认，
+银白或淡金色箭头，边缘带轻微霓虹青或琥珀色描边，
+可点缀极细祥云或电路纹（可选，要少），
+笔画端点圆润，在正方形画布内居中，四周留安全边距，
+不要圆形底板，不要整块不透明方形按钮——仅箭头悬浮在透明底上，
+适合深色顶栏，高对比，手机游戏 HUD 小图标，
+边缘锐利类似矢量，抗锯齿干净，正面平视，竖直方向平衡，
+高清，细节清晰，专业，8K
+```
+
+**Negative（中文）:**
+```
+模糊，低质量，不透明方形底，实心圆形按钮，厚重 3D 挤出块，
+文字，字母，水印，真人照片，手，手指，
+多个箭头，弯曲返回符号，纯西式，低幼卡通，杂乱，
+纯白实心底，彩色不透明底，大块脏阴影
+```
+
+---
+
+## 26. 大厅主操作按钮（人机对战 / 加入）
+
+> **用途：** 炸金花 **大厅**（lobby）底部主行动条：左侧宽幅 **「人机对战（练习）」**，房间号输入框右侧 **「加入」**。与界面一致：**亮橙至深橙纵向渐变**、大圆角、轻微立体与内发光；与 **「快速匹配」**（线框次要钮）形成主次对比。  
+> **注意：** 出图 **不要带「人机对战」「加入」等文字**（文案由前端 `Button` 渲染，便于改字与多语言）。仅需 **按钮底板/质感**。  
+> **格式：** **透明背景 PNG**（或与不透明橙底二选一，叠字时建议透明边）；可切 **9-slice** 时优先横条左右可拉伸中间区。
+
+### 26-A 「人机对战（练习）」主按钮（宽幅）
+
+> **尺寸建议：** 横条 **约 5:1～6:1**，如 **640×120**、**720×128**、**960×160**。
+
+**Positive:**
+```
+Mobile game primary CTA button background only, ((Chinese fantasy cyberpunk casino lobby style)), transparent background,
+wide horizontal rounded rectangle, large corner radius capsule-like shape,
+((vertical gradient)) from vivid orange #ff8c42 to deep burnt orange #c2410c, subtle inner highlight along top edge,
+soft 3D beveled extrusion, gentle inner glow, metallic gold micro-rim on outer edge optional,
+premium glossy lacquer feel, centered empty area for text overlay — absolutely no text, no Chinese characters,
+high-end mobile game UI asset, front orthographic view, sharp clean edges, 8k
+```
+
+**Negative:**
+```
+blurry, low quality, text, Chinese characters, English, numbers, watermark,
+icons, playing cards, full lobby screenshot, secondary outline-only button style,
+flat solid orange only, neon pink, western slot machine, cartoon sticker,
+opaque white background, busy pattern inside button
+```
+
+**Positive（中文）:**
+```
+手机游戏主操作按钮底板（只要背景不要字），中国风幻想赛博赌场大厅，透明底，
+横向宽圆角条，大圆角接近胶囊形，
+亮橙色到深橙红纵向渐变，上沿略亮仿内高光，
+轻微 3D 浮雕与内发光，外圈可极细金属金边（可选），
+漆光质感，中间留白给程序叠字——绝对不要任何文字汉字英文，
+高端手游 UI，正视扁平投影，边缘锐利，8K
+```
+
+**Negative（中文）:**
+```
+模糊，低质量，文字，汉字，英文，数字，水印，
+图标，扑克，整张大厅截图，线框次要按钮样式，
+纯平单色无渐变，玫红霓虹，西式老虎机，低幼贴纸，
+白实底，按钮内部杂乱纹理
+```
+
+### 26-B 「加入」侧按钮（小方钮）
+
+> **尺寸建议：** 近 **1:1**，如 **256×256**、**320×320**（显示尺寸小于主按钮，源图可略大）。
+
+**Positive:**
+```
+Mobile game small square CTA button background only, ((same style as wide orange primary button)), transparent background,
+rounded square shape, moderate corner radius, matching ((orange vertical gradient)) and bevel style,
+compact tile next to input field, empty center for two-character text overlay — no text rendered in image,
+consistent lighting with golden rim accent, premium mobile game UI, front view, crisp, 8k
+```
+
+**Negative:**
+```
+blurry, text, letters, watermark, different color scheme from orange primary,
+circle only, long horizontal bar, huge size, cluttered, cartoon,
+white background, icons, arrows
+```
+
+**Positive（中文）:**
+```
+与上面主按钮同系列的「小方钮」底板（不要字），透明底，
+圆角方形，圆角适中，橙金纵向渐变与浮雕质感与 26-A 一致，
+贴在输入框旁的小块按钮，中心留白叠两字——图中不要出现文字，
+金边点缀可与主钮一致，正视，清晰，8K
+```
+
+**Negative（中文）:**
+```
+模糊，文字，水印，与主钮色差过大，
+纯圆无边形，细长横条，尺寸过大像主钮，杂乱，低幼卡通，
+白底，图标，箭头
+```
+
+---
+
 ## 通用负面提示词（适用于所有资源）
 
 ```
@@ -565,6 +790,15 @@ blurry, low quality, distorted, deformed, ugly, watermark, signature,
 text overlay, cropped, out of frame, duplicate, mutation,
 poorly drawn, jpeg artifacts, pixelated, noise, grain,
 white background (用于需要透明背景的资源)
+```
+
+**通用负面提示词（中文，可与英文择一或混用）:**
+
+```
+模糊，低质量，变形，畸形，丑，水印，签名，
+文字叠加，裁切出框，重复，突变，
+绘制粗糙，jpeg 压缩伪影，像素化，噪点，颗粒感，
+白底（需要透明背景时不要）
 ```
 
 ---
@@ -582,8 +816,8 @@ white background (用于需要透明背景的资源)
 
 ## 批量生成建议
 
-1. **优先生成**：游戏桌面背景 → Logo → 扑克牌背面 → 筹码（3种）→ 按钮（6个）
-2. **次优先**：头像框 → 牌型特效 → 胜利弹窗 → 奖池框
+1. **优先生成**：游戏桌面背景 → Logo → 扑克牌背面 → 筹码（3种）→ 牌桌操作按钮（6个）→ **返回图标**（第 25 节）→ **大厅主按钮人机对战 / 加入**（第 26 节，透明底无字）
+2. **次优先**：头像框 → 牌型特效 → 胜利弹窗 → 奖池框 → **玩法说明弹窗背景**（第 24 节，与 `dialog_bg` 风格统一）
 3. **最后**：动效帧 → 座位标记 → 倒计时器
 
 ## 色彩规范
@@ -598,7 +832,7 @@ white background (用于需要透明背景的资源)
 
 ---
 
-> **说明：** 所有提示词针对 Leonardo.ai 优化。生成后建议使用平台的 Background Removal 功能获取透明背景 PNG。对于需要精确尺寸的 UI 元素，可在生成后用图片编辑工具裁剪调整。
+> **说明：** 英文提示词针对 Leonardo.ai 优化；使用通义万相等国内工具时可直接采用各节 **中文** 提示词或中英混写。生成后建议使用平台的抠图/去底功能获取透明背景 PNG。需要精确尺寸的 UI 元素可在生成后用图片编辑工具裁剪。
 
 ---
 

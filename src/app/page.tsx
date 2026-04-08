@@ -54,7 +54,7 @@ const gamesData: GameCardData[] = [
     name: '炸金花',
     category: '经典怀旧',
     icon: '🃏',
-    coverImage: '/images/games/zhajinhua-cover.png',
+    coverImage: '/zhajinhua/logo.png',
     rating: 4.7,
     playCount: '6.2千',
     isHot: true,

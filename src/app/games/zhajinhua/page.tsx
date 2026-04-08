@@ -5,7 +5,12 @@
 'use client';
 
 import { ZhajinhuaApp } from '@/components/zhajinhua/zhajinhua-app';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 
 export default function ZhajinhuaGamePage() {
-  return <ZhajinhuaApp />;
+  return (
+    <AuthGuard>
+      <ZhajinhuaApp />
+    </AuthGuard>
+  );
 }

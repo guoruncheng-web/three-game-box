@@ -84,7 +84,7 @@ export default function ZhajinhuaLoadingPage() {
     >
       <div className="relative w-36 h-36 mb-8 rounded-3xl overflow-hidden shadow-2xl ring-2 ring-amber-400/40 animate-pulse">
         <Image
-          src="/images/games/zhajinhua-cover.png"
+          src="/zhajinhua/logo.png"
           alt=""
           fill
           className="object-cover"

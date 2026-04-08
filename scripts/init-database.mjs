@@ -17,14 +17,14 @@ const { Pool } = pg;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 数据库配置
+// 数据库配置 - 使用 Neon PostgreSQL
+// 优先使用环境变量 DATABASE_URL，回退到 Neon 连接字符串
 const pool = new Pool({
-  host: process.env.DB_HOST || '47.86.46.212',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'gameBox',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'ZzyxBhyjpvB/N2hBxA9kjhirUmMMzbaS',
-  ssl: false,
+  connectionString: process.env.DATABASE_URL ||
+    'postgresql://neondb_owner:npg_XcOj4w1oyDCQ@ep-aged-bread-anwg4ox3-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  ssl: {
+    rejectUnauthorized: false, // Neon 需要 SSL 连接
+  },
 });
 
 const testUser = {
@@ -85,10 +85,8 @@ async function createTestUser() {
 async function init() {
   console.log('🚀 开始初始化数据库...\n');
   console.log('📍 数据库配置:');
-  console.log(`   Host:     ${process.env.DB_HOST || '47.86.46.212'}`);
-  console.log(`   Port:     ${process.env.DB_PORT || '5432'}`);
-  console.log(`   Database: ${process.env.DB_NAME || 'gameBox'}`);
-  console.log(`   User:     ${process.env.DB_USER || 'root'}\n`);
+  console.log(`   连接: Neon PostgreSQL`);
+  console.log(`   URL: ${(process.env.DATABASE_URL || 'postgresql://...neon.tech/neondb').replace(/:[^:@]+@/, ':***@')}\n`);
 
   try {
     // 1. 运行迁移
