@@ -98,7 +98,7 @@ export function PokerCardThree({ faceDown, card, className = '' }: PokerCardFlat
           gl.setClearColor(0x000000, 0);
         }}
       >
-        <CardScene faceDown={faceDown} card={card} />
+        <CardScene faceDown={faceDown ?? true} card={card} />
       </Canvas>
 
       {!faceDown && card ? (
